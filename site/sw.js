@@ -1,7 +1,7 @@
-const SHELL='ek-shell-v1.1.0-mobile';
+const SHELL='ek-shell-v1.1.0-mobile-fresh';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
-self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const r=await fetch(new URL('data/offline-assets.json',root),{cache:'reload'});const files=await r.json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new URL(p,root).href));})());});
+self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const r=await fetch(new URL('data/offline-assets.json',root),{cache:'reload'});const files=await r.json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new Request(new URL(p,root).href,{cache:'reload'})));self.skipWaiting();})());});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('ek-shell-')&&key!==SHELL)await caches.delete(key);await self.clients.claim();})());});
 self.addEventListener('message',event=>{if(event.data==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(event.request.method!=='GET'||url.origin!==self.location.origin)return;if(!url.href.startsWith(root))return;
