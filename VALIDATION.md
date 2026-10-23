@@ -1,3 +1,20 @@
+# Vérification de la version mobile 1.1.0
+
+Vérifications effectuées le 23 octobre 2026.
+
+- 23 tests métier réussis et syntaxe JavaScript vérifiée. Sous Windows sandboxé, le test runner a été exécuté avec `--test-isolation=none`, les sous-processus étant indisponibles.
+- Contrôle visuel dans le navigateur aux largeurs 320 et 390 px ; contrôles de dimensions à 430 et 1280 px. Aucun débordement horizontal constaté sur les parcours contrôlés. Sur grand écran, le contenu et la navigation restent limités à 480 px, sans barre latérale.
+- Cartes des familles, du catalogue, des emplacements et des commandes contrôlées. Le catalogue conserve la recherche par EAN et la pagination de 20 références.
+- Formulaire de commande plein écran avec champs de 16 px. Ajout de deux lignes, références avec zéros initiaux, calcul 12/4 + 6/3 = 5, puis enregistrement réussi dans les données de démonstration.
+- Génération du Code 128 001234 contrôlée dans l’interface mobile.
+- Menu des outils et réglages en une colonne contrôlés. Les contrôles principaux mesurent au moins 44 px ; les actions et les champs mesurent généralement 48 à 52 px.
+- 2754 produits et 51 familles : relations du catalogue et présence des fichiers du cache principal vérifiées. Les moteurs OCR inchangés restent ceux de la version précédente ; leur présence complète sera contrôlée par GitHub Actions sur le dépôt.
+- Nouveau cache PWA incluant mobile.css et js/mobile.js. Les clés de stockage, le schéma de données, la synchronisation Google et les calculs métier restent inchangés.
+
+Les essais de caméra, micro, clavier virtuel et installation sur un téléphone physique restent à effectuer sur le matériel de l’utilisateur. Les limites Google OAuth et Honeywell ci-dessous restent applicables.
+
+---
+
 # Vérification de la version 1.0.0
 
 Vérifications effectuées le 23 octobre 2026.
@@ -42,3 +59,4 @@ Vérifications effectuées le 23 octobre 2026.
 ## Portée de la version
 
 Application personnelle autonome. Chaque collègue peut utiliser sa propre base Google Sheets. Une base commune rend les fiches et les totaux communs aux personnes autorisées ; cette version n’isole pas les tableaux de bord individuels par compte au sein d’une base partagée. Les mouvements du stock officiel restent dans Velocity.
+

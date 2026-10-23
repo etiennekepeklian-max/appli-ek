@@ -2,6 +2,14 @@
 
 Application web mobile en HTML, CSS et JavaScript. Elle accompagne la préparation de commandes et la gestion de stock, indépendamment de Velocity.
 
+## Version mobile 1.1.0
+
+L’interface est conçue exclusivement pour le téléphone : navigation fixe Accueil / Codes / Scanner / Attentes / Outils, cartes à la place des tableaux, formulaires plein écran, boutons tactiles et champs de 16 px. Le catalogue affiche 20 références par page. Le menu Outils regroupe la préparation, le stock et les réglages ; un sélecteur permet de changer d’outil de stock.
+
+La présentation reste celle d’un téléphone sur grand écran (largeur maximale de 480 px). Le zoom du navigateur reste disponible. Les données, sauvegardes et calculs existants sont conservés. La PWA demande une orientation portrait lorsque le système la prend en charge.
+
+Après une mise à jour, fermer tous les onglets de l’application puis la rouvrir pour activer le nouveau cache hors ligne.
+
 ## Démarrer sur le PC
 
 1. Extraire entièrement le ZIP.
@@ -86,3 +94,4 @@ Le dossier `vendor/` contient les versions épinglées de JsBarcode, ZXing Brows
 - `VALIDATION.md` : résultats et limites des vérifications effectuées.
 
 L’application n’écrit pas dans Velocity et ne constitue pas le stock officiel. Elle ne gère pas de comptes utilisateurs propres : l’accès aux sauvegardes partagées est défini par les autorisations Google du fichier.
+

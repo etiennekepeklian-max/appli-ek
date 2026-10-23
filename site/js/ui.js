@@ -1,5 +1,6 @@
 import {escapeHTML as esc,localDate} from './core.js';
 import {icon} from './icons.js';
+import {enhanceMobileTables} from './mobile.js';
 export {esc,icon};
 export const state={route:'home',date:localDate(),query:'',filter:'all',page:0,stockTab:'products',chartDays:7,catalogue:null,baseFamilies:[],baseProducts:[],codeValue:'',codeStars:false,codeFormat:'CODE128',generated:null,scanResult:null,orderLines:[],orderPhotos:[],selectedOrder:null,orderText:'',formRole:'preparer'};
 export const fmt=n=>Number(n??0).toLocaleString('fr-FR');
@@ -23,7 +24,7 @@ export function field(name,label,value='',options={}){
 export const check=(name,label,checked=false,attrs='')=>`<label class="check-label"><input type="checkbox" name="${name}" ${checked?'checked':''} ${attrs}>${label}</label>`;
 let toastTimer,closeHooks=[];
 export function toast(message,error=false){const el=document.querySelector('#toast');clearTimeout(toastTimer);el.textContent=message;el.classList.toggle('error',error);el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},error?9000:4500);}
-export function modal(title,body,wide=false){const d=document.querySelector('#dialog');if(d.open)closeModal();document.querySelector('#dialog-title').textContent=title;document.querySelector('#dialog-body').innerHTML=body;d.classList.toggle('wide',wide);d.showModal();d.scrollTop=0;setTimeout(()=>d.querySelector('input:not([type=hidden]),select,textarea,button')?.focus(),40);}
+export function modal(title,body,wide=false){const d=document.querySelector('#dialog');if(d.open)closeModal();document.querySelector('#dialog-title').textContent=title;document.querySelector('#dialog-body').innerHTML=body;d.classList.toggle('wide',wide);enhanceMobileTables(document.querySelector('#dialog-body'));d.showModal();document.querySelector('#dialog-body').scrollTop=0;document.querySelector('#dialog-title').focus({preventScroll:true});}
 export function closeModal(){const d=document.querySelector('#dialog');for(const fn of closeHooks.splice(0))fn();if(d.open)d.close();}
 export function onModalClose(fn){closeHooks.push(fn);}
 export function modalForm(name,body,{id='',submit='Enregistrer',intro='',wide=false,title='Nouvelle fiche'}={}){
@@ -41,3 +42,4 @@ export function pdfReport(title,lines,fileName='rapport-ek.pdf'){
   for(const l of lines){const str=typeof l==='string'?l:l.text;const heading=typeof l==='object'&&l.heading;pdf.setFont('helvetica',heading?'bold':'normal');pdf.setFontSize(heading?12:10);pdf.setTextColor(heading?23:57,heading?61:74,heading?57:64);const wrapped=pdf.splitTextToSize(clean(str),174);const height=wrapped.length*5.3+(heading?7:4);if(y+height>276){pdf.addPage();y=20;}pdf.text(wrapped,17,y);y+=height;}
   const pages=pdf.getNumberOfPages();for(let i=1;i<=pages;i++){pdf.setPage(i);pdf.setFont('helvetica','normal');pdf.setFontSize(8);pdf.setTextColor(125);pdf.text(`${i} / ${pages}`,193,287,{align:'right'});}download(pdf.output('blob'),fileName);
 }
+
