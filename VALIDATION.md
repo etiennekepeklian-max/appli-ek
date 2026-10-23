@@ -22,6 +22,13 @@ Vérifications effectuées le 23 octobre 2026.
 - Base native Google Sheets créée : **15 onglets**, noms et en-têtes contrôlés, première ligne figée et quantités/références conservées comme texte dans le stockage événementiel.
 - Archive ZIP contrôlée, chemins relatifs et absence de fichier de données utilisateur ou de secret dans le projet.
 
+## Publication GitHub vérifiée
+
+- Les **68 fichiers** du projet sont publiés dans `etiennekepeklian-max/appli-ek`. L’empreinte Git de l’arbre distant correspond exactement à celle des sources vérifiées.
+- Le workflow **Publier EK Logistique** a réussi : tests métier, syntaxe, catalogue, configuration Pages, préparation et déploiement de l’artefact.
+- Site HTTPS ouvert et contrôlé : https://etiennekepeklian-max.github.io/appli-ek/ . Accueil, démonstration, tableau de bord, génération du Code 128 **001234** et réglages Google vérifiés sur la version publique.
+- L’identifiant et le lien de la feuille Google privée ont été retirés des sources publiques. Le champ de feuille est vide au premier démarrage ; la valeur saisie ensuite reste dans les réglages locaux de l’appareil.
+
 ## Vérifications à effectuer sur le matériel et les comptes de l’utilisateur
 
 - Exécution des lanceurs PowerShell sur Windows et placement effectif dans `C:\Users\etien\Desktop\Artil\Appli EK` : l’environnement de développement n’a pas accès à ce disque Windows.
@@ -31,7 +38,6 @@ Vérifications effectuées le 23 octobre 2026.
 - Lecture des deux variantes sur le terminal Honeywell et vérification du texte réellement reçu dans Velocity.
 - Import et convention de la police spécifique fournie par Adrien.
 - Connexion Google OAuth réelle : l’identifiant client de cette application doit encore être créé. Les appels de synchronisation ne peuvent pas être validés sans lui. Les règles de sérialisation, fusion et conservation d’historique sont couvertes par les tests métier ; la sauvegarde fonctionne localement entre-temps.
-- Publication du dépôt et activation de GitHub Pages. Le workflow est fourni, aucun site public n’a été créé.
 
 ## Portée de la version
 

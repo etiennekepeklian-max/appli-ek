@@ -37,14 +37,15 @@ Les photos et les polices sont des fichiers locaux. Lors d’une synchronisation
 
 ## Publier sur GitHub Pages et installer sur téléphone
 
-Le projet est prêt pour un dépôt GitHub : le workflow `.github/workflows/pages.yml` vérifie les fichiers puis publie uniquement `site/`.
+Application publiée : **https://etiennekepeklian-max.github.io/appli-ek/**.
 
-1. Créer un dépôt **appli-ek** dans son compte GitHub et y ajouter tous les fichiers du projet, y compris `.github`.
-2. Dans **Settings → Pages → Build and deployment**, choisir **GitHub Actions**.
-3. Envoyer la branche `main`, ou lancer le workflow **Publier EK Logistique** depuis Actions.
-4. Ouvrir l’adresse HTTPS retournée par GitHub Pages sur le téléphone.
-5. Chrome Android → menu ⋮ → **Ajouter à l’écran d’accueil / Installer**.
-6. Ajouter l’origine GitHub Pages dans les origines autorisées de l’identifiant Google OAuth si la synchronisation est utilisée.
+Sources : https://github.com/etiennekepeklian-max/appli-ek . Le workflow `.github/workflows/pages.yml` vérifie le projet puis publie uniquement `site/`. Les modifications de la branche `main` déclenchent une mise à jour automatique ; le workflow peut aussi être lancé manuellement depuis Actions.
+
+1. Ouvrir l’application en HTTPS sur le téléphone.
+2. Chrome Android → menu ⋮ → **Ajouter à l’écran d’accueil / Installer**.
+3. Pour Google Sheets, renseigner sa feuille privée et son identifiant OAuth dans les Réglages, puis ajouter l’origine `https://etiennekepeklian-max.github.io` aux origines autorisées du client OAuth.
+
+Pour publier sa propre copie, activer **Settings → Pages → Build and deployment → GitHub Actions** dans son dépôt.
 
 Seul le code de l’application et le catalogue public sont publiés. Ne pas déposer les exports personnels, des photos d’entrepôt, des jetons d’accès ou des secrets dans GitHub. Aucun secret OAuth n’est nécessaire côté navigateur.
 
