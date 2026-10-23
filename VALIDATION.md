@@ -1,3 +1,16 @@
+# Vérification des caméras multiples — version 1.2.0
+
+Vérifications effectuées le 24 octobre 2026.
+
+- Tests automatisés du changement d’objectif avec libération de la caméra précédente, sélection exacte du périphérique, mémoire locale, retour à une caméra disponible, refus d’autorisation et interruption pendant une ouverture ou une découverte de périphériques.
+- Tests d’intégration des fonctions réelles du scanner avec caméras simulées : bouton caméra suivante, sélection directe, conservation du flux choisi dans le lecteur natif et le repli ZXing, rejet d’un résultat tardif de l’ancien objectif et désactivation des contrôles lorsqu’une seule caméra est exposée.
+- 36 tests automatisés réussis, dont les 23 tests métier existants. Vérification de syntaxe des fichiers JavaScript modifiés.
+- Nouveau cache PWA et liste hors ligne incluant js/camera.js. Préférence d’objectif uniquement locale, sans synchronisation vers Google ou GitHub.
+
+La liste réelle des objectifs, les autorisations et la qualité de lecture doivent être essayées sur le téléphone de l’utilisateur. Les tests simulés ne constituent pas un essai du matériel physique. Les noms et le nombre de caméras dépendent des périphériques exposés par le navigateur.
+
+---
+
 # Vérification de la version mobile 1.1.0
 
 Vérifications effectuées le 23 octobre 2026.
@@ -59,4 +72,5 @@ Vérifications effectuées le 23 octobre 2026.
 ## Portée de la version
 
 Application personnelle autonome. Chaque collègue peut utiliser sa propre base Google Sheets. Une base commune rend les fiches et les totaux communs aux personnes autorisées ; cette version n’isole pas les tableaux de bord individuels par compte au sein d’une base partagée. Les mouvements du stock officiel restent dans Velocity.
+
 

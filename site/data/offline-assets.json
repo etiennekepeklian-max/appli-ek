@@ -9,6 +9,7 @@
   "guide-google.html",
   "index.html",
   "js/app.js",
+  "js/camera.js",
   "js/core.js",
   "js/features.js",
   "js/icons.js",

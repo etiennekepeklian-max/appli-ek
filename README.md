@@ -2,6 +2,14 @@
 
 Application web mobile en HTML, CSS et JavaScript. Elle accompagne la préparation de commandes et la gestion de stock, indépendamment de Velocity.
 
+## Caméras multiples — version 1.2.0
+
+Dans **Scanner → Ouvrir la caméra**, autorisez l’accès puis choisissez **Caméra utilisée**, ou touchez **Changer de caméra** pour passer à la suivante. Le dernier objectif est conservé localement sur cet appareil, séparément des sauvegardes et des autres téléphones.
+
+La liste contient les caméras vidéo exposées par le navigateur après autorisation, avec leurs noms disponibles. Le navigateur peut regrouper ou masquer certains capteurs physiques ; si une seule caméra est proposée, le sélecteur et la bascule sont désactivés avec une explication. Le choix concerne le scanner vidéo ; le bouton « choisir une photo » continue d’utiliser l’interface photo du téléphone.
+
+L’ancien flux est fermé avant chaque changement. Le lecteur natif et ZXing utilisent le même objectif sélectionné. Si une ancienne préférence n’est plus disponible, le scanner revient à une caméra disponible et le signale. Quitter l’écran ou masquer l’application arrête la capture, même si une autorisation ou une ouverture était encore en cours.
+
 ## Version mobile 1.1.0
 
 L’interface est conçue exclusivement pour le téléphone : navigation fixe Accueil / Codes / Scanner / Attentes / Outils, cartes à la place des tableaux, formulaires plein écran, boutons tactiles et champs de 16 px. Le catalogue affiche 20 références par page. Le menu Outils regroupe la préparation, le stock et les réglages ; un sélecteur permet de changer d’outil de stock.
@@ -94,4 +102,5 @@ Le dossier `vendor/` contient les versions épinglées de JsBarcode, ZXing Brows
 - `VALIDATION.md` : résultats et limites des vérifications effectuées.
 
 L’application n’écrit pas dans Velocity et ne constitue pas le stock officiel. Elle ne gère pas de comptes utilisateurs propres : l’accès aux sauvegardes partagées est défini par les autorisations Google du fichier.
+
 

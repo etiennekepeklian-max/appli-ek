@@ -1,4 +1,4 @@
-const SHELL='ek-shell-v1.1.0-mobile-fresh';
+const SHELL='ek-shell-v1.2.0-cameras';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const r=await fetch(new URL('data/offline-assets.json',root),{cache:'reload'});const files=await r.json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new Request(new URL(p,root).href,{cache:'reload'})));self.skipWaiting();})());});
@@ -11,4 +11,5 @@ self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(ev
     const response=await fetch(event.request);if(response.ok&&!url.pathname.endsWith('/sw.js')){const cache=await caches.open(url.pathname.includes('/vendor/ocr/')?LARGE:SHELL);await cache.put(event.request,response.clone());}return response;
   })());
 });
+
 

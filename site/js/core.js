@@ -1,4 +1,4 @@
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const SCHEMA = 1;
 export const TYPES = ['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences'];
 export const SHEETS = {families:'Familles',products:'References',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres'};
@@ -96,4 +96,5 @@ export function validBarcode(value,format='CODE128'){
   if(format==='CODE39'&&!/^[0-9A-Z .$/+%-]+$/.test(value))throw Error('Le Code 39 accepte les majuscules, chiffres et les signes espace . $ / + % - . Les étoiles sont gérées par le format.');
   return true;
 }
+
 

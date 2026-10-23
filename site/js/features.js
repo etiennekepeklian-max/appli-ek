@@ -2,6 +2,7 @@ import * as Store from './storage.js';
 import {state,esc,icon,modal,closeModal,onModalClose,toast,btn,download,fmt} from './ui.js';
 import {voiceCode,validBarcode,spokenInteger} from './core.js';
 import {findProducts,familyName} from './model.js';
+import {CameraSession,cameraErrorMessage} from './camera.js';
 
 const scripts=new Map();
 export function loadScript(path){if(scripts.has(path))return scripts.get(path);const p=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=path;s.onload=resolve;s.onerror=()=>{scripts.delete(path);reject(Error('Ce module est indisponible. Préparez-le hors ligne dans Réglages ou vérifiez votre connexion.'));};document.head.append(s);});scripts.set(path,p);return p;}
@@ -55,20 +56,95 @@ export function batchDialog(){modal('Planche de codes-barres',`<form data-form="
 let batchItems=[];
 export function createBatch(text,stars){const values=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!values.length||values.length>100)throw Error('Indiquez entre 1 et 100 références, une par ligne.');batchItems=values.map(value=>({value,stars,svg:barcodeSVG(value,'CODE128',stars).outerHTML}));document.querySelector('#batch-output').innerHTML=`<div class="actions section-gap">${btn('Télécharger le PDF','batch-pdf','download','primary')}${btn('Imprimer','print','print')}</div><div class="section-gap">${batchItems.map(i=>`<div class="batch-label">${i.svg}</div>`).join('')}</div>`;}
 export async function batchPDF(){if(!batchItems.length)return;const pdf=new jspdf.jsPDF();let y=15;for(const item of batchItems){if(y+48>282){pdf.addPage();y=15;}const png=await svgPNG(item.svg);const props=pdf.getImageProperties(png);const width=Math.min(178,props.width/props.height*40);pdf.addImage(png,'PNG',(210-width)/2,y,width,40);y+=50;}download(pdf.output('blob'),'codes-barres-ek.pdf');}
-let scannerControls,scanStream,scanTimer,scanActive=false;
-export function stopCamera(){scanActive=false;scannerControls?.stop();scannerControls=null;scanStream?.getTracks().forEach(t=>t.stop());scanStream=null;clearTimeout(scanTimer);}
+let scannerControls,scanTimer,scanRun=0,cameraSession;
+const cameraPreference='ek-preferred-camera';
+function getCameraSession(){
+  return cameraSession||=new CameraSession({
+    mediaDevices:navigator.mediaDevices,
+    recall:()=>{try{return localStorage.getItem(cameraPreference)||'';}catch{return '';}},
+    remember:id=>{try{localStorage.setItem(cameraPreference,id);}catch{}}
+  });
+}
+function stopDecoder(){
+  clearTimeout(scanTimer);
+  const controls=scannerControls;scannerControls=null;
+  try{controls?.stop();}catch{}
+}
+export function stopCamera(){
+  scanRun++;stopDecoder();cameraSession?.stop();
+  const container=document.querySelector('#camera-container');
+  container?.removeAttribute('aria-busy');
+  if(container?.querySelector('#scan-video')){
+    const video=container.querySelector('#scan-video');video.pause();video.srcObject=null;
+    container.innerHTML=btn('Rouvrir la caméra','start-camera','camera','primary full')+'<p class="hint section-gap">Caméra arrêtée. Votre dernier objectif sera réutilisé.</p>';
+  }
+}
 export async function startCamera(){
-  stopCamera();if(!navigator.mediaDevices?.getUserMedia)throw Error('La caméra nécessite une adresse HTTPS ou localhost. Vous pouvez utiliser une photo ou saisir le code.');
-  const container=document.querySelector('#camera-container');container.innerHTML=`<div class="camera-frame"><video id="scan-video" class="camera-video" autoplay muted playsinline></video></div><div class="actions section-gap">${btn('Arrêter la caméra','stop-camera','close')}</div><p class="hint section-gap">Alignez le code et maintenez le téléphone immobile.</p>`;
-  const video=document.querySelector('#scan-video');scanActive=true;
+  stopCamera();
+  if(!navigator.mediaDevices?.getUserMedia)throw Error('La caméra nécessite une adresse HTTPS ou localhost. Vous pouvez utiliser une photo ou saisir le code.');
+  const container=document.querySelector('#camera-container');if(!container)return;
+  container.innerHTML='<div class="camera-picker"><label for="scan-camera">Caméra utilisée</label><select id="scan-camera" aria-describedby="camera-hint" disabled><option>Autorisez la caméra pour voir les objectifs…</option></select><p class="hint" id="camera-hint">Les caméras disponibles apparaissent après votre autorisation.</p></div><div class="camera-frame"><video id="scan-video" class="camera-video" autoplay muted playsinline></video></div><div class="camera-actions section-gap">'+btn('Changer de caméra','next-camera','sync')+btn('Arrêter','stop-camera','close')+'</div><p id="camera-status" class="hint section-gap" role="status" aria-live="polite">Ouverture de la caméra…</p>';
+  container.querySelector('[data-action="next-camera"]').disabled=true;
+  await openCamera();
+}
+export async function changeCamera(deviceId){
+  if(deviceId&&deviceId===cameraSession?.deviceId&&cameraSession?.stream)return;
+  await openCamera(deviceId);
+}
+export async function nextCamera(){
+  if(!cameraSession||cameraSession.cameras.length<2)return;
+  const cameras=cameraSession.cameras,index=cameras.findIndex(c=>c.deviceId===cameraSession.deviceId);
+  await changeCamera(cameras[(index+1)%cameras.length].deviceId);
+}
+async function openCamera(deviceId){
+  const container=document.querySelector('#camera-container'),video=container?.querySelector('#scan-video');
+  if(!video)return;
+  const run=++scanRun;stopDecoder();
+  const current=()=>{
+    if(run!==scanRun)return false;
+    if(!video.isConnected||document.hidden){stopCamera();return false;}
+    return true;
+  };
+  const select=container.querySelector('#scan-camera'),next=container.querySelector('[data-action="next-camera"]'),status=container.querySelector('#camera-status');
+  select.disabled=true;next.disabled=true;container.setAttribute('aria-busy','true');
+  status.textContent='Ouverture de la caméra…';video.pause();video.srcObject=null;
   try{
-    if('BarcodeDetector' in window){const supported=await BarcodeDetector.getSupportedFormats();const formats=['code_128','code_39','code_93','ean_13','ean_8','upc_a','upc_e','itf','qr_code','data_matrix','pdf417','aztec','codabar'].filter(x=>supported.includes(x));if(!formats.length)throw Error('native-unavailable');const detector=new BarcodeDetector({formats});scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1600}},audio:false});video.srcObject=scanStream;await video.play();const tick=async()=>{if(!scanActive)return;try{const results=await detector.detect(video);if(results.length){stopCamera();await lookupProduct(results[0].rawValue);return;}}catch{}scanTimer=setTimeout(tick,220);};tick();return;}
-    throw Error('native-unavailable');
+    const opened=await getCameraSession().open(deviceId);
+    if(!opened||!current())return;
+    select.innerHTML=opened.cameras.length?opened.cameras.map(c=>'<option value="'+esc(c.deviceId)+'">'+esc(c.label)+'</option>').join(''):'<option value="">Caméra actuelle</option>';
+    select.value=opened.deviceId;select.disabled=opened.cameras.length<2;next.disabled=opened.cameras.length<2;
+    container.querySelector('#camera-hint').textContent=opened.cameras.length>1?'Choisissez un objectif dans la liste ou touchez « Changer de caméra ». Le dernier choix reste sur cet appareil.':'Le navigateur ne propose qu’une caméra. Les autres objectifs peuvent être masqués par le téléphone ou le navigateur.';
+    video.srcObject=opened.stream;await video.play();if(!current())return;
+    container.removeAttribute('aria-busy');status.textContent='Caméra prête. Alignez le code et maintenez le téléphone immobile.';
+    if(opened.fallback)toast('La caméra choisie est indisponible. Une autre caméra a été ouverte.');
+    const accept=raw=>{if(!current())return;stopCamera();lookupProduct(raw).catch(error=>toast(error.message,true));};
+    let detector;
+    if('BarcodeDetector' in window){
+      try{
+        const supported=await BarcodeDetector.getSupportedFormats();
+        const formats=['code_128','code_39','code_93','ean_13','ean_8','upc_a','upc_e','itf','qr_code','data_matrix','pdf417','aztec','codabar'].filter(format=>supported.includes(format));
+        if(formats.length)detector=new BarcodeDetector({formats});
+      }catch{}
+    }
+    if(!current())return;
+    if(detector){
+      const tick=async()=>{
+        if(!current())return;
+        try{const results=await detector.detect(video);if(current()&&results.length){accept(results[0].rawValue);return;}}catch{}
+        if(current())scanTimer=setTimeout(tick,220);
+      };
+      void tick();return;
+    }
+    await loadScript('vendor/zxing-browser.min.js');if(!current())return;
+    const reader=new ZXingBrowser.BrowserMultiFormatReader();
+    const controls=await reader.decodeFromStream(opened.stream,video,(result,error,controls)=>{
+      if(result&&current()){controls.stop();accept(result.getText());}
+    });
+    if(!current()){controls.stop();return;}
+    scannerControls=controls;
   }catch(error){
-    if(error.name==='NotAllowedError'||error.name==='NotFoundError'){stopCamera();throw Error(error.name==='NotAllowedError'?'Autorisez la caméra dans les réglages du navigateur.':'Aucune caméra n’a été trouvée sur cet appareil.');}
-    scanStream?.getTracks().forEach(t=>t.stop());scanStream=null;
-    await loadScript('vendor/zxing-browser.min.js');const reader=new ZXingBrowser.BrowserMultiFormatReader();
-    try{scannerControls=await reader.decodeFromConstraints({video:{facingMode:{ideal:'environment'}},audio:false},video,(result,error,controls)=>{if(result&&scanActive){controls.stop();stopCamera();lookupProduct(result.getText()).catch(e=>toast(e.message,true));}});}catch(e){stopCamera();throw Error('Impossible d’ouvrir la caméra. Vous pouvez choisir une photo ou saisir le code.');}
+    if(run!==scanRun)return;
+    stopCamera();throw Error(cameraErrorMessage(error));
   }
 }
 export async function scanPhoto(file){await loadScript('vendor/zxing-browser.min.js');const url=URL.createObjectURL(file);try{const reader=new ZXingBrowser.BrowserMultiFormatReader();const result=await reader.decodeFromImageUrl(url);await lookupProduct(result.getText());}catch{throw Error('Aucun code lisible sur cette photo. Cadrez le code entier, net et sans reflet, puis réessayez.');}finally{URL.revokeObjectURL(url);}}
@@ -99,3 +175,4 @@ export async function cacheOCR(){
   const cache=await caches.open('ek-large-assets-v1');let count=0;for(const path of unique){const url=new URL(path,document.baseURI).href;const present=await cache.match(url);if(!present){const r=await fetch(url);if(!r.ok)throw Error('Un fichier OCR est indisponible : '+path);await cache.put(url,r);}count++;toast(`Préparation hors ligne : ${count} / ${unique.length}`);}toast('La lecture des photos est prête hors ligne.');
 }
 export async function viewPhoto(id){const f=await Store.readFile(id);if(f){const url=URL.createObjectURL(f.blob);modal('Document enregistré',`<img class="photo-preview" src="${url}" alt="${esc(f.name)}"><p class="hint">${esc(f.name)}</p>`);onModalClose(()=>URL.revokeObjectURL(url));}else{const d=Store.get('documents',id);if(d?.driveUrl)modal('Document sauvegardé sur Drive',`<p class="dialog-intro">Cette photo est disponible dans votre sauvegarde Google.</p><a class="btn primary" href="https://drive.google.com/file/d/${encodeURIComponent(d.driveId)}/view" target="_blank" rel="noopener noreferrer">Ouvrir le document dans Drive</a>`);else throw Error('Ce document n’est pas disponible sur cet appareil.');}}
+

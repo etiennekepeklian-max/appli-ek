@@ -136,7 +136,7 @@ async function handleAction(button){const action=button.dataset.action,id=button
   case 'unfavourite-code':{const r=getRaw('codes',id);await Store.save('codes',{...r,favourite:false},'Code retiré des favoris');break;}
   case 'reuse-code':{const r=getRaw('codes',id);await Features.generateBarcode(r.value,r.format,r.stars);render();break;}
   case 'code-from-product':navigate('codes');await Features.generateBarcode(button.dataset.code);render();break;
-  case 'start-camera':await Features.startCamera();break;case 'stop-camera':Features.stopCamera();document.querySelector('#camera-container').innerHTML=btn('Rouvrir la caméra','start-camera','camera','primary');break;
+  case 'start-camera':await Features.startCamera();break;case 'next-camera':await Features.nextCamera();break;case 'stop-camera':Features.stopCamera();break;
   case 'scan-example':{if(!Store.isDemo())throw Error('Cet exercice est réservé à la démonstration.');const r=await fetch('assets/tutorial-code128.png');await Features.scanPhoto(await r.blob());break;}
   case 'view-photo':await Features.viewPhoto(id);break;
   case 'backup':{toast('Préparation de votre sauvegarde…');const data=await Store.exportData();jsonDownload(data,`ek-logistique-${localDate()}${Store.isDemo()?'-demo':''}.json`);toast('Sauvegarde exportée.');break;}
@@ -190,7 +190,7 @@ async function readOrderPhotos(files){const output=document.querySelector('#ocr-
 
 document.addEventListener('click',event=>{const navigation=event.target.closest('[data-nav]');if(navigation){event.preventDefault();navigate(navigation.dataset.nav);return;}const button=event.target.closest('[data-action]');if(button&&!button.disabled){event.preventDefault();wrapAction(()=>handleAction(button));}});
 document.addEventListener('submit',event=>{const form=event.target.closest('[data-form]');if(form){event.preventDefault();handleSubmit(form);}});
-document.addEventListener('change',event=>{const el=event.target;if(el.matches('[data-route-select]')){navigate(el.value);}else if(el.id==='day-select'){state.date=el.value||localDate();render();}else if(el.id==='view-filter'){state.filter=el.value;state.page=0;render();}else if(el.dataset.fileAction)wrapAction(()=>handleFiles(el));else if(el.matches('[data-line-field="sku"]')){fillLinePackaging(el);updateOrderEstimate();}});
+document.addEventListener('change',event=>{const el=event.target;if(el.id==='scan-camera'){wrapAction(()=>Features.changeCamera(el.value));}else if(el.matches('[data-route-select]')){navigate(el.value);}else if(el.id==='day-select'){state.date=el.value||localDate();render();}else if(el.id==='view-filter'){state.filter=el.value;state.page=0;render();}else if(el.dataset.fileAction)wrapAction(()=>handleFiles(el));else if(el.matches('[data-line-field="sku"]')){fillLinePackaging(el);updateOrderEstimate();}});
 let searchTimer;document.addEventListener('input',event=>{const el=event.target;if(el.matches('[data-filter-search]')){const v=el.value;clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.query=v;state.page=0;render();},140);}if(el.matches('[data-line-field="sku"]'))fillLinePackaging(el);if(el.matches('[data-line-field="pack"]'))delete el.dataset.autoFor;if(el.matches('[data-line-field]'))updateOrderEstimate();});
 document.querySelector('#dialog').addEventListener('cancel',()=>{Features.stopDictation();closeModal();});
 window.addEventListener('online',()=>{updateNetwork();if(Sync.connected()&&!Store.isDemo())wrapAction(()=>Sync.sync());});window.addEventListener('offline',updateNetwork);
@@ -206,4 +206,5 @@ async function start(){
 }
 installMobileViewport();
 start();
+
 
