@@ -1,0 +1,605 @@
+{
+  "meta": {
+    "publisher": "Draeger Paris",
+    "retrievedAt": "2026-10-23T17:05:33.452799+00:00",
+    "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+    "productFeed": "https://fr.checkout.draegerparis.com/products.json?limit=250&page=1",
+    "publicProductCountObserved": 514,
+    "publicVariantCountObserved": 2754,
+    "scope": "Catalogue public de la boutique Draeger Paris. Les familles regroupent les types publics en une hiérarchie proposée pour l’application. Ce n’est ni la nomenclature interne ni la liste exhaustive des références et présentoirs de l’entrepôt.",
+    "packagingNote": "Aucun conditionnement logistique ni nombre de prises n’est déduit des lots commerciaux ou des règles Shopify. Les quantités par picking restent nulles et doivent être confirmées référence par référence.",
+    "sourceTypesObserved": [
+      "",
+      "Adaptateur téléphone",
+      "Album scrapbooking",
+      "Bague Femme",
+      "Bandoulière Femme",
+      "Bloc note",
+      "Bob unisexe",
+      "Bonnet unisexe",
+      "Boucles d'oreilles Femme",
+      "Boutons de manchette",
+      "Bracelet",
+      "Bracelet Femme",
+      "Bracelet personnalisé",
+      "Béret Femme",
+      "Calendrier",
+      "Carnet",
+      "Carnets et blocs-notes",
+      "Carte Bijou",
+      "Carte d'amour",
+      "Carte d'anniversaire",
+      "Carte de noel",
+      "Carte de voeux",
+      "Carte de vœux",
+      "Carte de vœux Bonnes fetes",
+      "Carte de vœux naissance",
+      "Carte fete des mères",
+      "Carte fetes des grands-meres",
+      "Carte fête des pères",
+      "Carte maxi",
+      "Carte musicale",
+      "Casquette unisexe",
+      "Charms",
+      "Chaîne téléphone",
+      "Collier",
+      "Collier Femme",
+      "Collier personnalisé",
+      "Cordon téléphone",
+      "Cravate Homme",
+      "Dragonne de téléphone",
+      "Dragonne téléphone",
+      "Décoration de Noël",
+      "Emploi du temps enfant",
+      "Etole Femme",
+      "Etui",
+      "Foulard",
+      "Foulard Femme",
+      "Foulard chic",
+      "Gants Femme",
+      "Gants Homme",
+      "Gourde",
+      "Gourde Enfant",
+      "Gourdes Enfants",
+      "Kit DIY",
+      "Magnet",
+      "Masking tape",
+      "Miroir",
+      "Mug",
+      "Noeud papillon",
+      "Parapluie",
+      "Paréo Femme",
+      "Patch",
+      "Petit outillage",
+      "Pochette Trousse",
+      "Pochette costume Homme",
+      "Pochette téléphone",
+      "Porte-cartes Femme",
+      "Porte-clés",
+      "Porte-clés enfant",
+      "Porte-monnaie Femme",
+      "Portefeuille Femme",
+      "Portefeuille Homme",
+      "Ruban et papier de soie",
+      "Sac Femme",
+      "Sac Tote Bag Femme",
+      "Sac bandouliere",
+      "Sac bouteille",
+      "Sac cadeau",
+      "Sac ordinateur",
+      "Sacs Femme",
+      "Sacs à dos",
+      "Sangle Porte Téléphone Femme",
+      "Semainier enfant",
+      "Sticker mural",
+      "Stickers enfant",
+      "Stickers enfant noel",
+      "Stylo personnalisé",
+      "Stylo tactile",
+      "Tote bag",
+      "Trousse adulte",
+      "Trousse de toilette",
+      "bracelet",
+      "pochette à bandoulière"
+    ],
+    "sourceTypeCountObserved": 92,
+    "classificationUpdate": "2026-10-24 : grandes familles et sous-familles conservées ; aucune quantité inventée."
+  },
+  "families": [
+    {
+      "id": "papeterie",
+      "name": "Papeterie",
+      "parentId": null,
+      "sourceUrl": "https://draegerparis.com/fr"
+    },
+    {
+      "id": "sacs",
+      "name": "Sacs et maroquinerie",
+      "parentId": null,
+      "sourceUrl": "https://draegerparis.com/fr"
+    },
+    {
+      "id": "bijoux",
+      "name": "Bijoux",
+      "parentId": null,
+      "sourceUrl": "https://draegerparis.com/fr"
+    },
+    {
+      "id": "accessoires",
+      "name": "Accessoires",
+      "parentId": null,
+      "sourceUrl": "https://draegerparis.com/fr"
+    },
+    {
+      "id": "cadeaux",
+      "name": "Maison et cadeaux",
+      "parentId": null,
+      "sourceUrl": "https://draegerparis.com/fr"
+    },
+    {
+      "id": "papeterie-cartes-danniversaire",
+      "name": "Cartes d’anniversaire",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte d'anniversaire"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-damour",
+      "name": "Cartes d’amour",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte d'amour"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-de-noel-et-de-fetes",
+      "name": "Cartes de Noël et de fêtes",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte de noel",
+        "Carte de vœux Bonnes fetes"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-de-vux",
+      "name": "Cartes de vœux",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte de voeux",
+        "Carte de vœux"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-de-naissance",
+      "name": "Cartes de naissance",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte de vœux naissance"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-fete-des-meres",
+      "name": "Cartes fête des mères",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte fete des mères"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-fete-des-peres",
+      "name": "Cartes fête des pères",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte fête des pères"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-fete-des-grands-meres",
+      "name": "Cartes fête des grands-mères",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte fetes des grands-meres"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-maxi",
+      "name": "Cartes maxi",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte maxi"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-musicales",
+      "name": "Cartes musicales",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte musicale"
+      ]
+    },
+    {
+      "id": "papeterie-cartes-bijoux",
+      "name": "Cartes bijoux",
+      "parentId": "cartes",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carte Bijou"
+      ]
+    },
+    {
+      "id": "papeterie-carnets-et-blocs-notes",
+      "name": "Carnets et blocs-notes",
+      "parentId": "papeterie",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Carnet",
+        "Carnets et blocs-notes",
+        "Bloc note"
+      ]
+    },
+    {
+      "id": "papeterie-calendriers",
+      "name": "Calendriers",
+      "parentId": "papeterie",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Calendrier"
+      ]
+    },
+    {
+      "id": "papeterie-organisation-enfant",
+      "name": "Organisation enfant",
+      "parentId": "papeterie",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Emploi du temps enfant",
+        "Semainier enfant"
+      ]
+    },
+    {
+      "id": "papeterie-stylos",
+      "name": "Stylos",
+      "parentId": "papeterie",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Stylo personnalisé",
+        "Stylo tactile"
+      ]
+    },
+    {
+      "id": "papeterie-albums-et-scrapbooking",
+      "name": "Albums et scrapbooking",
+      "parentId": "papeterie",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Album scrapbooking",
+        "Masking tape"
+      ]
+    },
+    {
+      "id": "papeterie-stickers",
+      "name": "Stickers",
+      "parentId": "papeterie",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Stickers enfant",
+        "Stickers enfant noel",
+        "Sticker mural"
+      ]
+    },
+    {
+      "id": "sacs-sacs-a-main-et-bandouliere",
+      "name": "Sacs à main et bandoulière",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Sac Femme",
+        "Sacs Femme",
+        "Sac bandouliere",
+        "pochette à bandoulière"
+      ]
+    },
+    {
+      "id": "sacs-tote-bags",
+      "name": "Tote bags",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Tote bag",
+        "Sac Tote Bag Femme"
+      ]
+    },
+    {
+      "id": "sacs-sacs-a-dos-et-ordinateur",
+      "name": "Sacs à dos et ordinateur",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Sacs à dos",
+        "Sac ordinateur"
+      ]
+    },
+    {
+      "id": "sacs-trousses-et-pochettes",
+      "name": "Trousses et pochettes",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Pochette Trousse",
+        "Trousse adulte",
+        "Trousse de toilette"
+      ]
+    },
+    {
+      "id": "sacs-portefeuilles",
+      "name": "Portefeuilles",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Portefeuille Femme",
+        "Portefeuille Homme"
+      ]
+    },
+    {
+      "id": "sacs-porte-monnaie",
+      "name": "Porte-monnaie",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Porte-monnaie Femme"
+      ]
+    },
+    {
+      "id": "sacs-porte-cartes",
+      "name": "Porte-cartes",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Porte-cartes Femme"
+      ]
+    },
+    {
+      "id": "sacs-bandoulieres",
+      "name": "Bandoulières",
+      "parentId": "sacs",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Bandoulière Femme"
+      ]
+    },
+    {
+      "id": "bijoux-bagues",
+      "name": "Bagues",
+      "parentId": "bijoux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Bague Femme"
+      ]
+    },
+    {
+      "id": "bijoux-boucles-doreilles",
+      "name": "Boucles d’oreilles",
+      "parentId": "bijoux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Boucles d'oreilles Femme"
+      ]
+    },
+    {
+      "id": "bijoux-bracelets",
+      "name": "Bracelets",
+      "parentId": "bijoux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Bracelet",
+        "Bracelet Femme",
+        "Bracelet personnalisé",
+        "bracelet"
+      ]
+    },
+    {
+      "id": "bijoux-colliers",
+      "name": "Colliers",
+      "parentId": "bijoux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Collier",
+        "Collier Femme",
+        "Collier personnalisé"
+      ]
+    },
+    {
+      "id": "bijoux-charms",
+      "name": "Charms",
+      "parentId": "bijoux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Charms"
+      ]
+    },
+    {
+      "id": "accessoires-accessoires-telephone",
+      "name": "Accessoires téléphone",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Adaptateur téléphone",
+        "Chaîne téléphone",
+        "Cordon téléphone",
+        "Dragonne de téléphone",
+        "Dragonne téléphone",
+        "Pochette téléphone",
+        "Sangle Porte Téléphone Femme"
+      ]
+    },
+    {
+      "id": "accessoires-gourdes",
+      "name": "Gourdes",
+      "parentId": "cadeaux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Gourde",
+        "Gourde Enfant",
+        "Gourdes Enfants"
+      ]
+    },
+    {
+      "id": "accessoires-porte-cles",
+      "name": "Porte-clés",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Porte-clés",
+        "Porte-clés enfant"
+      ]
+    },
+    {
+      "id": "accessoires-etuis",
+      "name": "Étuis",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Etui"
+      ]
+    },
+    {
+      "id": "accessoires-foulards-et-etoles",
+      "name": "Foulards et étoles",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Foulard",
+        "Foulard Femme",
+        "Foulard chic",
+        "Etole Femme",
+        "Paréo Femme"
+      ]
+    },
+    {
+      "id": "accessoires-chapeaux-et-bonnets",
+      "name": "Chapeaux et bonnets",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Bob unisexe",
+        "Bonnet unisexe",
+        "Béret Femme",
+        "Casquette unisexe"
+      ]
+    },
+    {
+      "id": "accessoires-gants",
+      "name": "Gants",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Gants Femme",
+        "Gants Homme"
+      ]
+    },
+    {
+      "id": "accessoires-parapluies",
+      "name": "Parapluies",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Parapluie"
+      ]
+    },
+    {
+      "id": "accessoires-accessoires-de-costume",
+      "name": "Accessoires de costume",
+      "parentId": "accessoires",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Cravate Homme",
+        "Noeud papillon",
+        "Pochette costume Homme",
+        "Boutons de manchette"
+      ]
+    },
+    {
+      "id": "accessoires-miroirs",
+      "name": "Miroirs",
+      "parentId": "cadeaux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Miroir"
+      ]
+    },
+    {
+      "id": "cadeaux-mugs",
+      "name": "Mugs",
+      "parentId": "cadeaux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Mug"
+      ]
+    },
+    {
+      "id": "cadeaux-magnets",
+      "name": "Magnets",
+      "parentId": "cadeaux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Magnet"
+      ]
+    },
+    {
+      "id": "cadeaux-emballages-cadeaux",
+      "name": "Emballages cadeaux",
+      "parentId": null,
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Sac cadeau",
+        "Sac bouteille",
+        "Ruban et papier de soie"
+      ]
+    },
+    {
+      "id": "cadeaux-decorations-de-noel",
+      "name": "Décorations de Noël",
+      "parentId": "cadeaux",
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Décoration de Noël"
+      ]
+    },
+    {
+      "id": "cadeaux-loisirs-creatifs-et-accessoires",
+      "name": "Loisirs créatifs et accessoires",
+      "parentId": null,
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        "Kit DIY",
+        "Patch",
+        "Petit outillage"
+      ]
+    },
+    {
+      "id": "a-classer",
+      "name": "À classer",
+      "parentId": null,
+      "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
+      "sourceProductTypes": [
+        ""
+      ]
+    },
+    {
+      "id": "cartes",
+      "name": "Cartes",
+      "parentId": null
+    }
+  ]
+}

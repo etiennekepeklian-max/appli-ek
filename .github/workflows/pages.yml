@@ -1,0 +1,52 @@
+name: Verifier et publier EK Logistique
+on:
+  push:
+    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verifier le projet
+        run: npm test && npm run check
+      - name: Installer le navigateur de test
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          google-chrome --version
+      - name: Verifier les parcours mobiles
+        run: node tools/ui-smoke.mjs
+        env:
+          EK_TEST_BROWSER_CHANNEL: chrome
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terrain-ui-checks
+          path: test-results
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Publier
+        id: deployment
+        uses: actions/deploy-pages@v4
+
