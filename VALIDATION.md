@@ -28,3 +28,14 @@ Tests ajoutés : préfixes PAC/PAD/RES, changement de zone et zéros initiaux ; 
 65 tests métier et les parcours Chrome mobiles ont réussi, dont les 28 contrôles de largeur sans débordement ni erreur JavaScript. La version 1.5.0 a été publiée sur GitHub Pages après ces vérifications.
 
 Le 25 octobre 2026, la configuration OAuth du propriétaire a été terminée et la synchronisation réelle de la version publiée avec sa base privée a affiché « Sauvegarde Google à jour ». Chaque autre appareil doit se connecter au même compte et renseigner sa base privée. L'identifiant public du client OAuth est intégré ; aucun identifiant de feuille privée, jeton ou secret client n'est publié. Le fichier de police exact n'a pas été fourni à cette étape.
+
+
+## Version 1.6.0
+
+70 tests métier : nouveaux cas de doublons avec exception justifiée, emplacement habituel explicite, filtres de complétude, distinction connexion/sauvegarde et priorisation des anomalies de journée.
+
+Les deux parcours Chrome couvrent les fonctions existantes (OCR réel local sur photos synthétiques, CSV, photos, annulation, journaux, caméra simulée et Code39 décodé) ainsi que les nouveaux enchaînements : plusieurs manquants d’une commande, doublon ouvert ou justifié, réception distincte de clôture, scanner avec retour au formulaire, préférence d’emplacement, recherche de casier, niveau économique facultatif et date du constat. 52 couples écran/largeur sont vérifiés à 320, 390, 480 et 1280 px.
+
+Le nouveau parcours utilise un service worker réel pour vérifier le rechargement hors ligne et la conservation d’un brouillon. Un serveur Google simulé, avec données et jeton synthétiques, exerce le véritable code de synchronisation : échec réseau, réessai, modification pendant l’envoi, saisie de réglages protégée et fusion de deux appareils. Aucune donnée de production ni autorisation de compte n’est utilisée dans les tests. La connexion réelle configurée en 1.5 conserve son client et ses périmètres ; aucun nouvel accès Google n’est créé par cette mise à jour.
+
+Les limites sur les modèles réels de feuilles, le matériel Honeywell, la caméra physique et les notifications lorsque le téléphone est suspendu restent celles des versions précédentes. Les contrôles de stock sont des outils complémentaires à Velocity. Les anciennes dates de comptage inconnues ne sont pas remplacées par la date de modification des seuils.

@@ -1,0 +1,16 @@
+.secondary-menu{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--paper);margin:12px 0;min-width:0}
+.secondary-menu>summary{cursor:pointer;font-size:13px;font-weight:600;min-height:28px;line-height:28px;color:var(--ink)}
+.secondary-menu .actions{align-items:stretch}.secondary-menu .btn{white-space:normal}
+.backup-panel{margin:18px 0}.backup-panel h2{margin-bottom:12px}.backup-panel [data-backup-kind=error]>p:first-child{color:var(--red)}
+.reference-confirm .reference-photo{width:72px;height:72px;object-fit:contain;background:white;float:right;margin:0 0 10px 10px;border-radius:8px}
+.duplicate-warning{border:1px solid var(--amber);padding:14px;border-radius:12px;background:var(--paper);grid-column:1/-1}.duplicate-warning .btn{white-space:normal}
+.pending-detail,.pending-track{grid-column:1/-1}.pending-detail textarea{width:100%}.pending-track>summary,.pending-detail>summary{cursor:pointer;min-height:44px;line-height:44px;font-weight:600;font-size:13px}
+.pending-save-next{width:100%;white-space:normal}.common-search{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}.common-search label{width:100%;font-size:13px;font-weight:600}.common-search input{min-width:0;flex:1}.common-search .btn{flex:0 0 auto}
+.day-focus{border-left:4px solid var(--amber)}.day-clear-orders{margin-top:16px}.day-clear-orders>summary{font-weight:600;cursor:pointer;padding:12px 0}.day-order.has-anomaly{border-color:var(--amber)}
+.location-matches{margin:16px 0}.location-matches .location-link{gap:8px;flex-wrap:wrap}.product-shortcuts .btn{white-space:normal}
+.home-day{margin-top:18px}.home-day p{margin-top:8px}.tool-section summary{font-weight:650;cursor:pointer;padding:12px 0}
+[data-view=home] .quick-grid{margin-bottom:0}[data-view=home] .stats-grid{margin-top:18px}
+.info-note code,.backup-panel p{overflow-wrap:anywhere}.chart-section{margin-top:20px}.scan-return{margin-bottom:20px}
+@media(max-width:480px){.secondary-menu .btn{flex:1 1 120px}.common-search input{flex-basis:100%}.common-search .btn{flex:1}.pending-detail .field{margin-top:10px}.reference-confirm .reference-photo{width:58px;height:58px}}
+
+[data-form=pending]>.form-actions{flex-direction:column}[data-form=pending]>.form-actions .btn{min-height:44px}

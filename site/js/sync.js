@@ -2,16 +2,22 @@ import * as Store from './storage.js';
 import {SHEETS,HEADERS,rowForEvent,eventFromRow} from './core.js';
 export const DEFAULT_SHEET='';
 export const DEFAULT_CLIENT_ID='296553280936-dmrbf1rsbchdqgh2cgeuks1gjg0n10dq.apps.googleusercontent.com';
-let accessToken='',expires=0,busy=false,identityPromise;
-const emit=(message,detail={})=>window.dispatchEvent(new CustomEvent('ek-sync',{detail:{message,busy,...detail}}));
-export function connection(){try{return {clientId:DEFAULT_CLIENT_ID,spreadsheetId:DEFAULT_SHEET,...JSON.parse(localStorage.getItem('ek-google')||'{}')};}catch{return {clientId:DEFAULT_CLIENT_ID,spreadsheetId:DEFAULT_SHEET};}}
-export function saveConnection(values){const current=connection();localStorage.setItem('ek-google',JSON.stringify({...current,...values}));}
+let accessToken='',expires=0,busy=false,identityPromise,lastError='';
+export const activity=()=>({busy,error:lastError});
+const emit=(message,detail={})=>{if(detail.error)lastError=message;else if(detail.success)lastError='';window.dispatchEvent(new CustomEvent('ek-sync',{detail:{message,busy,...detail}}));};
+export function connection(){try{const saved=JSON.parse(localStorage.getItem('ek-google')||'{}');return {spreadsheetId:DEFAULT_SHEET,...saved,clientId:saved.clientId?.trim()||DEFAULT_CLIENT_ID};}catch{return {clientId:DEFAULT_CLIENT_ID,spreadsheetId:DEFAULT_SHEET};}}
+export function saveConnection(values){const current=connection();localStorage.setItem('ek-google',JSON.stringify({...current,...values,...(values.spreadsheetId!==undefined&&values.spreadsheetId!==current.spreadsheetId?{folderId:''}:{})}));lastError='';}
 export const connected=()=>!!accessToken&&Date.now()<expires;
-export function disconnect(){accessToken='';expires=0;emit('Compte déconnecté sur cet appareil.');}
+export function disconnect(){accessToken='';expires=0;lastError='';emit('Compte déconnecté sur cet appareil.');}
 function loadIdentity(){
   if(window.google?.accounts?.oauth2)return Promise.resolve();
   if(identityPromise)return identityPromise;
-  identityPromise=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;script.onload=resolve;script.onerror=()=>{identityPromise=null;reject(Error('Connexion Google indisponible. Vérifiez le réseau.'));};document.head.append(script);});return identityPromise;
+  identityPromise=new Promise((resolve,reject)=>{const script=document.createElement('script');let timer;
+    const fail=()=>{clearTimeout(timer);identityPromise=null;script.remove();reject(Error('Connexion Google indisponible. Vérifiez le réseau puis réessayez.'));};
+    script.src='https://accounts.google.com/gsi/client';script.async=true;
+    script.onload=()=>{clearTimeout(timer);window.google?.accounts?.oauth2?resolve():fail();};script.onerror=fail;
+    timer=setTimeout(fail,15000);document.head.append(script);
+  });return identityPromise;
 }
 export async function connect(){
   if(Store.isDemo())throw Error('La démonstration ne se synchronise pas avec Google.');
@@ -70,7 +76,7 @@ export async function sync(){
   if(busy)return;
   if(!connected())throw Error('Connectez votre compte Google pour synchroniser.');
   const c=connection();if(!/^[A-Za-z0-9_-]{20,}$/.test(c.spreadsheetId))throw Error('Renseignez un identifiant Google Sheet valide.');
-  busy=true;emit('Lecture de la sauvegarde Google…');
+  busy=true;lastError='';emit('Lecture de la sauvegarde Google…');
   try{
     const previousSheet=await Store.meta('lastSyncSheet');if(previousSheet&&previousSheet!==c.spreadsheetId)await Store.markUnsynced();
     const remote=await pull(c.spreadsheetId);const received=await Store.merge(remote);await Store.markSynced(remote.map(e=>e.id));
@@ -83,7 +89,7 @@ export async function sync(){
         await Store.markSynced(chunk.map(e=>e.id));sent+=chunk.length;
       }
     }
-    await Store.setMeta('lastSync',new Date().toISOString());await Store.setMeta('lastSyncSheet',c.spreadsheetId);busy=false;emit('Sauvegarde Google à jour.',{sent,received,success:true});return {sent,received};
+    await Store.setMeta('lastSync',new Date().toISOString());await Store.setMeta('lastSyncSheet',c.spreadsheetId);busy=false;const remaining=Store.pendingEvents().length;emit(remaining?'Dernier envoi terminé. Des modifications récentes restent à sauvegarder.':'Sauvegarde Google à jour.',{sent,received,remaining,success:true});return {sent,received};
   }catch(e){busy=false;emit(e.message,{error:true});throw e;}finally{busy=false;}
 }
 export async function createDatabase(){

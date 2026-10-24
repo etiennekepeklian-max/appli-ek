@@ -41,7 +41,7 @@ function groupsView(){
 }
 export function enhanceOps(root,route){
   if(route==='settings')root.insertAdjacentHTML('beforeend',options());
-  if(route==='more')root.insertAdjacentHTML('beforeend',`<section class="tool-section"><h2>Mes nouveaux outils</h2><div class="actions">${btn('Codes inconnus','ops-unknowns','help')}${btn('Journal hebdomadaire','ops-journal','list')}${opsButton('Importer les emplacements','import-locations')}${opsButton('Réception groupée','receipt')}${opsButton('Annuler une action','undo')}</div></section>`);
+
   if(['stock','locations'].includes(route))root.querySelector('.filters')?.insertAdjacentHTML('beforeend',opsButton('Importer les emplacements','import-locations'));
   if(route==='locations'){root.querySelector('.filters')?.insertAdjacentHTML('afterend','<p class="info-note"><strong>Import des emplacements : CSV UTF-8.</strong> Colonnes : <code>reference;emplacement</code>. Une ligne par casier ; répétez la référence pour plusieurs emplacements. Dans Excel, utilisez le format Texte pour conserver les zéros. Modèle et aperçu disponibles dans « Importer les emplacements ».</p>');
     const links=products().filter(p=>productLocations(p).length&&matchesSearch(p,['sku','barcode','name','location','locations'],state.query));
@@ -61,7 +61,7 @@ export function enhanceOps(root,route){
     if(p.photoId)card.insertAdjacentHTML('afterbegin',`<img class="product-photo" data-product-photo="${esc(p.photoId)}" alt="${esc(p.name)}" hidden>`);
     if(productLocations(p).length)card.insertAdjacentHTML('beforeend',`<p class="hint section-gap">Emplacements : ${esc(productLocations(p).join(' · '))}</p>`);
   }
-  if(['home','history'].includes(route))root.insertAdjacentHTML('beforeend',`<div class="actions section-gap">${opsButton('Annuler la dernière action','undo')}${route==='home'?btn('Journal de la semaine','ops-journal','list'):''}</div>`);
+  if(route==='history')root.insertAdjacentHTML('beforeend',`<div class="actions section-gap">${opsButton('Annuler la dernière action','undo')}</div>`);
   if(route==='home')void showDraftBanner(root);
   void hydratePhotos();
 }
@@ -78,13 +78,15 @@ export async function hydratePhotos(){
 
 function importDialog(){
   importPreview=null;
-  modal('Importer les emplacements',`<p class="dialog-intro">Dans Excel, créez les colonnes <strong>reference</strong> et <strong>emplacement</strong>, puis enregistrez au format <strong>CSV UTF-8</strong> (séparateur point-virgule). Les virgules et tabulations sont aussi acceptées.</p><pre class="csv-example">reference;emplacement\n001234;A-01-02\n001234;RESERVE-B-04\nTRJDUPOR;C-03-01</pre><p class="hint">Une ligne par association. Répétez une référence pour plusieurs casiers. Formatez les références et casiers en <strong>Texte</strong> dans Excel pour conserver les zéros initiaux. Maximum : 5 000 lignes et 3 Mo. Les fichiers .xlsx ne sont pas acceptés.</p><div class="actions">${opsButton('Télécharger le modèle CSV','location-template')}</div><form data-ops-form="locations"><div class="field section-gap"><label for="location-file">Choisir le fichier CSV</label><input id="location-file" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" data-ops-file="locations"></div>${field('csv','Ou coller le contenu du CSV','',{textarea:true,rows:6,full:true})}<div class="field section-gap">${check('replace','Remplacer tous les emplacements des références présentes dans ce fichier',false)}</div><p class="hint">Par défaut, les casiers sont ajoutés aux emplacements existants. Aucun produit, conditionnement ou casier des autres références n’est supprimé. Une référence inconnue sera créée avec un nom à compléter.</p><div data-form-error class="error-message" hidden></div><button class="btn primary section-gap" type="submit">Vérifier avant d’importer</button></form><div id="location-preview"></div>`,true);
+  modal('Importer les emplacements',`<p class="dialog-intro">Dans Excel, créez les colonnes <strong>reference</strong> et <strong>emplacement</strong>, puis enregistrez au format <strong>CSV UTF-8</strong> (séparateur point-virgule). Les virgules et tabulations sont aussi acceptées.</p><pre class="csv-example">reference;emplacement\n001234;PAC001-A\n001234;RES004-B\nTRJDUPOR;PAD003-C</pre><p class="hint">Commencez chaque adresse par PAC, PAD ou RES (ex. PAC001-A). Une ligne par association. Répétez une référence pour plusieurs casiers. Formatez les références et casiers en <strong>Texte</strong> dans Excel pour conserver les zéros initiaux. Maximum : 5 000 lignes et 3 Mo. Les fichiers .xlsx ne sont pas acceptés.</p><div class="actions">${opsButton('Télécharger le modèle CSV','location-template')}</div><form data-ops-form="locations"><div class="field section-gap"><label for="location-file">Choisir le fichier CSV</label><input id="location-file" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" data-ops-file="locations"></div>${field('csv','Ou coller le contenu du CSV','',{textarea:true,rows:6,full:true})}<div class="field section-gap">${check('replace','Remplacer tous les emplacements des références présentes dans ce fichier',false)}</div><p class="hint">Par défaut, les casiers sont ajoutés aux emplacements existants. Aucun produit, conditionnement ou casier des autres références n’est supprimé. Une référence inconnue sera créée avec un nom à compléter.</p><div data-form-error class="error-message" hidden></div><button class="btn primary section-gap" type="submit">Vérifier avant d’importer</button></form><div id="location-preview"></div>`,true);
 }
 async function previewImport(form){
   const d=object(form),parsed=parseLocationImport(d.csv),known=products();
   importPreview={...parsed,replace:!!d.replace,text:d.csv};
   const unknown=parsed.links.filter(l=>!known.some(p=>refKey(p.sku)===l.sku));
-  document.querySelector('#location-preview').innerHTML=`<section class="card section-gap"><h3>Aperçu</h3><p>${parsed.referenceCount} référence(s), ${parsed.links.length} association(s), ${parsed.duplicates} doublon(s) ignoré(s).</p><p>${new Set(unknown.map(l=>l.sku)).size} référence(s) à créer.</p><p>${d.replace?'Les emplacements des références du fichier seront remplacés.':'Les emplacements existants seront conservés et complétés.'}</p>${parsed.links.slice(0,12).map(l=>`<p class="location-link"><strong>${esc(l.sku)}</strong><span>${esc(l.location)}</span></p>`).join('')}${parsed.links.length>12?'<p class="hint">Les 12 premières associations sont affichées.</p>':''}${opsButton('Confirmer cet import','confirm-locations')}</section>`;
+  const withoutType=parsed.links.filter(l=>! /^(PAC|PAD|RES)/.test(l.location)).length;
+  const repeated=parsed.links.filter(l=>/^(PAC|PAD|RES)(PAC|PAD|RES)/.test(l.location)).length;
+  document.querySelector('#location-preview').innerHTML=`<section class="card section-gap"><h3>Aperçu</h3><p>${parsed.referenceCount} référence(s), ${parsed.links.length} association(s), ${parsed.duplicates} doublon(s) ignoré(s).</p>${withoutType?`<p class="info-note">${withoutType} adresse(s) sans préfixe PAC/PAD/RES : elles seront conservées telles quelles. Complétez le CSV si nécessaire.</p>`:''}${repeated?`<p class="info-note">${repeated} adresse(s) semblent avoir deux préfixes. Vérifiez le fichier avant de confirmer.</p>`:''}<p>${new Set(unknown.map(l=>l.sku)).size} référence(s) à créer.</p><p>${d.replace?'Les emplacements des références du fichier seront remplacés.':'Les emplacements existants seront conservés et complétés.'}</p>${parsed.links.slice(0,12).map(l=>`<p class="location-link"><strong>${esc(l.sku)}</strong><span>${esc(l.location)}</span></p>`).join('')}${parsed.links.length>12?'<p class="hint">Les 12 premières associations sont affichées.</p>':''}${opsButton('Confirmer cet import','confirm-locations')}</section>`;
 }
 async function commitImport(){
   if(!importPreview)throw Error('Vérifiez le fichier avant de confirmer.');
@@ -96,7 +98,7 @@ async function commitImport(){
     const matches=known.filter(p=>refKey(p.sku)===sku);
     for(const p of matches.length?matches:[{id:'import-'+sku,sku,name:'Référence '+sku,namePending:true}]){
       const merged=[...new Set([...(importPreview.replace?[]:productLocations(p)),...locations])];
-      items.push({type:'products',record:{...p,locations:merged,location:merged[0]||''}});
+      items.push({type:'products',record:{...p,locations:merged,location:merged[0]||'',preferredLocation:merged.includes(p.preferredLocation)?p.preferredLocation:''}});
     }
   }
   const existing=new Set(Store.list('locations').map(l=>refKey(l.name)));
@@ -162,20 +164,20 @@ async function showDraftBanner(root){
   const drafts=await Store.drafts();if(!root.isConnected||state.route!=='home'||!drafts.length)return;
   root.insertAdjacentHTML('afterbegin',`<section class="card draft-banner"><h2>${drafts.length} brouillon(s) disponible(s)</h2>${drafts.slice(0,5).map(d=>`<div class="actions section-gap"><span>${esc({order:'Commande',pending:'Manquant',product:'Produit',issue:'Incident',movement:'Transfert',count:'Comptage',replenishment:'Seuils'}[d.value.form])} · ${new Date(d.value.updatedAt).toLocaleString('fr-FR')}</span>${opsButton('Reprendre','resume-draft',`data-key="${esc(d.key)}"`)}${opsButton('Effacer','delete-draft',`data-key="${esc(d.key)}"`)}</div>`).join('')}</section>`);
 }
-async function restoreDraft(key){
+export async function restoreDraft(key){
   const d=await Store.meta(key);if(!d)throw Error('Ce brouillon n’est plus disponible.');
   app.restoreForm(d);const form=document.querySelector('#dialog [data-form]');
   if(!form)throw Error('Impossible de rouvrir ce formulaire.');form.dataset.restored='1';
   for(const [name,value] of Object.entries(d.data))for(const el of form.elements)if(el.name===name){if(el.type==='checkbox')el.checked=!!value;else if(el.type!=='file')el.value=d.form==='pending'&&name==='status'&&value==='partial'?'waiting':value;}
   if(d.form==='product'&&d.productPhotoId){state.draftProductPhotoId=d.productPhotoId;form.querySelector('#product-photo')?.insertAdjacentHTML('afterend',`<img class="product-photo" data-product-photo="${esc(d.productPhotoId)}" alt="Photo du brouillon" hidden>`);void hydratePhotos();}
   if(d.form==='order'){state.orderLines=d.lines||[];state.draftPhotoIds=d.photoIds||[];app.renderOrderLines();const raw=form.querySelector('#order-raw-text');if(raw)raw.value=d.rawText||'';app.updateOrderEstimate();}
-  currentDraftKey=key;toast('Brouillon restauré. Vérifiez-le avant de l’enregistrer.');
+  currentDraftKey=key;window.dispatchEvent(new CustomEvent('ek-draft-restored'));toast('Brouillon restauré. Vérifiez-le avant de l’enregistrer.');
 }
 
 async function action(button){
   const name=button.dataset.opsAction,id=button.dataset.id;
   if(name==='import-locations')importDialog();
-  else if(name==='location-template')download(new Blob(['\uFEFFreference;emplacement\r\n001234;A-01-02\r\n001234;RESERVE-B-04\r\nTRJDUPOR;C-03-01\r\n'],{type:'text/csv;charset=utf-8'}),'modele-emplacements.csv');
+  else if(name==='location-template')download(new Blob(['\uFEFFreference;emplacement\r\n001234;PAC001-A\r\n001234;RES004-B\r\nTRJDUPOR;PAD003-C\r\n'],{type:'text/csv;charset=utf-8'}),'modele-emplacements.csv');
   else if(name==='confirm-locations')await commitImport();
   else if(name==='receipt')receiptDialog(button.dataset.sku);
   else if(name==='confirm-receipt')await commitReceipt();

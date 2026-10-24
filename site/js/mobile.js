@@ -2,30 +2,21 @@ import {icon} from './icons.js';
 
 // The same phone interface is used at every screen width.
 export function renderMobileNav(route, pendingCount=0){
-  const items=[['home','Accueil','home'],['codes','Codes','barcode'],['scan','Scanner','scan'],['pending','Attentes','clock'],['more','Outils','more']];
-  const active=items.some(([key])=>key===route)?route:'more';
-  return items.map(([key,label,glyph])=>`<button type="button" data-nav="${key}" class="${active===key?'active ':''}${key==='scan'?'scan-tab':''}" ${route===key?'aria-current="page"':''}><span class="nav-icon">${icon(glyph)}${key==='pending'&&pendingCount?`<span class="nav-count" aria-label="${pendingCount} attente(s)">${pendingCount>99?'99+':pendingCount}</span>`:''}</span><span>${label}</span></button>`).join('');
+  const items=[['home','Accueil','home'],['codes','Codes','barcode'],['pending','Manquants','clock'],['stock','Produits','box'],['more','Plus','more']];
+  const active=['stock','families','locations','complete','unknowns'].includes(route)?'stock':items.some(([key])=>key===route)?route:'more';
+  return items.map(([key,label,glyph])=>`<button type="button" data-nav="${key}" class="${active===key?'active ':''}${key==='scan'?'scan-tab':''}" ${active===key?'aria-current="page"':''}><span class="nav-icon">${icon(glyph)}${key==='pending'&&pendingCount?`<span class="nav-count" aria-label="${pendingCount} attente(s)">${pendingCount>99?'99+':pendingCount}</span>`:''}</span><span>${label}</span></button>`).join('');
 }
 
-export function mobileTools(){
-  const groups=[
-    ['Préparer ma journée',[
-      ['orders','Commandes et pickings','Toutes mes feuilles en fin de journée','chart'],
-      ['scan','Scanner un produit','Caméra, photo ou référence','scan'],
-      ['issues','Écarts et incidents','Noter et partager un constat','alert']]],
-    ['Gérer le stock',[
-      ['stock','Catalogue produits','Références et conditionnements','box'],
-      ['families','Familles de produits','Organiser mon catalogue','layers'],
-      ['locations','Emplacements','Retrouver mes casiers','pin'],
-      ['movements','Mouvements de stock','Garder une trace des transferts','arrow'],
-      ['inventories','Inventaires et contrôles','Compter et contrôler les vides','list'],
-      ['replenishments','Seuils de réassort','Mini, maxi et derniers constats','sync']]],
-    ['Mon espace',[
-      ['history','Historique','Retrouver mes actions','history'],
-      ['settings','Réglages et sauvegardes','Mon profil, Google et mes copies','settings'],
-      ['help','Aide et prise en main','Des gestes expliqués simplement','help']]]
-  ];
-  return `<div class="page-heading"><div><div class="eyebrow">À portée de main</div><h1>Mes outils</h1><p>Tout votre espace, depuis votre téléphone.</p></div></div>${groups.map(([label,items])=>`<section class="tool-section"><h2>${label}</h2><div class="tool-list">${items.map(([route,title,description,glyph])=>`<button type="button" data-nav="${route}" class="tool-row"><span class="tool-icon">${icon(glyph)}</span><span><strong>${title}</strong><small>${description}</small></span>${icon('arrowright')}</button>`).join('')}</div></section>`).join('')}`;
+export function mobileTools(profile='preparer'){
+ const groups=[
+  ['Ma journée',[['orders','Photos et bilan','Toutes les feuilles en fin de journée','camera'],['journal','Journal de la semaine','Bilan, observations et PDF','list']]],
+  ['Produits et emplacements',[['stock','Chercher un produit ou un casier','Référence, EAN, nom ou adresse','box'],['locations','Emplacements et import CSV','Adresses PAC, PAD et RES','pin'],['complete','À compléter','Emplacements, noms et règles manquants','edit'],['families','Familles et règles de picking','Règles communes et exceptions produit','layers'],['unknowns','Codes à identifier','Retrouver les lectures inconnues','help']]],
+  ['Manquants et réassorts',[['pending','Suivre les manquants','Par commande ou par référence','clock']]],
+  ['Codes-barres',[['codes','Créer et retrouver mes codes','Favoris, récents et étiquettes','barcode'],['scan','Scanner un produit','Caméra, photo ou saisie','scan']]],
+  ['Mon espace',[['history','Historique et annulation','Retrouver les actions enregistrées','history'],['settings','Réglages et sauvegardes','Apparence, options et copies','settings'],['help','Aide et prise en main','Les gestes essentiels','help']]]
+ ];
+ const list=items=>`<div class="tool-list">${items.map(([route,title,description,glyph])=>`<button type="button" data-nav="${route}" class="tool-row"><span class="tool-icon">${icon(glyph)}</span><span><strong>${title}</strong><small>${description}</small></span>${icon('arrowright')}</button>`).join('')}</div>`;
+ return `<div class="page-heading"><div><div class="eyebrow">À portée de main</div><h1>Mes outils</h1><p>Les fonctions regroupées par usage.</p></div></div>${groups.map(([label,items])=>`<section class="tool-section"><h2>${label}</h2>${list(items)}</section>`).join('')}<details class="tool-section" ${profile==='stock'?'open':''}><summary>Contrôles de stock</summary><p class="hint">Suivi personnel complémentaire aux opérations réalisées dans Velocity.</p>${list([['movements','Mouvements de stock','Trace des transferts','arrow'],['inventories','Inventaires et contrôles','Comptages et contrôle des vides','list'],['replenishments','Seuils de réassort','Réglages et constats datés','sync'],['issues','Écarts et incidents','Noter et préparer un partage','alert']])}</details>`;
 }
 
 function moveContents(from,to){while(from.firstChild)to.append(from.firstChild);}
@@ -81,8 +72,8 @@ export function enhanceMobileView(root,route,customShortcuts){
   const tabs=root.querySelector('.tabs');
   if(tabs){
     const links=[...tabs.querySelectorAll('[data-nav]')];
-    const nav=document.createElement('nav');nav.className='stock-switcher';nav.setAttribute('aria-label','Outils de stock');
-    const label=document.createElement('label');label.htmlFor='stock-tool';label.textContent='Outil de stock';
+    const nav=document.createElement('nav');nav.className='stock-switcher';nav.setAttribute('aria-label','Produits et emplacements');
+    const label=document.createElement('label');label.htmlFor='stock-tool';label.textContent='Produits et emplacements';
     const select=document.createElement('select');select.id='stock-tool';select.dataset.routeSelect='';
     for(const link of links){const option=document.createElement('option');option.value=link.dataset.nav;option.textContent=link.textContent;option.selected=link.dataset.nav===route;select.append(option);}
     nav.append(label,select);tabs.replaceWith(nav);
