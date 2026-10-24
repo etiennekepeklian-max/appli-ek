@@ -102,7 +102,8 @@
       "bracelet",
       "pochette à bandoulière"
     ],
-    "sourceTypeCountObserved": 92
+    "sourceTypeCountObserved": 92,
+    "classificationUpdate": "2026-10-24 : grandes familles et sous-familles conservées ; aucune quantité inventée."
   },
   "families": [
     {
@@ -131,14 +132,14 @@
     },
     {
       "id": "cadeaux",
-      "name": "Cadeaux",
+      "name": "Maison et cadeaux",
       "parentId": null,
       "sourceUrl": "https://draegerparis.com/fr"
     },
     {
       "id": "papeterie-cartes-danniversaire",
       "name": "Cartes d’anniversaire",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte d'anniversaire"
@@ -147,7 +148,7 @@
     {
       "id": "papeterie-cartes-damour",
       "name": "Cartes d’amour",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte d'amour"
@@ -156,7 +157,7 @@
     {
       "id": "papeterie-cartes-de-noel-et-de-fetes",
       "name": "Cartes de Noël et de fêtes",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte de noel",
@@ -166,7 +167,7 @@
     {
       "id": "papeterie-cartes-de-vux",
       "name": "Cartes de vœux",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte de voeux",
@@ -176,7 +177,7 @@
     {
       "id": "papeterie-cartes-de-naissance",
       "name": "Cartes de naissance",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte de vœux naissance"
@@ -185,7 +186,7 @@
     {
       "id": "papeterie-cartes-fete-des-meres",
       "name": "Cartes fête des mères",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte fete des mères"
@@ -194,7 +195,7 @@
     {
       "id": "papeterie-cartes-fete-des-peres",
       "name": "Cartes fête des pères",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte fête des pères"
@@ -203,7 +204,7 @@
     {
       "id": "papeterie-cartes-fete-des-grands-meres",
       "name": "Cartes fête des grands-mères",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte fetes des grands-meres"
@@ -212,7 +213,7 @@
     {
       "id": "papeterie-cartes-maxi",
       "name": "Cartes maxi",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte maxi"
@@ -221,7 +222,7 @@
     {
       "id": "papeterie-cartes-musicales",
       "name": "Cartes musicales",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte musicale"
@@ -230,7 +231,7 @@
     {
       "id": "papeterie-cartes-bijoux",
       "name": "Cartes bijoux",
-      "parentId": "papeterie",
+      "parentId": "cartes",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Carte Bijou"
@@ -445,7 +446,7 @@
     {
       "id": "accessoires-gourdes",
       "name": "Gourdes",
-      "parentId": "accessoires",
+      "parentId": "cadeaux",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Gourde",
@@ -531,7 +532,7 @@
     {
       "id": "accessoires-miroirs",
       "name": "Miroirs",
-      "parentId": "accessoires",
+      "parentId": "cadeaux",
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Miroir"
@@ -558,7 +559,7 @@
     {
       "id": "cadeaux-emballages-cadeaux",
       "name": "Emballages cadeaux",
-      "parentId": "cadeaux",
+      "parentId": null,
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Sac cadeau",
@@ -578,7 +579,7 @@
     {
       "id": "cadeaux-loisirs-creatifs-et-accessoires",
       "name": "Loisirs créatifs et accessoires",
-      "parentId": "cadeaux",
+      "parentId": null,
       "sourceUrl": "https://fr.checkout.draegerparis.com/collections/all",
       "sourceProductTypes": [
         "Kit DIY",
@@ -594,6 +595,11 @@
       "sourceProductTypes": [
         ""
       ]
+    },
+    {
+      "id": "cartes",
+      "name": "Cartes",
+      "parentId": null
     }
   ]
 }

@@ -1,7 +1,7 @@
 name: Verifier et publier EK Logistique
 on:
   push:
-    branches: [main, codex/terrain-v1.3]
+    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4]
   workflow_dispatch:
 permissions:
   contents: read
@@ -49,3 +49,4 @@ jobs:
       - name: Publier
         id: deployment
         uses: actions/deploy-pages@v4
+

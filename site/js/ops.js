@@ -5,7 +5,7 @@ import {refKey,localDate,uid,toCSV} from './core.js';
 import {parseLocationImport,productLocations,pendingGroups,allocateReceipt,isOverdue,isWaiting,waitStarted,WAIT_LIMIT,weeklySummary,weekDates,matchesSearch} from './ops-core.js';
 import {scanFeedback,unlockFeedback} from './feedback.js';
 
-export const SHORTCUTS=[['codes','Créer un code','Saisir ou dicter','barcode'],['scan','Scanner','Caméra ou photo','scan'],['new-order','Une commande','Photo ou saisie','camera'],['new-pending','Un manquant','Suivre le réassort','clock'],['stock','Catalogue','Chercher un produit','box'],['locations','Emplacements','Retrouver un casier','pin'],['unknowns','Codes inconnus','Identifier plus tard','help'],['journal','Journal de bord','Bilan de la semaine','list'],['receipt','Réception groupée','Répartir le réassort','check']];
+export const SHORTCUTS=[['codes','Créer un code','Saisir ou dicter','barcode'],['scan','Scanner','Caméra ou photo','scan'],['new-order','Ma journée','Toutes mes feuilles','camera'],['new-pending','Un manquant','Suivre le réassort','clock'],['stock','Catalogue','Chercher un produit','box'],['locations','Emplacements','Retrouver un casier','pin'],['unknowns','Codes inconnus','Identifier plus tard','help'],['journal','Journal de bord','Bilan de la semaine','list'],['receipt','Réception groupée','Choisir les commandes débloquées','check']];
 let app,importPreview,receiptRows=[],receiptPlan=[],busy=false,timer,alerting=false,currentDraftKey,hydration=0,photoRevision=0;
 const object=form=>Object.fromEntries(new FormData(form));
 const opsButton=(text,action,attrs='')=>`<button type="button" class="btn" data-ops-action="${action}" ${attrs}>${text}</button>`;
@@ -37,13 +37,13 @@ export function renderOpsView(){return state.route==='unknowns'?unknownsView():j
 
 function groupsView(){
   const groups=pendingGroups(Store.list('pending')).filter(g=>!state.query||matchesSearch(g,['sku','sku','name'],state.query)||g.rows.some(p=>matchesSearch(p,['orderNumber','location','notes'],state.query))||matchesSearch({name:productName(g.sku)},['sku','barcode','name'],state.query));
-  return `<section class="ops-groups"><p class="hint">Totaux restant à recevoir. Chaque commande conserve son propre suivi.</p>${groups.length?groups.map(g=>`<article class="card section-gap ${g.overdue?'overdue-card':''}"><h2>${esc(g.sku)}</h2><p>${esc(productName(g.sku))}</p><p class="group-total">${fmt(g.remaining)} unité(s) à recevoir</p>${g.overdue?'<p class="overdue-label">Au moins une attente dépasse 30 min</p>':''}<ul class="group-details">${g.rows.map(r=>`<li><strong>${esc(r.orderNumber)}</strong> · ${esc(r.location||'Sans casier')} · reste ${r.quantity-(r.received||0)} ${opsButton('Ouvrir','edit-wait',`data-id="${esc(r.id)}"`)}</li>`).join('')}</ul>${opsButton('Répartir une réception','receipt',`data-sku="${esc(g.sku)}"`)}</article>`).join(''):'<div class="card section-gap">Aucun réassort restant à recevoir.</div>'}</section>`;
+  return `<section class="ops-groups"><p class="hint">Références attendues et commandes concernées. Cochez les commandes réellement débloquées à la réception.</p>${groups.length?groups.map(g=>`<article class="card section-gap ${g.overdue?'overdue-card':''}"><h2>${esc(g.sku)}</h2><p>${esc(productName(g.sku))}</p><p class="group-total">${new Set(g.rows.map(r=>r.orderNumber)).size} commande(s) concernée(s)</p>${g.overdue?'<p class="overdue-label">Au moins une attente dépasse 30 min</p>':''}<ul class="group-details">${g.rows.map(r=>`<li><strong>${esc(r.orderNumber)}</strong> · ${esc(r.location||'Sans casier')} ${opsButton('Ouvrir','edit-wait',`data-id="${esc(r.id)}"`)}</li>`).join('')}</ul>${opsButton('Recevoir ce réassort','receipt',`data-sku="${esc(g.sku)}"`)}</article>`).join(''):'<div class="card section-gap">Aucun réassort restant à recevoir.</div>'}</section>`;
 }
 export function enhanceOps(root,route){
   if(route==='settings')root.insertAdjacentHTML('beforeend',options());
   if(route==='more')root.insertAdjacentHTML('beforeend',`<section class="tool-section"><h2>Mes nouveaux outils</h2><div class="actions">${btn('Codes inconnus','ops-unknowns','help')}${btn('Journal hebdomadaire','ops-journal','list')}${opsButton('Importer les emplacements','import-locations')}${opsButton('Réception groupée','receipt')}${opsButton('Annuler une action','undo')}</div></section>`);
   if(['stock','locations'].includes(route))root.querySelector('.filters')?.insertAdjacentHTML('beforeend',opsButton('Importer les emplacements','import-locations'));
-  if(route==='locations'){
+  if(route==='locations'){root.querySelector('.filters')?.insertAdjacentHTML('afterend','<p class="info-note"><strong>Import des emplacements : CSV UTF-8.</strong> Colonnes : <code>reference;emplacement</code>. Une ligne par casier ; répétez la référence pour plusieurs emplacements. Dans Excel, utilisez le format Texte pour conserver les zéros. Modèle et aperçu disponibles dans « Importer les emplacements ».</p>');
     const links=products().filter(p=>productLocations(p).length&&matchesSearch(p,['sku','barcode','name','location','locations'],state.query));
     root.insertAdjacentHTML('beforeend',`<section class="card section-gap"><h2>Emplacements par référence</h2><p class="hint">${links.length} référence(s). Utilisez la recherche pour filtrer.</p>${links.slice(0,50).map(p=>`<p class="location-link"><strong>${esc(p.sku)}</strong><span>${esc(productLocations(p).join(' · '))}</span></p>`).join('')}${links.length>50?'<p class="hint">50 premières fiches affichées. Affinez la recherche.</p>':''}</section>`);
   }
@@ -104,29 +104,15 @@ async function commitImport(){
   await Store.saveBatch(items,'Import des emplacements par référence');const count=importPreview.links.length;importPreview=null;closeModal();toast(`${count} association(s) importée(s). L’import peut être annulé en une action.`);
 }
 function receiptDialog(sku=''){
-  const groups=pendingGroups(Store.list('pending'));if(!groups.length)throw Error('Aucun réassort restant à recevoir.');
-  receiptPlan=[];
-  modal('Réception groupée',`<p class="dialog-intro">La proposition privilégie les commandes prioritaires, puis les plus anciennes. Relisez la répartition avant de valider.</p><form data-ops-form="receipt"><div class="form-grid mobile-one">${field('sku','Référence reçue',sku||groups[0].sku,{select:groups.map(g=>({value:g.sku,label:g.sku+' · reste '+g.remaining}))})}${field('quantity','Quantité reçue cette fois','',{required:true,type:'number'})}</div><div data-form-error class="error-message" hidden></div><button class="btn primary section-gap" type="submit">Proposer la répartition</button></form><div id="receipt-preview"></div>`);
+ const groups=pendingGroups(Store.list('pending'));if(!groups.length)throw Error('Aucun réassort en attente.');
+ const selected=sku||groups[0].sku;receiptRows=groups.find(g=>g.sku===selected)?.rows||[];
+ modal('Réception groupée',`<p class="dialog-intro">Choisissez les commandes que ce réassort permet réellement de reprendre. La fin de préparation de la commande reste une étape distincte.</p><div class="field">${field('sku','Référence reçue',selected,{id:'receipt-reference',select:groups.map(g=>({value:g.sku,label:g.sku+' — '+g.rows.length+' attente(s)'}))})}</div><div id="receipt-choices">${receiptRows.map(r=>`<div class="card section-gap">${check('receipt-'+r.id,'Commande '+esc(r.orderNumber)+' · '+esc(r.location||'Sans casier'),false,'data-receipt-id="'+esc(r.id)+'"')}${r.priority==='urgent'?'<p class="overdue-label">Prioritaire</p>':''}</div>`).join('')}</div><p class="hint section-gap">Aucune commande n’est sélectionnée automatiquement.</p><div class="form-actions">${opsButton('Confirmer les commandes débloquées','confirm-receipt')}</div>`);
 }
 export const openReceipt=sku=>receiptDialog(sku);
-function previewReceipt(form){
-  const d=object(form);receiptRows=Store.list('pending').filter(r=>refKey(r.sku)===refKey(d.sku));receiptPlan=allocateReceipt(receiptRows,d.quantity);
-  const selected=new Set(receiptPlan.map(r=>r.id));for(const r of receiptRows.filter(isWaiting))if(!selected.has(r.id))receiptPlan.push({id:r.id,allocated:0,beforeReceived:Number(r.received||0),received:Number(r.received||0),quantity:r.quantity,orderNumber:r.orderNumber,location:r.location,revision:r._eventId});
-  document.querySelector('#receipt-preview').innerHTML=`<section class="card section-gap"><h3>À vérifier</h3>${receiptPlan.map((r,i)=>`<div class="field section-gap"><label for="allocation-${i}">Commande ${esc(r.orderNumber)} · ${esc(r.location||'Sans casier')} · reste ${r.quantity-r.beforeReceived}</label><input type="number" id="allocation-${i}" data-allocation="${esc(r.id)}" min="0" max="${r.quantity-r.beforeReceived}" step="1" inputmode="numeric" value="${r.allocated}"></div>`).join('')}<p class="hint">La somme doit rester égale à la quantité reçue. Les commandes ne sont pas clôturées automatiquement.</p>${opsButton('Confirmer la réception','confirm-receipt')}</section>`;
-}
 async function commitReceipt(){
-  if(!receiptPlan.length)throw Error('Proposez une répartition.');
-  const d=object(document.querySelector('[data-ops-form="receipt"]'));
-  if(refKey(d.sku)!==refKey(receiptRows[0].sku))throw Error('La référence a changé. Recalculez la répartition.');
-  const items=[],sum=[...document.querySelectorAll('[data-allocation]')].reduce((sum,el)=>{
-    const plan=receiptPlan.find(r=>r.id===el.dataset.allocation),row=Store.get('pending',plan.id),n=Number(el.value);
-    if(!Number.isInteger(n)||n<0||n>plan.quantity-plan.beforeReceived)throw Error('Répartition invalide : respectez les quantités restantes.');
-    if(row._eventId!==plan.revision)throw Error('Une attente a changé. Recalculez la répartition avant de confirmer.');
-    if(n)items.push({type:'pending',record:{...row,received:plan.beforeReceived+n,status:plan.beforeReceived+n===row.quantity?'received':'partial'}});
-    return sum+n;
-  },0);
-  if(sum!==Number(d.quantity)||!items.length)throw Error('La somme répartie doit correspondre exactement à la quantité reçue.');
-  await Store.saveBatch(items,'Réception de réassort répartie');receiptPlan=[];closeModal();toast(`${sum} unité(s) répartie(s). Vous pouvez annuler cette réception en une action.`);
+ const selected=[...document.querySelectorAll('[data-receipt-id]:checked')];if(!selected.length)throw Error('Cochez au moins une commande réellement débloquée.');
+ const items=selected.map(el=>{const old=receiptRows.find(r=>r.id===el.dataset.receiptId),row=Store.get('pending',el.dataset.receiptId);if(!old||!row||row._eventId!==old._eventId||!isWaiting(row))throw Error('Une attente a changé. Rouvrez la réception.');return {type:'pending',record:{...row,status:'received',received:row.quantity??row.received,simpleReceipt:true}};});
+ await Store.saveBatch(items,'Réassort reçu : '+items.length+' attente(s)');closeModal();toast('Réassort marqué reçu pour '+items.length+' attente(s).');
 }
 
 async function weeklyPDF(){
@@ -203,11 +189,13 @@ async function action(button){
   else if(name==='test-feedback'){unlockFeedback();scanFeedback('success');toast('Test du son et de la vibration selon vos options enregistrées.');}
   else if(name==='identify-unknown'){const r=Store.get('unknowns',id);app.productForm({sku:r.code,barcode:r.code});}
   else if(name==='dismiss-unknown'){const r=Store.get('unknowns',id);await Store.save('unknowns',{...r,status:'resolved'},'Code inconnu classé');}
+  else if(name==='hide-undo'){hiddenUndo=button.dataset.at;void refreshUndo();}
+  else if(name==='quick-undo'){const info=await Store.undoInfo();if(!info||info.at!==button.dataset.at)throw Error('La dernière action a changé. Vérifiez son intitulé.');if(info.items.length===1){await Store.undoLast();await refreshUndo();toast('Action annulée.');}else await action({dataset:{opsAction:'undo'}});}
   else if(name==='undo'){
-    const info=await Store.undoInfo();if(!info)throw Error('Aucune action à annuler.');
+    const info=await Store.undoInfo();if(!info)throw Error('Aucune action à annuler.');undoAt=info.at;
     modal('Annuler la dernière action',`<p class="dialog-intro">${esc(info.action)}</p><p>${info.items.length} fiche(s) reviendront à leur état précédent. L’historique sera conservé.</p><div class="actions section-gap">${opsButton('Confirmer l’annulation','confirm-undo')}${btn('Conserver cette action','close-dialog')}</div>`);
   }
-  else if(name==='confirm-undo'){await Store.undoLast();closeModal();toast('Action annulée. La trace reste dans l’historique.');}
+  else if(name==='confirm-undo'){const latest=await Store.undoInfo();if(!latest||latest.at!==undoAt)throw Error('La dernière action a changé. Rouvrez son annulation.');await Store.undoLast();await refreshUndo();closeModal();toast('Action annulée. La trace reste dans l’historique.');}
   else if(name==='resume-draft')await restoreDraft(button.dataset.key);
   else if(name==='delete-draft'){await Store.setMeta(button.dataset.key,null);app.render();}
   else if(name==='weekly-pdf')await weeklyPDF();
@@ -215,7 +203,7 @@ async function action(button){
 async function submit(form){
   const d=object(form),name=form.dataset.opsForm;
   if(name==='locations')await previewImport(form);
-  else if(name==='receipt')previewReceipt(form);
+  else if(name==='receipt')throw Error('Rouvrez la réception groupée.');
   else if(name==='options'){await Store.save('preferences',{...Store.settings(),id:'main',scanSound:!!d.scanSound,scanVibration:!!d.scanVibration,waitNotifications:!!d.waitNotifications},'Options terrain modifiées');toast('Options enregistrées.');await notifyOverdue();}
   else if(name==='shortcuts'){const chosen=Array.from({length:4},(_,i)=>d['shortcut'+i]).filter(Boolean);if(!chosen.length||new Set(chosen).size!==chosen.length)throw Error('Choisissez de 1 à 4 raccourcis différents.');if(chosen.some(x=>!SHORTCUTS.some(([id])=>id===x)))throw Error('Raccourci invalide.');await Store.save('preferences',{...Store.settings(),id:'main',homeShortcuts:chosen},'Accueil personnalisé');toast('Accueil enregistré.');}
   else if(name==='journal'){await saveJournal(form);toast('Journal de bord enregistré.');}
@@ -230,7 +218,7 @@ export function installOps(callbacks){
     const form=event.target.closest('[data-ops-form]');if(!form)return;event.preventDefault();event.stopImmediatePropagation();if(busy)return;busy=true;const b=form.querySelector('[type="submit"]');if(b)b.disabled=true;submit(form).catch(e=>formError(form,e)).finally(()=>{busy=false;if(b?.isConnected)b.disabled=false;});
   },true);
   document.addEventListener('change',event=>{
-    const el=event.target;if(el.id==='journal-date'){state.date=el.value||localDate();app.render();}
+    const el=event.target;if(el.id==='receipt-reference'){receiptDialog(el.value);return;}if(el.id==='journal-date'){state.date=el.value||localDate();app.render();}
     if(el.dataset.opsFile==='locations'&&el.files?.[0]){const file=el.files[0];if(file.size>3e6||!/\.(csv|tsv)$/i.test(file.name)){toast('Choisissez un fichier CSV UTF-8 de moins de 3 Mo.',true);return;}const form=el.closest('form');file.text().then(text=>{if(form.isConnected)form.elements.csv.value=text;importPreview=null;}).catch(()=>toast('Fichier illisible.',true));}
     if(el.name==='productPhoto'&&el.files?.[0]){
       const form=el.closest('form'),file=el.files[0],revision=++photoRevision;state.draftProductPhotoId=null;
@@ -242,11 +230,20 @@ export function installOps(callbacks){
   document.addEventListener('visibilitychange',()=>{void persistDraft();if(!document.hidden)void notifyOverdue();});
   window.addEventListener('pagehide',()=>void persistDraft());
   window.addEventListener('ek-product-images',()=>void hydratePhotos());
-  Store.onChange(()=>{void notifyOverdue();});
+  Store.onChange(()=>{void notifyOverdue();void refreshUndo();});
   new MutationObserver(()=>{
     const form=document.querySelector('#dialog [data-form]'),key=draftKey(form);if(!form||form.dataset.draftReady||!key)return;
     form.dataset.draftReady='1';form.dataset.draftBaseline=draftFingerprint(draftValue(form));onModalClose(()=>{void persistDraft();});
     Store.meta(key).then(d=>{if(d&&form.isConnected&&!form.dataset.restored)form.insertAdjacentHTML('afterbegin',`<div class="info-note">Un brouillon existe pour ce formulaire. ${opsButton('Restaurer le brouillon','resume-draft',`data-key="${esc(key)}"`)}</div>`);});
   }).observe(document.querySelector('#dialog-body'),{childList:true,subtree:true});
-  void notifyOverdue();
+  void notifyOverdue();void refreshUndo();
+}
+
+
+let undoRevision=0,hiddenUndo,undoAt;
+export async function refreshUndo(){
+ const rev=++undoRevision,info=await Store.undoInfo();if(rev!==undoRevision)return;
+ let bar=document.querySelector('#undo-bar');if(!bar){bar=document.createElement('aside');bar.id='undo-bar';bar.setAttribute('aria-label','Annulation de la dernière modification');document.body.append(bar);}
+ bar.hidden=!info||hiddenUndo===info.at;document.body.classList.toggle('has-undo',!bar.hidden);if(bar.hidden)return;
+ bar.innerHTML=`<span><small>Dernière modification</small><strong>${esc(info.action)}</strong></span>${opsButton('Annuler','quick-undo','data-at="'+esc(info.at)+'"')}<button type="button" class="icon-button" data-ops-action="hide-undo" data-at="${esc(info.at)}" aria-label="Masquer le raccourci d’annulation">×</button>`;
 }
