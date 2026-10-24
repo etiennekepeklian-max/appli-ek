@@ -6,25 +6,26 @@ import {chromium} from 'playwright';
 // Dedicated test browser and synthetic records only. No account or production data.
 const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe','inherit']});
 await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('Serveur de test indisponible.')),15000);server.stdout.on('data',data=>{if(String(data).includes('http://')){clearTimeout(timeout);resolve();}});server.on('error',reject);});
-let browser;const errors=[];
+let browser,qaPage;const errors=[];
 const base='http://localhost:8765/';
 try{
   browser=await chromium.launch({headless:true});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage();
+  qaPage=page;
   page.on('pageerror',e=>errors.push(e.message));
   const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.3.0'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
   const state=fn=>page.evaluate(fn);
   await go('home');await page.getByRole('button',{name:'Commencer',exact:true}).click();
-  await go('settings');await page.locator('[name=scanSound]').uncheck();await page.locator('[name=scanVibration]').uncheck();await page.getByRole('button',{name:'Enregistrer les options'}).click();
+  await go('settings');await page.locator('[name=scanSound]').uncheck();await page.locator('[name=scanVibration]').uncheck();await page.getByRole('button',{name:'Enregistrer les options'}).click();await page.waitForFunction(async()=>{const s=await import('./js/storage.js');return s.settings().scanSound===false;});
   assert.equal(await state(async()=>{const s=await import('./js/storage.js');return s.settings().scanSound}),false);
-  await page.locator('[name=shortcut0]').selectOption('journal');await page.locator('[name=shortcut1]').selectOption('scan');await page.locator('[name=shortcut2]').selectOption('stock');await page.locator('[name=shortcut3]').selectOption('');await page.getByRole('button',{name:'Enregistrer mon accueil'}).click();
+  await page.locator('[name=shortcut0]').selectOption('journal');await page.locator('[name=shortcut1]').selectOption('scan');await page.locator('[name=shortcut2]').selectOption('stock');await page.locator('[name=shortcut3]').selectOption('');await page.getByRole('button',{name:'Enregistrer mon accueil'}).click();await page.waitForFunction(async()=>{const s=await import('./js/storage.js');return s.settings().homeShortcuts?.join(',')==='journal,scan,stock';});
   await go('home');assert.equal(await page.locator('.quick-grid button').count(),3);assert.match(await page.locator('.quick-grid button').first().innerText(),/Journal/);
 
   await go('locations');await page.getByRole('button',{name:'Importer les emplacements',exact:true}).click();
-  await page.locator('[name=csv]').fill('reference;emplacement\n001234;A-01\n001234;B-02\n001234;A-01\nTEST-02;C-03');await page.getByRole('button',{name:'Vérifier avant d’importer'}).click();await page.getByRole('button',{name:'Confirmer cet import'}).click();
+  await page.locator('[name=csv]').fill('reference;emplacement\n001234;A-01\n001234;B-02\n001234;A-01\nTEST-02;C-03');await page.getByRole('button',{name:'Vérifier avant d’importer'}).click();await page.getByRole('button',{name:'Confirmer cet import'}).click();await page.locator('#dialog').waitFor({state:'hidden'});
   let imported=await state(async()=>{const s=await import('./js/storage.js');return s.list('products').find(p=>p.sku==='001234')});assert.deepEqual(imported.locations,['A-01','B-02']);
-  await page.getByRole('button',{name:'Importer les emplacements',exact:true}).click();await page.locator('[name=csv]').fill('reference;emplacement\n001234;Z-99');await page.getByRole('button',{name:'Vérifier avant d’importer'}).click();await page.getByRole('button',{name:'Confirmer cet import'}).click();
-  await go('history');await page.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await page.getByRole('button',{name:'Confirmer l’annulation'}).click();
+  await page.getByRole('button',{name:'Importer les emplacements',exact:true}).click();await page.locator('[name=csv]').fill('reference;emplacement\n001234;Z-99');await page.getByRole('button',{name:'Vérifier avant d’importer'}).click();await page.getByRole('button',{name:'Confirmer cet import'}).click();await page.locator('#dialog').waitFor({state:'hidden'});
+  await go('history');await page.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await page.getByRole('button',{name:'Confirmer l’annulation'}).click();await page.locator('#dialog').waitFor({state:'hidden'});
   imported=await state(async()=>{const s=await import('./js/storage.js');return s.list('products').find(p=>p.sku==='001234')});assert.deepEqual(imported.locations,['A-01','B-02']);
   console.log('OK import CSV multi-emplacements et annulation persistante');
 
@@ -49,12 +50,12 @@ try{
 
   await state(async()=>{const s=await import('./js/storage.js'),at=new Date(Date.now()-31*60000).toISOString();await s.saveBatch([{type:'pending',record:{id:'test-w1',sku:'001234',orderNumber:'C-1',quantity:10,received:3,status:'partial',createdAt:at}},{type:'pending',record:{id:'test-w2',sku:'001234',orderNumber:'C-2',quantity:5,received:0,status:'waiting',priority:'urgent',createdAt:at}}],'Test attentes');});
   await go('pending');await page.getByRole('button',{name:'Regrouper par référence',exact:true}).click();assert.match(await page.locator('#main').innerText(),/12 unité/);assert.match(await page.locator('#main').innerText(),/30 min/);
-  await page.getByRole('button',{name:'Répartir une réception',exact:true}).click();await page.locator('[data-ops-form=receipt] [name=quantity]').fill('9');await page.getByRole('button',{name:'Proposer la répartition'}).click();await page.getByRole('button',{name:'Confirmer la réception'}).click();
+  await page.getByRole('button',{name:'Répartir une réception',exact:true}).click();await page.locator('[data-ops-form=receipt] [name=quantity]').fill('9');await page.getByRole('button',{name:'Proposer la répartition'}).click();await page.getByRole('button',{name:'Confirmer la réception'}).click();await page.locator('#dialog').waitFor({state:'hidden'});
   const received=await state(async()=>{const s=await import('./js/storage.js');return ['test-w1','test-w2'].map(id=>s.get('pending',id).received)});assert.deepEqual(received,[7,5]);
-  await go('history');await page.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await page.getByRole('button',{name:'Confirmer l’annulation'}).click();assert.deepEqual(await state(async()=>{const s=await import('./js/storage.js');return ['test-w1','test-w2'].map(id=>s.get('pending',id).received)}),[3,0]);
+  await go('history');await page.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await page.getByRole('button',{name:'Confirmer l’annulation'}).click();await page.locator('#dialog').waitFor({state:'hidden'});assert.deepEqual(await state(async()=>{const s=await import('./js/storage.js');return ['test-w1','test-w2'].map(id=>s.get('pending',id).received)}),[3,0]);
   console.log('OK groupement, repère des 30 min, répartition et annulation groupée');
 
-  await go('journal');await page.locator('[name=activities]').fill('Préparation de commandes et contrôle des casiers.');await page.locator('[name=difficulties]').fill('Une référence manquante.');await page.getByRole('button',{name:'Enregistrer le journal',exact:true}).click();
+  await go('journal');await page.locator('[name=activities]').fill('Préparation de commandes et contrôle des casiers.');await page.locator('[name=difficulties]').fill('Une référence manquante.');await page.getByRole('button',{name:'Enregistrer le journal',exact:true}).click();await page.waitForFunction(async()=>{const s=await import('./js/storage.js');return s.list('journal').some(r=>r.activities==='Préparation de commandes et contrôle des casiers.');});
   const downloading=page.waitForEvent('download');await page.getByRole('button',{name:'Relire et exporter en PDF'}).click();const pdf=await downloading;await mkdir('test-results',{recursive:true});await pdf.saveAs('test-results/journal-test.pdf');assert.match(pdf.suggestedFilename(),/^journal-ek-/);await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();
   console.log('OK journal hebdomadaire et PDF');
 
@@ -75,4 +76,4 @@ try{
   await go('journal');await page.screenshot({path:'test-results/mobile-journal.png',fullPage:true});
   assert.deepEqual(errors,[]);
   console.log('OK 28 écrans/largeurs sans débordement et aucune erreur JavaScript');
-}finally{await browser?.close();server.kill();}
+}catch(error){await mkdir('test-results',{recursive:true});if(qaPage){await qaPage.screenshot({path:'test-results/failure.png',fullPage:true}).catch(()=>{});console.error('État de la page :',await qaPage.locator('body').innerText().catch(()=>''));}throw error;}finally{await browser?.close();server.kill();}

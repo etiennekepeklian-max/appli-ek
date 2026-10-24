@@ -111,6 +111,7 @@ function receiptDialog(sku=''){
 export const openReceipt=sku=>receiptDialog(sku);
 function previewReceipt(form){
   const d=object(form);receiptRows=Store.list('pending').filter(r=>refKey(r.sku)===refKey(d.sku));receiptPlan=allocateReceipt(receiptRows,d.quantity);
+  const selected=new Set(receiptPlan.map(r=>r.id));for(const r of receiptRows.filter(isWaiting))if(!selected.has(r.id))receiptPlan.push({id:r.id,allocated:0,beforeReceived:Number(r.received||0),received:Number(r.received||0),quantity:r.quantity,orderNumber:r.orderNumber,location:r.location,revision:r._eventId});
   document.querySelector('#receipt-preview').innerHTML=`<section class="card section-gap"><h3>À vérifier</h3>${receiptPlan.map((r,i)=>`<div class="field section-gap"><label for="allocation-${i}">Commande ${esc(r.orderNumber)} · ${esc(r.location||'Sans casier')} · reste ${r.quantity-r.beforeReceived}</label><input type="number" id="allocation-${i}" data-allocation="${esc(r.id)}" min="0" max="${r.quantity-r.beforeReceived}" step="1" inputmode="numeric" value="${r.allocated}"></div>`).join('')}<p class="hint">La somme doit rester égale à la quantité reçue. Les commandes ne sont pas clôturées automatiquement.</p>${opsButton('Confirmer la réception','confirm-receipt')}</section>`;
 }
 async function commitReceipt(){
