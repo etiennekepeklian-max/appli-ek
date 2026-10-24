@@ -29,6 +29,8 @@
   "js/sync.js",
   "js/ui.js",
   "js/views.js",
+  "js/workflow-core.js",
+  "js/workflow.js",
   "manifest.webmanifest",
   "mobile.css",
   "ops.css",
@@ -54,5 +56,6 @@
   "vendor/ocr/lang/fra.traineddata.gz",
   "vendor/ocr/tesseract.min.js",
   "vendor/ocr/worker.min.js",
-  "vendor/zxing-browser.min.js"
+  "vendor/zxing-browser.min.js",
+  "workflow.css"
 ]

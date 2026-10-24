@@ -44,3 +44,5 @@ export function pdfReport(title,lines,fileName='rapport-ek.pdf'){
 }
 
 
+
+export const optionalDetails=(content,{label='Ajouter un détail',open=false,kind=''}={})=>`<details class="${kind} full" ${open?'open':''}><summary>${esc(label)}</summary>${content}</details>`;
