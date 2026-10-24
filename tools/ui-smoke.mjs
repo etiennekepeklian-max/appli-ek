@@ -14,7 +14,7 @@ try{
   qaPage=page;
   page.on('pageerror',e=>errors.push(e.message));
   const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.4.0'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
-  const state=fn=>page.evaluate(fn);
+  const state=(fn,arg)=>page.evaluate(fn,arg);
   await go('home');await page.getByRole('button',{name:'Commencer',exact:true}).click();
   await go('settings');await page.locator('[name=scanSound]').uncheck();await page.locator('[name=scanVibration]').uncheck();await page.getByRole('button',{name:'Enregistrer les options'}).click();await page.waitForFunction(async()=>{const s=await import('./js/storage.js');return s.settings().scanSound===false;});
   assert.equal(await state(async()=>{const s=await import('./js/storage.js');return s.settings().scanSound}),false);
@@ -73,7 +73,7 @@ try{
   await page.getByRole('button',{name:'Terminer les photos et analyser'}).click();await page.waitForFunction(()=>document.querySelector('#batch-progress')?.textContent.startsWith('Analyse terminée'),null,{timeout:180000});
   // Review only pages signalled by OCR, not each command form.
   for(let i=0;i<3;i++){const pages=await state(async()=>{const s=await import('./js/storage.js');return (await s.meta('day-capture')).pages});const pg=pages[i];assert.ok(pg.sections?.some(s=>s.number),'Le numéro doit être reconnu par OCR');assert.ok(pg.sections?.some(s=>s.lines.length),'Les lignes doivent être reconnues par OCR');}
-  let reviews=await page.locator('#batch-summary [data-day-action=edit]').count();while(reviews){await page.locator('#batch-summary [data-day-action=edit]').first().click();await page.locator('[name=reviewed]').check();await page.getByRole('button',{name:'Valider cette page'}).click();reviews=await page.locator('#batch-summary [data-day-action=edit]').count();}
+  let reviews=await page.locator('#batch-summary [data-day-action=edit]').count();while(reviews){await page.locator('#batch-summary [data-day-action=edit]').first().click();const reviewId=await page.locator('[data-day-form=page]').getAttribute('data-id');const index=await state(async id=>{const s=await import('./js/storage.js');return (await s.meta('day-capture')).pages.findIndex(p=>p.id===id)},reviewId);await page.locator('[name=number0]').fill(index<2?'JOUR001':'JOUR002');await page.locator('[name=lines0]').fill(index===1?'DAY002;12':index===2?'DAY001;8':'DAY001;12');await page.locator('[name=reviewed]').check();await page.getByRole('button',{name:'Valider cette page'}).click();reviews=await page.locator('#batch-summary [data-day-action=edit]').count();}
   assert.match(await page.locator('#batch-summary').innerText(),/2 commande.*7 picking/);await page.locator('[data-day-form=save] [name=confirmed]').check();await page.getByRole('button',{name:'Enregistrer toutes les commandes retenues'}).click();await page.locator('#dialog').waitFor({state:'hidden'});
   const saved=await state(async()=>{const s=await import('./js/storage.js');return s.list('orders').filter(o=>o.number.startsWith('JOUR')).map(o=>[o.number,o.total,o.photoIds.length])});assert.deepEqual(saved.sort(),[['JOUR001',5,2],['JOUR002',2,1]]);assert.equal(await state(async()=>{const s=await import('./js/storage.js');return await s.meta('day-capture')}),null);
   // Re-import the same images: no additional order and no additional picking.

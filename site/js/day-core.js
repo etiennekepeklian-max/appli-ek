@@ -47,7 +47,7 @@ export function parseDayPage(text){
       for(const l of parsed)if(Number(l.quantity)>0)section.lines.push({...l,sku:refKey(l.sku),quantity:Number(l.quantity),needsReview:!headerSeen||ambiguous||layout?.source==='ordered'});
       if(!parsed.length){const simple=row.trim().match(/^([A-Z0-9][A-Z0-9._/-]{2,119})\s+(\d+)$/i);if(simple&&Number(simple[2])>0)section.lines.push({sku:refKey(simple[1]),quantity:Number(simple[2]),needsReview:true});}
     }
-    section.needsReview=!headerSeen||ambiguous||section.quantitySource==='ordered'||!section.lines.length;
+    section.needsReview=!headerSeen||ambiguous||section.quantitySource==='ordered'||!section.lines.length||/(?:\d[OILSBZ]|[OILSBZ]\d)/i.test(section.number);
     section.text=raw;
   }
   // Preamble (addresses, date) is kept in the photo but isn't an orphan command.
@@ -62,12 +62,13 @@ export function buildDayPlan(pages,existing,date,resolveProduct){
     const sections=page.sections||parseDayPage(page.text);
     if(!sections.length){problems.push({id:page.id,message:'Aucune commande reconnue sur cette page.'});continue;}
     for(let i=0;i<sections.length;i++){
-      const s=sections[i],number=refKey(s.number);
+      const s=sections[i];let number=refKey(s.number);
+      // An exact previously saved image keeps the reviewed number, including OCR corrections.
+      const associated=existing.find(o=>(o.daySources||[]).some(old=>old.hash&&old.hash===page.hash&&(old.sectionIndex??0)===i));
+      if(associated)number=refKey(associated.number);
       if(!number){problems.push({id:page.id,message:'Numéro de commande à compléter.'});continue;}
       if(!s.lines.length){problems.push({id:page.id,message:'Aucune ligne exploitable pour '+number+'.'});continue;}
       const source={hash:page.hash||'',textKey:pageTextKey(number+' '+(s.text||page.text)),photoId:page.photoId,pageNumber:s.pageNumber||null,pageCount:s.pageCount||null,sectionIndex:i};
-      const associated=existing.find(o=>refKey(o.number)!==number&&(o.daySources||[]).some(old=>old.hash&&old.hash===source.hash&&(old.sectionIndex??0)===i));
-      if(associated){problems.push({id:page.id,message:'Cette photo est déjà associée à la commande '+associated.number+'. Vérifiez le numéro reconnu.'});continue;}
       const slot=number+':'+(s.pageNumber||'text-'+source.textKey);
       if(seenSlots.has(slot)){
         const previous=seenSlots.get(slot);

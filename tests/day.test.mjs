@@ -47,6 +47,11 @@ test('photo et page reprises en double : un seul comptage',()=>{
   const a=photo('a','C001','1/1'),b={...a,id:'b'},c={...a,id:'c',hash:'c'};
   const p=buildDayPlan([a,b,c],[],'2026-10-24',resolver);assert.equal(p.duplicatePages,2);assert.equal(p.orders[0].estimate.total,3);
 });
+test('numéro OCR ambigu signalé et correction conservée lors du réimport de la même photo',()=>{
+  const a=photo('a','JOURO01','1/1');assert.equal(parseDayPage(a.text)[0].needsReview,true);
+  const old={...dayRecord(buildDayPlan([{...a,reviewed:true,sections:[{...parseDayPage(a.text)[0],number:'JOUR001'}]}],[],'2026-10-24',resolver).orders[0],'2026-10-24'),id:'old'};
+  const p=buildDayPlan([a],[old],'2026-10-24',resolver);assert.equal(p.orders[0].number,'JOUR001');assert.equal(p.orders[0].mode,'skip');assert.equal(p.problems.length,0);
+});
 test('conflit de contenu et pages identiques sans numéro ne sont pas dédupliqués en silence',()=>{
   const p=buildDayPlan([photo('a','C001','1/1'),photo('b','C001','1/1','001234;16')],[],'2026-10-24',resolver);assert.match(p.problems[0].message,/Deux lectures/);
   const a={...photo('a','C001','1/1'),text:'Commande C001\nReference;Quantite preparee\n001234;12'},b={...a,id:'b',hash:'b'};
