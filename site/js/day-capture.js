@@ -140,7 +140,7 @@ export function installDay(callbacks){
     if(el.dataset.dayChoice){session.choices[el.dataset.dayChoice]=el.value;void persist();drawSummary();}
   });
   document.addEventListener('submit',e=>{const form=e.target.closest('[data-day-form]');if(!form)return;e.preventDefault();e.stopImmediatePropagation();if(busy)return;setBusy(true);const b=form.querySelector('[type=submit]');
-    Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{busy=false;if(b.isConnected)b.disabled=false;});
+    Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{setBusy(false);});
   },true);
   document.addEventListener('keydown',e=>{const card=e.target.closest('.product-record[data-action]');if(card&&e.target===card&&['Enter',' '].includes(e.key)){e.preventDefault();card.click();}});
 }
