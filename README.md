@@ -133,7 +133,7 @@ La caméra et le micro ne fonctionnent généralement pas depuis une simple adre
 - L’OCR doit être vérifié. Aucun modèle de feuille interne n’a encore été fourni ; l’extraction conservatrice ne garantit pas une bonne reconstruction de toutes les colonnes.
 - Scanner un code et retrouver sa dénomination sont deux étapes distinctes. Une référence interne sans correspondance publique ne peut pas être reconnue universellement.
 - La police exacte, la caméra réelle, la dictée, l’installation sur le téléphone et la lecture Honeywell doivent encore être vérifiées avec le matériel utilisateur.
-- La synchronisation réelle est à tester après configuration OAuth ; les fonctionnalités locales ne dépendent pas de Google.
+- La synchronisation réelle de la version 1.5 a été vérifiée le 25 octobre 2026 sur le compte du propriétaire. Chaque nouvel appareil doit se connecter et renseigner la base privée ; les fonctionnalités locales ne dépendent pas de Google.
 
 ## Catalogue et provenance
 

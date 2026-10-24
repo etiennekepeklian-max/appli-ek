@@ -25,4 +25,6 @@ Contrôle des débordements à 320, 390, 480 et 1280 pixels ; captures et PDF d�
 
 Tests ajoutés : préfixes PAC/PAD/RES, changement de zone et zéros initiaux ; reconnaissance exacte/EAN et propositions ; restauration des familles ; validation des paramètres Google et autorisation préalable sans feuille. Parcours mobiles ajoutés : référence confirmée et emplacement prérempli/effacé lors d’un changement de référence, préfixe enregistré sans doublon, vrai Code 39 décodé par ZXing, liste des familles détaillée, préférence sombre et codes sur fond blanc.
 
-La sauvegarde Google réelle reste à vérifier après acceptation du règlement et configuration du client OAuth. Le fichier de police exact n’a pas été fourni à cette étape.
+65 tests métier et les parcours Chrome mobiles ont réussi, dont les 28 contrôles de largeur sans débordement ni erreur JavaScript. La version 1.5.0 a été publiée sur GitHub Pages après ces vérifications.
+
+Le 25 octobre 2026, la configuration OAuth du propriétaire a été terminée et la synchronisation réelle de la version publiée avec sa base privée a affiché « Sauvegarde Google à jour ». Chaque autre appareil doit se connecter au même compte et renseigner sa base privée. L'identifiant public du client OAuth est intégré ; aucun identifiant de feuille privée, jeton ou secret client n'est publié. Le fichier de police exact n'a pas été fourni à cette étape.
