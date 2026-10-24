@@ -33,6 +33,8 @@ async function api(url,{method='GET',body,headers={},retry=true}={}){
 async function pull(id){
   const metadata=await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}?fields=sheets(properties(title,gridProperties(rowCount)))`);
   const rowCounts=new Map(metadata.sheets.map(s=>[s.properties.title,s.properties.gridProperties.rowCount]));
+  const additions=['Codes_inconnus','Journal_hebdomadaire'].filter(tab=>!rowCounts.has(tab));
+  if(additions.length){await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}:batchUpdate`,{method:'POST',body:{requests:additions.map(title=>({addSheet:{properties:{title}}}))}});await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchUpdate`,{method:'POST',body:{valueInputOption:'RAW',data:additions.map(tab=>({range:`'${tab}'!A1:L1`,values:[HEADERS]}))}});for(const tab of additions)rowCounts.set(tab,1000);}
   for(const tab of Object.values(SHEETS))if(!rowCounts.has(tab))throw Error(`L’onglet « ${tab} » manque dans cette feuille. Utilisez la base fournie ou créez une nouvelle base depuis les réglages.`);
   const types=Object.keys(SHEETS),all=[],active=new Set(types),chunk=2500;let offset=2;
   while(active.size){for(const type of active)if(rowCounts.get(SHEETS[type])<offset)active.delete(type);const batch=[...active];if(!batch.length)break;const q=new URLSearchParams({valueRenderOption:'UNFORMATTED_VALUE'});for(const type of batch)q.append('ranges',`'${SHEETS[type]}'!A${offset}:L${Math.min(offset+chunk-1,rowCounts.get(SHEETS[type]))}`);

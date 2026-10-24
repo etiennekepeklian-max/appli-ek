@@ -3,6 +3,9 @@ import {state,esc,icon,modal,closeModal,onModalClose,toast,btn,download,fmt} fro
 import {voiceCode,validBarcode,spokenInteger} from './core.js';
 import {findProducts,familyName} from './model.js';
 import {CameraSession,cameraErrorMessage} from './camera.js';
+import {scanFeedback,unlockFeedback} from './feedback.js';
+import {recordUnknown,resolveUnknowns,hydratePhotos} from './ops.js';
+import {productLocations} from './ops-core.js';
 
 const scripts=new Map();
 export function loadScript(path){if(scripts.has(path))return scripts.get(path);const p=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=path;s.onload=resolve;s.onerror=()=>{scripts.delete(path);reject(Error('Ce module est indisponible. Préparez-le hors ligne dans Réglages ou vérifiez votre connexion.'));};document.head.append(s);});scripts.set(path,p);return p;}
@@ -80,6 +83,7 @@ export function stopCamera(){
   }
 }
 export async function startCamera(){
+  unlockFeedback();
   stopCamera();
   if(!navigator.mediaDevices?.getUserMedia)throw Error('La caméra nécessite une adresse HTTPS ou localhost. Vous pouvez utiliser une photo ou saisir le code.');
   const container=document.querySelector('#camera-container');if(!container)return;
@@ -96,6 +100,17 @@ export async function nextCamera(){
   const cameras=cameraSession.cameras,index=cameras.findIndex(c=>c.deviceId===cameraSession.deviceId);
   await changeCamera(cameras[(index+1)%cameras.length].deviceId);
 }
+function installCameraControls(container){
+  if(!container.insertAdjacentHTML)return;
+  container.querySelector('.camera-track-options')?.remove();
+  const caps=cameraSession.capabilities(),settings=cameraSession.stream?.getVideoTracks()[0]?.getSettings?.()||{},zoom=caps.zoom;
+  container.insertAdjacentHTML('beforeend',`<section class="camera-track-options section-gap"><h3>Lampe et zoom</h3>${caps.torch?'<button class="btn full section-gap" type="button" data-action="camera-torch" aria-pressed="false">Allumer la lampe</button>':'<p class="hint">Lampe non disponible pour cet objectif dans ce navigateur.</p>'}${zoom&&zoom.max>zoom.min?`<div class="field section-gap"><label for="camera-zoom">Zoom <output id="camera-zoom-value">${Number(settings.zoom||zoom.min).toFixed(1)}×</output></label><input id="camera-zoom" type="range" min="${zoom.min}" max="${zoom.max}" step="${zoom.step||.1}" value="${settings.zoom||zoom.min}"></div>`:'<p class="hint">Zoom matériel non disponible pour cet objectif.</p>'}</section>`);
+}
+export async function toggleTorch(){
+  const b=document.querySelector('[data-action="camera-torch"]');if(!b)return;
+  b.disabled=true;try{const value=await cameraSession.control('torch',b.getAttribute('aria-pressed')!=='true');if(!b.isConnected)return;b.setAttribute('aria-pressed',String(value));b.textContent=value?'Éteindre la lampe':'Allumer la lampe';}finally{if(b.isConnected)b.disabled=false;}
+}
+export async function setZoom(value){const zoom=await cameraSession.control('zoom',Number(value)),output=document.querySelector('#camera-zoom-value');if(output)output.textContent=Number(zoom).toFixed(1)+'×';}
 async function openCamera(deviceId){
   const container=document.querySelector('#camera-container'),video=container?.querySelector('#scan-video');
   if(!video)return;
@@ -116,6 +131,7 @@ async function openCamera(deviceId){
     container.querySelector('#camera-hint').textContent=opened.cameras.length>1?'Choisissez un objectif dans la liste ou touchez « Changer de caméra ». Le dernier choix reste sur cet appareil.':'Le navigateur ne propose qu’une caméra. Les autres objectifs peuvent être masqués par le téléphone ou le navigateur.';
     video.srcObject=opened.stream;await video.play();if(!current())return;
     container.removeAttribute('aria-busy');status.textContent='Caméra prête. Alignez le code et maintenez le téléphone immobile.';
+    installCameraControls(container);
     if(opened.fallback)toast('La caméra choisie est indisponible. Une autre caméra a été ouverte.');
     const accept=raw=>{if(!current())return;stopCamera();lookupProduct(raw).catch(error=>toast(error.message,true));};
     let detector;
@@ -144,19 +160,23 @@ async function openCamera(deviceId){
     scannerControls=controls;
   }catch(error){
     if(run!==scanRun)return;
+    scanFeedback('error');
     stopCamera();throw Error(cameraErrorMessage(error));
   }
 }
-export async function scanPhoto(file){await loadScript('vendor/zxing-browser.min.js');const url=URL.createObjectURL(file);try{const reader=new ZXingBrowser.BrowserMultiFormatReader();const result=await reader.decodeFromImageUrl(url);await lookupProduct(result.getText());}catch{throw Error('Aucun code lisible sur cette photo. Cadrez le code entier, net et sans reflet, puis réessayez.');}finally{URL.revokeObjectURL(url);}}
-export async function lookupProduct(raw){const code=String(raw).trim();if(!code)throw Error('Saisissez un code.');state.scanResult={code};const el=document.querySelector('#scan-result');if(!el)return;
+export async function scanPhoto(file){unlockFeedback();await loadScript('vendor/zxing-browser.min.js');const url=URL.createObjectURL(file);try{const reader=new ZXingBrowser.BrowserMultiFormatReader();const result=await reader.decodeFromImageUrl(url);await lookupProduct(result.getText());}catch{throw Error('Aucun code lisible sur cette photo. Cadrez le code entier, net et sans reflet, puis réessayez.');}finally{URL.revokeObjectURL(url);}}
+export async function lookupProduct(raw){const code=String(raw).trim();if(!code)throw Error('Saisissez un code.');state.scanResult={code};let el=document.querySelector('#scan-result');if(!el)return;
   let matches=findProducts(code);const unique=new Map(matches.map(p=>[`${p.sku}:${p.barcode}:${p.name}`,p]));matches=[...unique.values()];
+  scanFeedback(matches.length?'success':'unknown');
+  if(matches.length){for(const p of matches)await resolveUnknowns(p);}else await recordUnknown(code);
+  el=document.querySelector('#scan-result');if(!el||state.scanResult?.code!==code)return;
   const searchURL='https://www.google.com/search?q='+encodeURIComponent('"'+code+'" produit');
-  if(matches.length){el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p>${matches.length>1?`<div class="info-note amber">Plusieurs correspondances existent pour ce code. Vérifiez la désignation du produit.</div>`:''}${matches.slice(0,20).map(p=>`<section class="section-gap"><div class="eyebrow">${p.sourceUrl?'Catalogue public Draeger Paris':'Votre référence'}</div><h2 style="font-size:21px;line-height:1.4">${esc(p.name)}</h2><div class="pill-list section-gap"><span class="pill mono">Réf. ${esc(p.sku)}</span><span class="pill">${esc(familyName(p.familyId))}</span></div><p class="hint section-gap">EAN : ${esc(p.barcode||'Non renseigné')}<br>Unités par picking : ${p.unitsPerPick||'À renseigner'}</p><div class="actions section-gap">${btn('Créer le code','code-from-product','barcode','small primary',`data-code="${esc(p.sku||code)}"`)}${btn('Compléter la fiche','edit-product','edit','small',`data-id="${esc(p.id)}"`)}</div>${p.sourceUrl?`<p class="hint section-gap"><a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">Voir la fiche officielle ↗</a></p>`:''}</section>`).join('')}`;return;}
-  el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p><h3 class="section-gap">Recherche en cours…</h3><span class="loader section-gap"></span>`;
+  if(matches.length){el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p>${matches.length>1?`<div class="info-note amber">Plusieurs correspondances existent pour ce code. Vérifiez la désignation du produit.</div>`:''}${matches.slice(0,20).map(p=>`<section class="section-gap">${p.photoId?`<img class="product-photo" data-product-photo="${esc(p.photoId)}" alt="${esc(p.name)}" hidden>`:''}<div class="eyebrow">${p.sourceUrl?'Catalogue public Draeger Paris':'Votre référence'}</div><h2 style="font-size:21px;line-height:1.4">${esc(p.name)}</h2><div class="pill-list section-gap"><span class="pill mono">Réf. ${esc(p.sku)}</span><span class="pill">${esc(familyName(p.familyId))}</span></div><p class="hint section-gap">EAN : ${esc(p.barcode||'Non renseigné')}<br>Unités par picking : ${p.unitsPerPick||'À renseigner'}<br>Emplacements : ${esc(productLocations(p).join(' · ')||'À renseigner')}</p><div class="actions section-gap">${btn('Créer le code','code-from-product','barcode','small primary',`data-code="${esc(p.sku||code)}"`)}${btn('Compléter la fiche','edit-product','edit','small',`data-id="${esc(p.id)}"`)}</div>${p.sourceUrl?`<p class="hint section-gap"><a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">Voir la fiche officielle ↗</a></p>`:''}</section>`).join('')}`;void hydratePhotos();return;}
+  el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p><p class="info-note">Ce code est conservé dans Outils → Codes inconnus pour l’identifier plus tard.</p><h3 class="section-gap">Recherche en cours…</h3><span class="loader section-gap"></span>`;
   let found=[];
   if(navigator.onLine){try{const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),6500);try{const url='https://fr.checkout.draegerparis.com/search/suggest.json?'+new URLSearchParams({q:code,'resources[type]':'product','resources[limit]':'5','resources[options][fields]':'title,variants.sku,variants.barcode'});const r=await fetch(url,{signal:controller.signal});if(r.ok){const data=await r.json();found=data.resources?.results?.products||[];}}finally{clearTimeout(timer);}}catch{}}
   if(state.scanResult?.code!==code||!el.isConnected)return;
-  el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p>${found.length?`<h3 class="section-gap">Pistes trouvées sur le site officiel</h3><p class="hint">Vérifiez la référence avant de retenir une dénomination.</p>${found.map(p=>`<p class="section-gap"><a href="${esc(new URL(p.url,'https://fr.checkout.draegerparis.com').href)}" target="_blank" rel="noopener noreferrer">${esc(p.title)} ↗</a></p>`).join('')}`:'<h3 class="section-gap">Aucune correspondance certaine</h3><p class="small muted section-gap">Ce code peut être une référence interne ou un produit absent du catalogue public. Vous pouvez rechercher sa dénomination sur Internet ou créer sa fiche.</p>'}<div class="actions section-gap"><a class="btn" href="${searchURL}" target="_blank" rel="noopener noreferrer">${icon('search')}Rechercher sur Internet</a>${btn('Ajouter ce produit','new-product-from-scan','plus','primary',`data-code="${esc(code)}"`)}</div>`;
+  el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p>${found.length?`<h3 class="section-gap">Pistes trouvées sur le site officiel</h3><p class="hint">Vérifiez la référence avant de retenir une dénomination.</p>${found.map(p=>`<p class="section-gap"><a href="${esc(new URL(p.url,'https://fr.checkout.draegerparis.com').href)}" target="_blank" rel="noopener noreferrer">${esc(p.title)} ↗</a></p>`).join('')}`:'<p class="info-note">Code conservé dans Outils → Codes inconnus.</p><h3 class="section-gap">Aucune correspondance certaine</h3><p class="small muted section-gap">Ce code peut être une référence interne ou un produit absent du catalogue public. Vous pouvez rechercher sa dénomination sur Internet ou créer sa fiche.</p>'}<div class="actions section-gap"><a class="btn" href="${searchURL}" target="_blank" rel="noopener noreferrer">${icon('search')}Rechercher sur Internet</a>${btn('Ajouter ce produit','new-product-from-scan','plus','primary',`data-code="${esc(code)}"`)}</div>`;
 }
 let ocrWorker;
 export async function recognizePhoto(file,onProgress=()=>{}){

@@ -5,3 +5,6 @@ Thumbs.db
 *.zip
 .env*
 !*.example
+
+node_modules/
+test-results/

@@ -1,7 +1,7 @@
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';
 export const SCHEMA = 1;
-export const TYPES = ['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences'];
-export const SHEETS = {families:'Familles',products:'References',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres'};
+export const TYPES = ['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
+export const SHEETS = {families:'Familles',products:'References',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
 export const HEADERS = ['event_id','record_id','updated_at','actor','action','label','order_number','reference','location','quantity','payload_json','device_id'];
 export const uid = () => globalThis.crypto?.randomUUID?.() || `ek-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 export const localDate = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

@@ -1,5 +1,6 @@
 import {uid,makeEvent,latestRecords,TYPES} from './core.js';
-let db,events=[],records=new Map(),listeners=new Set(),namespace='live';
+let db,events=[],records=new Map(),listeners=new Set(),namespace='live',baseRecords=new Map();
+export function setBaseRecords(type,rows){for(const [key] of baseRecords)if(key.startsWith(type+':'))baseRecords.delete(key);for(const row of rows)baseRecords.set(type+':'+row.id,row);}
 const request = r=>new Promise((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
 export async function openStore(demo=false){
   if(db)db.close();namespace=demo?'demo':'live';events=[];records.clear();
@@ -14,16 +15,37 @@ export const allEvents=()=>events;
 export const getEvents=(type,id)=>events.filter(e=>(!type||e.type===type)&&(!id||e.record.id===id)).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
 export const list=(type,{includeDeleted=false}={})=>[...records.entries()].filter(([k,r])=>k.startsWith(type+':')&&(includeDeleted||!r.deleted)).map(([,r])=>r);
 export const get=(type,id)=>records.get(`${type}:${id}`);
-export function settings(){const s=list('preferences').find(p=>p.id==='main')||{};return {name:'Étienne',profile:'preparer',goal:1800,beginner:true,...s};}
+export function settings(){const s=list('preferences').find(p=>p.id==='main')||{};return {name:'Étienne',profile:'preparer',goal:1800,beginner:true,scanSound:true,scanVibration:true,waitNotifications:true,homeShortcuts:['codes','scan','new-order','new-pending'],...s};}
 export async function save(type,record,action='Modification'){
-  const r={...record,id:record.id||uid()};delete r._eventId;delete r.updatedAt;
-  const clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);
-  const e=makeEvent(type,r,action,settings().name,localStorage.getItem('ek-device-id'),clock);
-  if(JSON.stringify(e.record).length>42000)throw Error('Cette fiche est trop longue. Répartissez les informations sur plusieurs fiches.');
-  await writeEvents([e]);return r;
+  return (await saveBatch([{type,record}],action))[0];
 }
-async function writeEvents(items){
-  await new Promise((resolve,reject)=>{const t=db.transaction('events','readwrite');for(const ev of items)t.objectStore('events').put(ev);t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement interrompu.'));});
+let mutations=Promise.resolve();
+const serial=fn=>{const task=mutations.catch(()=>{}).then(fn);mutations=task.catch(()=>{});return task;};
+const undoTypes=new Set(['products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','journal']);
+async function batch(items,action,{undoable=true}={}){
+  let clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);const snapshots=[],seen=new Set();
+  const next=items.map(({type,record})=>{
+    const r={...record,id:record.id||uid()};delete r._eventId;delete r.updatedAt;
+    const key=type+':'+r.id;if(seen.has(key))throw Error('Deux écritures concernent la même fiche.');seen.add(key);
+    const before=get(type,r.id)||baseRecords.get(type+':'+r.id),e=makeEvent(type,r,action,settings().name,localStorage.getItem('ek-device-id'),clock);clock=Date.parse(e.updatedAt);
+    if(JSON.stringify(e.record).length>42000)throw Error('Cette fiche est trop longue. Répartissez les informations sur plusieurs fiches.');
+    if(undoTypes.has(type))snapshots.push({type,id:r.id,before:before?structuredClone(before):null,eventId:e.id});
+    return e;
+  });
+  if(!next.length)return [];
+  const undo=undoable&&snapshots.length?{action,items:snapshots,at:new Date().toISOString()}:undefined;
+  await writeEvents(next,undo);return next.map(e=>e.record);
+}
+export function saveBatch(items,action='Modification groupée',options){return serial(()=>batch(items,action,options));}
+export async function undoInfo(){const info=await meta('last-undo');return info?.items?.length?info:null;}
+export function undoLast(){return serial(async()=>{
+  const info=await undoInfo();if(!info)throw Error('Aucune action à annuler.');
+  if(info.items.some(i=>get(i.type,i.id)?._eventId!==i.eventId))throw Error('Une fiche a changé depuis cette action, éventuellement sur un autre appareil. Annulation refusée pour préserver ces changements.');
+  await batch(info.items.map(i=>({type:i.type,record:i.before||{id:i.id,deleted:true}})),'Annulation : '+info.action,{undoable:false});
+  await setMeta('last-undo',null);return info.action;
+});}
+async function writeEvents(items,undo){
+  await new Promise((resolve,reject)=>{const t=db.transaction(undo?['events','meta']:['events'],'readwrite');for(const ev of items)t.objectStore('events').put(ev);if(undo)t.objectStore('meta').put({key:'last-undo',value:undo});t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement interrompu.'));});
   const m=new Map(events.map(e=>[e.id,e]));for(const ev of items)m.set(ev.id,ev);events=[...m.values()];records=latestRecords(events);changed();
 }
 export async function merge(remote){
@@ -38,6 +60,7 @@ export async function readFile(id){return request(db.transaction('files').object
 export async function files(){return request(db.transaction('files').objectStore('files').getAll());}
 export async function setMeta(key,value){await request(db.transaction('meta','readwrite').objectStore('meta').put({key,value}));}
 export async function meta(key){const v=await request(db.transaction('meta').objectStore('meta').get(key));return v?.value;}
+export async function drafts(){const rows=await request(db.transaction('meta').objectStore('meta').getAll());return rows.filter(r=>r.key.startsWith('draft-')&&r.value).sort((a,b)=>b.value.updatedAt.localeCompare(a.value.updatedAt));}
 export async function exportData(){
   const assets=await files();const fileData=[];
   for(const f of assets){const base64=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(f.blob);});fileData.push({...f,blob:undefined,data:base64});}
@@ -51,4 +74,5 @@ export async function importData(data){
   for(const f of data.files??[]){if(typeof f.data!=='string'||!f.data.startsWith('data:'))continue;const blob=await (await fetch(f.data)).blob();await request(db.transaction('files','readwrite').objectStore('files').put({...f,data:undefined,blob}));}
   changed();
 }
-export async function clearDemo(){if(!isDemo())throw Error('Action réservée à la démonstration.');await new Promise((resolve,reject)=>{const t=db.transaction(['events','files'],'readwrite');t.objectStore('events').clear();t.objectStore('files').clear();t.oncomplete=resolve;t.onerror=()=>reject(t.error);});events=[];records.clear();changed();}
+export async function clearDemo(){if(!isDemo())throw Error('Action réservée à la démonstration.');await new Promise((resolve,reject)=>{const t=db.transaction(['events','files','meta'],'readwrite');t.objectStore('events').clear();t.objectStore('files').clear();t.objectStore('meta').clear();t.oncomplete=resolve;t.onerror=()=>reject(t.error);});events=[];records.clear();changed();}
+

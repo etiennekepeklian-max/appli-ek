@@ -75,7 +75,7 @@ export function enhanceMobileTables(root,route=''){
   }
 }
 
-export function enhanceMobileView(root,route){
+export function enhanceMobileView(root,route,customShortcuts){
   root.dataset.view=route;
   if(route==='more')return;
   const tabs=root.querySelector('.tabs');
@@ -94,8 +94,8 @@ export function enhanceMobileView(root,route){
     if(quick){
       quick.classList.add('mobile-quick-card');
       quick.querySelector('h2').textContent='Que voulez-vous faire ?';
-      const shortcuts=[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','camera','Une commande','Photo ou saisie'],['new-pending','clock','Un manquant','Suivre le réassort']];
-      quick.querySelector('.quick-grid').innerHTML=shortcuts.map(([action,glyph,title,hint])=>`<button class="quick" ${action==='codes'||action==='scan'?`data-nav="${action}"`:`data-action="${action}"`}><span class="quick-icon">${icon(glyph)}</span><span>${title}<small>${hint}</small></span></button>`).join('');
+      const shortcuts=customShortcuts||[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','camera','Une commande','Photo ou saisie'],['new-pending','clock','Un manquant','Suivre le réassort']];
+      quick.querySelector('.quick-grid').innerHTML=shortcuts.map(([action,glyph,title,hint])=>`<button class="quick" ${['codes','scan','stock','locations','unknowns','journal'].includes(action)?`data-nav="${action}"`:`data-action="${action}"`}><span class="quick-icon">${icon(glyph)}</span><span>${title}<small>${hint}</small></span></button>`).join('');
       root.insertBefore(quick,root.querySelector('.stats-grid'));
     }
   }
@@ -114,3 +114,4 @@ export function installMobileViewport(){
   document.addEventListener('focusout',()=>requestAnimationFrame(update));
   update();
 }
+

@@ -39,7 +39,8 @@ export function pdfReport(title,lines,fileName='rapport-ek.pdf'){
   if(!window.jspdf?.jsPDF)throw Error('Le moteur PDF n’est pas disponible. Réessayez après rechargement.');
   const pdf=new jspdf.jsPDF();const clean=s=>String(s).replace(/[’‘]/g,"'").replace(/[–—]/g,'-').replace(/œ/g,'oe').replace(/→/g,' > ').replace(/\u202f|\u00a0/g,' ');
   let y=22;pdf.setTextColor(23,61,57);pdf.setFont('helvetica','bold');pdf.setFontSize(19);pdf.text(clean(title),17,y);y+=10;pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.setTextColor(105,125,111);pdf.text('EK Logistique · '+new Date().toLocaleDateString('fr-FR'),17,y);y+=13;
-  for(const l of lines){const str=typeof l==='string'?l:l.text;const heading=typeof l==='object'&&l.heading;pdf.setFont('helvetica',heading?'bold':'normal');pdf.setFontSize(heading?12:10);pdf.setTextColor(heading?23:57,heading?61:74,heading?57:64);const wrapped=pdf.splitTextToSize(clean(str),174);const height=wrapped.length*5.3+(heading?7:4);if(y+height>276){pdf.addPage();y=20;}pdf.text(wrapped,17,y);y+=height;}
+  for(const l of lines){const str=typeof l==='string'?l:l.text;const heading=typeof l==='object'&&l.heading;pdf.setFont('helvetica',heading?'bold':'normal');pdf.setFontSize(heading?12:10);pdf.setTextColor(heading?23:57,heading?61:74,heading?57:64);const wrapped=pdf.splitTextToSize(clean(str),174);if(heading&&y+22>276){pdf.addPage();y=20;}for(const line of wrapped){if(y+5.3>276){pdf.addPage();y=20;}pdf.text(line,17,y);y+=5.3;}y+=heading?7:4;}
   const pages=pdf.getNumberOfPages();for(let i=1;i<=pages;i++){pdf.setPage(i);pdf.setFont('helvetica','normal');pdf.setFontSize(8);pdf.setTextColor(125);pdf.text(`${i} / ${pages}`,193,287,{align:'right'});}download(pdf.output('blob'),fileName);
 }
+
 

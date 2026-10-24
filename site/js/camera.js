@@ -16,6 +16,14 @@ export class CameraSession {
     this.stream=null;this.deviceId='';this.cameras=[];this.revision=0;this.pending=Promise.resolve();
   }
   stop(){this.revision++;release(this.stream);this.stream=null;}
+  capabilities(){try{return this.stream?.getVideoTracks()[0]?.getCapabilities?.()||{};}catch{return {};}}
+  async control(name,value){
+    const track=this.stream?.getVideoTracks()[0],caps=this.capabilities();
+    if(!track?.applyConstraints||!caps[name])throw Error('Ce réglage n’est pas disponible avec cet objectif.');
+    if(name==='zoom'){const range=caps.zoom;if(!Number.isFinite(value)||value<range.min||value>range.max)throw Error('Zoom hors limites.');}
+    if(!['torch','zoom'].includes(name))throw Error('Réglage inconnu.');
+    await track.applyConstraints({advanced:[{[name]:value}]});return track.getSettings?.()[name]??value;
+  }
   open(deviceId=this.recall()){
     const revision=++this.revision;
     release(this.stream);this.stream=null;

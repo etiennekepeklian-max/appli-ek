@@ -1,5 +1,40 @@
 # EK Logistique
 
+## Outils terrain — version 1.3.0
+
+### Import des emplacements par référence
+
+Dans **Outils → Emplacements → Importer les emplacements** (aussi disponible dans le Catalogue), choisissez un fichier **CSV UTF-8** ou collez son contenu. Le modèle est téléchargeable dans la fenêtre. Les colonnes obligatoires sont `reference` et `emplacement`, séparées par un point-virgule :
+
+```csv
+reference;emplacement
+001234;A-01-02
+001234;RESERVE-B-04
+TRJDUPOR;C-03-01
+```
+
+Une ligne par association, plusieurs lignes pour plusieurs casiers d’une référence. Dans Excel, formatez les deux colonnes en **Texte avant la saisie** pour garder les zéros initiaux, puis **Enregistrer sous → CSV UTF-8**. Une fois les zéros perdus dans Excel, l’application ne peut pas les deviner. Les séparateurs virgule et tabulation, le BOM et les cellules entre guillemets sont acceptés ; `.xlsx` n’est pas accepté. Limites : 5 000 lignes / 3 Mo. Un aperçu est obligatoire avant validation. Les doublons sont ignorés ; un fichier mal formé est refusé entièrement. Par défaut les casiers sont ajoutés ; l’option Remplacer ne concerne que les références du fichier. Les références inconnues sont créées avec un nom à compléter. Les conditionnements, photos et autres références sont conservés. L’import est atomique et annulable en une action.
+
+### Fonctions mobiles ajoutées
+
+- Lampe et zoom matériel dans le scanner, uniquement si l’objectif et le navigateur les exposent ; explication sinon. Son distinct pour lecture reconnue/inconnue/erreur et vibration, désactivables séparément dans **Réglages → Options terrain**. Le mode silencieux et le système peuvent les empêcher.
+- Photo produit depuis la caméra ou la galerie, compressée localement, visible dans le catalogue et le résultat du scan. Les photos sont incluses dans les sauvegardes JSON et Google Drive déjà configuré.
+- Liste **Outils → Codes inconnus** : conservation locale des codes sans correspondance, nombre et date des lectures, création d’une fiche ou classement sans suite.
+- Recherche tolérante aux accents, espaces et tirets ; faute simple pour les mots longs ; noms alternatifs configurables dans les fiches.
+- De 1 à 4 raccourcis d’accueil personnalisables et ordonnés dans les options.
+- Brouillons locaux des commandes, manquants, produits, écarts, mouvements, comptages et seuils. Reprise depuis l’accueil, conservation des lignes et photos de commande, suppression après enregistrement. Les brouillons ne sont pas synchronisés entre appareils ; les fichiers joints et les données définitives restent inclus dans les sauvegardes.
+- Annulation de la dernière action modifiable depuis l’accueil, les outils ou l’historique. Une nouvelle révision restaure l’état précédent, sans effacer l’historique. Un import ou une réception groupée s’annule en un bloc. Refus si une fiche a été modifiée depuis sur un autre appareil.
+- Attentes regroupées par référence avec total restant et détail des commandes ; retour possible à la vue par commande. Réception groupée avec proposition priorité/ancienneté, relecture et ajustement des quantités avant confirmation. Aucune sur-réception ni clôture automatique des commandes.
+- Repère des **30 minutes depuis le signalement initial**, conservé en réception partielle, supprimé pour les réassorts reçus/clôturés. Notification système après autorisation explicite, option désactivable et rappel visuel. **Sur GitHub Pages sans serveur de notifications, l’heure exacte n’est pas garantie quand l’application est suspendue, le téléphone verrouillé ou l’application fermée. Le contrôle reprend à la réouverture.** Aucun envoi externe de commande ni service tiers de notifications.
+- Photos de feuilles : proposition de cadrage pour une feuille claire sur fond sombre, correction manuelle des quatre coins, rotation, redressement réel de perspective, choix de garder l’original ou d’annuler avant OCR. Les coordonnées peuvent aussi être réglées par champs. L’utilisateur vérifie le cadrage et les résultats OCR.
+- **Outils → Journal hebdomadaire** : semaine lundi-dimanche, activité enregistrée, incidents, difficultés, apprentissages et améliorations, notes sauvegardées et export PDF relu. Les jours absents restent absents ; le PDF distingue calculs, estimations et corrections.
+
+### Quantités du site Draeger et pickings
+
+Vérification du 24 octobre 2026 sur les fiches publiques Draeger Paris : certains produits contiennent plusieurs pièces (ex. 4 dessous de verre, réf. 06000076 ; 8 range-couverts, réf. 06000075). Ce **contenu de l’article vendu** ne prouve ni un minimum de commande professionnel ni le **nombre d’unités par prise dans l’entrepôt**. La règle reste donc `plafond(quantité d’unités logistiques / unités confirmées par prise)`, sans modifier l’objectif journalier, ni déduire un conditionnement d’un nom de produit. Exemple : si la commande exprime des sachets de 8 pièces, le nombre « 8 » n’est pas automatiquement un diviseur. Une valeur confirmée dans la fiche produit reste prioritaire ; les lignes sans règle restent signalées comme estimatives.
+
+Sources examinées : https://fr.checkout.draegerparis.com/products/4-dessous-de-verre-en-papier-06000076 et https://fr.checkout.draegerparis.com/products/8-range-couverts-en-papier-06000075 .
+
 Application web mobile en HTML, CSS et JavaScript. Elle accompagne la préparation de commandes et la gestion de stock, indépendamment de Velocity.
 
 ## Caméras multiples — version 1.2.0
