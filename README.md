@@ -1,5 +1,14 @@
 # EK Logistique
 
+## Version 1.5.0 — saisie rapide et options terrain
+
+- **Référence manquante** : pendant la saisie, proposition de références proches puis confirmation du nom sur correspondance exacte, sans retirer les zéros initiaux. Un EAN reconnu est rattaché à sa référence. Une référence absente peut être signalée avec avertissement ; les correspondances ambiguës demandent un choix. Un emplacement connu unique est prérempli ; plusieurs emplacements proposent un sélecteur. Un emplacement automatique est effacé si la référence change. Une adresse modifiée manuellement est conservée.
+- **PAC / PAD / RES** : sélecteur dans les fiches produit et les manquants. Le préfixe est ajouté à l’enregistrement et prévisualisé. Dans Codes, choisir « Adresse d’emplacement » puis le type. Une référence produit garde son code propre. Les préfixes déjà présents ne sont pas doublés et les anciens emplacements sans type sont conservés.
+- **Familles** : retour à la liste détaillée d’origine. Les cartes forment un seul groupe visible ; leurs anciens identifiants restent disponibles dans les données pour préserver les références et règles existantes.
+- **Apparence** : Réglages → Votre espace → Apparence : selon le téléphone, clair ou sombre. Le choix est mémorisé. Les codes-barres gardent un fond blanc et des barres noires dans tous les thèmes.
+- **C39HrP24DhTt** : le Code 39 est proposé au démarrage. Les débuts/fins sont générés automatiquement, sans ajouter d’astérisques aux données lues. Le Code 128 et ses variantes restent disponibles. Le nom d’une police ne fournit pas ses fichiers ; l’import TTF/OTF existant permet la comparaison avec la police exacte. Aucun fichier de police non fourni n’est présenté comme incorporé.
+- **Google Sheets** : validation plus claire des identifiants, sauvegarde des champs avant connexion et première autorisation possible avant la création d’une feuille. La configuration OAuth du propriétaire est une étape distincte ; un compte connecté à ChatGPT ne fournit pas de client OAuth à l’application. L’acceptation du règlement Google et les autorisations requises doivent être terminées dans le compte du propriétaire.
+
 ## Version 1.4.0 — usage mobile et bilan en fin de journée
 
 - **Enregistrer ma journée** : photographier les pages à la suite ou choisir plusieurs photos dans la galerie, puis analyser et enregistrer toutes les commandes en une fois. Les numéros regroupent les pages ; les numéros illisibles, confusions O/0, lignes inconnues et pages manquantes sont signalés. Vérifier la quantité réellement préparée, particulièrement si la feuille affiche aussi la quantité commandée. Les documents sans en-têtes fiables nécessitent une relecture. Les photos sont conservées progressivement dans un brouillon local reprenable depuis l’accueil. Limites : 100 photos, 25 Mo par photo, 150 Mo par session, sous réserve de l’espace disponible.

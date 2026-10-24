@@ -1,0 +1,25 @@
+/* Phone themes. Barcodes and document images retain their original contrast. */
+:root[data-theme=dark]{--ink:#e0f0e9;--muted:#acbeb7;--line:#3b514a;--paper:#1c2c28;--bg:#111b19;--green:#9ddfc1;--soft:#293c33;--lime:#b6da8c;--amber:#f0c779;--red:#ffb0a6;--shadow:0 4px 22px #0003;background:#0a1110;color:var(--ink);color-scheme:dark}
+[data-theme=dark] body{background:var(--bg)}
+[data-theme=dark] :is(.card,.record-card,.tool-row,.order-line,.field input,.field select,.field textarea,input,select,textarea,.btn,.stock-switcher,dialog,.dialog-top,.modal-subheading,.reference-suggestion){background:var(--paper);color:var(--ink);border-color:var(--line)}
+[data-theme=dark] :is(.topbar,.mobile-nav){background:#111b19f5;border-color:var(--line)}
+[data-theme=dark] :is(.avatar,.info-note,.beginner-tip,.quick,.pill,.segmented,.date-picker,.camera-picker,.demo-banner){background:var(--soft);color:var(--ink);border-color:var(--line)}
+[data-theme=dark] :is(.btn.primary,.scan-tab.active){background:#92d4b5;color:#102d22;border-color:#92d4b5}
+[data-theme=dark] .btn.primary:hover{background:#b1e5ca}
+[data-theme=dark] .btn:hover{border-color:#9bc3ad;background:#2c453a}
+[data-theme=dark] .mobile-nav button.active{background:#294735;color:#d0edb2}
+[data-theme=dark] .mobile-nav .scan-tab{background:#253f34;color:#b6da8c}
+[data-theme=dark] :is(.badge.green,.reference-confirm){background:#254d39;color:#c0edce;border-color:#46785a}
+[data-theme=dark] :is(.badge.amber,.overdue-card){background:#3d3020;color:#f0d69d;border-color:#b88540}
+[data-theme=dark] :is(.overdue-label,.error-message,.btn.danger){color:#ffc0ab}
+[data-theme=dark] .hero-icon{background:#293c33}
+[data-theme=dark] .dialog-top h2,[data-theme=dark] .mobile-brand .brand-mark{color:var(--ink)}
+[data-theme=dark] dialog::backdrop{background:#000a}
+[data-theme=dark] :is(.barcode-stage,.batch-label){background:#fff;color:#111;border-color:#dce3df;color-scheme:light}
+[data-theme=dark] .barcode-stage :is(p,small,.hint){color:#333}
+[data-theme=dark] #undo-bar{background:#244b3d}
+.reference-confirm{padding:14px;border:1px solid #b8d5c0;border-radius:13px;background:#eef7ee;color:#17462d}
+.reference-confirm p{margin:6px 0}.reference-confirm small{display:block;overflow-wrap:anywhere}
+.reference-suggestion{display:flex;width:100%;align-items:flex-start;gap:10px;text-align:left;padding:12px 10px;border:1px solid var(--line);border-radius:10px;margin-top:8px;background:var(--paper);min-height:48px}
+.reference-suggestion strong{min-width:80px;overflow-wrap:anywhere}.reference-suggestion span{font-size:13px;line-height:1.4}
+#barcode-location-type{margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:13px}#barcode-location-type[hidden]{display:none}
