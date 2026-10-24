@@ -1,9 +1,10 @@
 import * as Store from './storage.js';
 import {SHEETS,HEADERS,rowForEvent,eventFromRow} from './core.js';
 export const DEFAULT_SHEET='';
+export const DEFAULT_CLIENT_ID='296553280936-dmrbf1rsbchdqgh2cgeuks1gjg0n10dq.apps.googleusercontent.com';
 let accessToken='',expires=0,busy=false,identityPromise;
 const emit=(message,detail={})=>window.dispatchEvent(new CustomEvent('ek-sync',{detail:{message,busy,...detail}}));
-export function connection(){try{return {spreadsheetId:DEFAULT_SHEET,...JSON.parse(localStorage.getItem('ek-google')||'{}')};}catch{return {spreadsheetId:DEFAULT_SHEET};}}
+export function connection(){try{return {clientId:DEFAULT_CLIENT_ID,spreadsheetId:DEFAULT_SHEET,...JSON.parse(localStorage.getItem('ek-google')||'{}')};}catch{return {clientId:DEFAULT_CLIENT_ID,spreadsheetId:DEFAULT_SHEET};}}
 export function saveConnection(values){const current=connection();localStorage.setItem('ek-google',JSON.stringify({...current,...values}));}
 export const connected=()=>!!accessToken&&Date.now()<expires;
 export function disconnect(){accessToken='';expires=0;emit('Compte déconnecté sur cet appareil.');}
@@ -20,7 +21,7 @@ export async function connect(){
   await new Promise((resolve,reject)=>{
     const client=google.accounts.oauth2.initTokenClient({client_id:c.clientId.trim(),scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',callback:r=>{if(r.error){reject(Error(r.error_description||r.error));return;}accessToken=r.access_token;expires=Date.now()+Math.max(0,Number(r.expires_in)-60)*1000;resolve();},error_callback:r=>reject(Error(r.type==='popup_closed'?'La fenêtre Google a été fermée.':'Autorisez la fenêtre de connexion Google puis réessayez.'))});
     client.requestAccessToken({prompt:''});
-  });emit('Compte Google connecté.');return sync();
+  });emit('Compte Google connecté.');if(!c.spreadsheetId)return {connected:true,pendingDatabase:true};return sync();
 }
 async function api(url,{method='GET',body,headers={},retry=true}={}){
   if(!connected())throw Error('Reconnectez votre compte Google pour synchroniser.');
