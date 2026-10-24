@@ -1,4 +1,4 @@
-export const VERSION = '1.3.0';
+export const VERSION = '1.4.0';
 export const SCHEMA = 1;
 export const TYPES = ['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
 export const SHEETS = {families:'Familles',products:'References',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
@@ -48,7 +48,7 @@ export function dailyStats(date,orders,days,goal=1800){
   const correction=days.filter(d=>!d.deleted&&d.date===date).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
   const calculated=completed.reduce((a,o)=>a+Number(o.total||0),0);
   const total=correction?.manualTotal!=null?Number(correction.manualTotal):calculated;
-  return {date,total,calculated,commands:completed.length,goal,remaining:Math.max(0,goal-total),percent:goal>0?total/goal*100:0,status:correction?.manualTotal!=null?'corrected':completed.some(o=>o.calculationStatus!=='verified')?'estimated':'verified',hasData:completed.length>0||correction?.manualTotal!=null,correction};
+  return {date,total,calculated,commands:new Set(completed.map(o=>refKey(o.number)||o.id)).size,goal,remaining:Math.max(0,goal-total),percent:goal>0?total/goal*100:0,status:correction?.manualTotal!=null?'corrected':completed.some(o=>o.calculationStatus!=='verified')?'estimated':'verified',hasData:completed.length>0||correction?.manualTotal!=null,correction};
 }
 export function latestRecords(events){
   const records=new Map(),seen=new Set();
@@ -96,5 +96,6 @@ export function validBarcode(value,format='CODE128'){
   if(format==='CODE39'&&!/^[0-9A-Z .$/+%-]+$/.test(value))throw Error('Le Code 39 accepte les majuscules, chiffres et les signes espace . $ / + % - . Les étoiles sont gérées par le format.');
   return true;
 }
+
 
 

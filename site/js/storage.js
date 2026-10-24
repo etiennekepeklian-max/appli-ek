@@ -15,13 +15,13 @@ export const allEvents=()=>events;
 export const getEvents=(type,id)=>events.filter(e=>(!type||e.type===type)&&(!id||e.record.id===id)).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
 export const list=(type,{includeDeleted=false}={})=>[...records.entries()].filter(([k,r])=>k.startsWith(type+':')&&(includeDeleted||!r.deleted)).map(([,r])=>r);
 export const get=(type,id)=>records.get(`${type}:${id}`);
-export function settings(){const s=list('preferences').find(p=>p.id==='main')||{};return {name:'Étienne',profile:'preparer',goal:1800,beginner:true,scanSound:true,scanVibration:true,waitNotifications:true,homeShortcuts:['codes','scan','new-order','new-pending'],...s};}
+export function settings(){const s=list('preferences').find(p=>p.id==='main')||{};return {name:'Étienne',profile:'preparer',goal:1800,beginner:true,scanSound:true,scanVibration:true,waitNotifications:true,homeShortcuts:['codes','new-pending','new-order','stock'],...s};}
 export async function save(type,record,action='Modification'){
   return (await saveBatch([{type,record}],action))[0];
 }
 let mutations=Promise.resolve();
 const serial=fn=>{const task=mutations.catch(()=>{}).then(fn);mutations=task.catch(()=>{});return task;};
-const undoTypes=new Set(['products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','journal']);
+const undoTypes=new Set(['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','journal']);
 async function batch(items,action,{undoable=true}={}){
   let clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);const snapshots=[],seen=new Set();
   const next=items.map(({type,record})=>{
@@ -75,4 +75,5 @@ export async function importData(data){
   changed();
 }
 export async function clearDemo(){if(!isDemo())throw Error('Action réservée à la démonstration.');await new Promise((resolve,reject)=>{const t=db.transaction(['events','files','meta'],'readwrite');t.objectStore('events').clear();t.objectStore('files').clear();t.objectStore('meta').clear();t.oncomplete=resolve;t.onerror=()=>reject(t.error);});events=[];records.clear();changed();}
+
 

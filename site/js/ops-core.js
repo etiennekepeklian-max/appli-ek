@@ -50,7 +50,7 @@ export function parseLocationImport(text){
 }
 export function productLocations(p){return [...new Set([...(Array.isArray(p?.locations)?p.locations:[]),p?.location].filter(Boolean).map(refKey))];}
 export function waitStarted(p){return Date.parse(p.waitingSince||p.createdAt||p.updatedAt);}
-export function isWaiting(p){return !p.deleted&&['waiting','partial'].includes(p.status)&&Number(p.received||0)<Number(p.quantity);}
+export function isWaiting(p){return !p.deleted&&['waiting','partial'].includes(p.status);}
 export function isOverdue(p,now=Date.now()){return isWaiting(p)&&Number.isFinite(waitStarted(p))&&now-waitStarted(p)>=WAIT_LIMIT;}
 export function pendingGroups(rows,now=Date.now()){
   const groups=new Map();
@@ -93,3 +93,4 @@ export function quadTransform(p){
   const A=b.x-a.x+g*b.x,B=d.x-a.x+h*d.x,D=b.y-a.y+g*b.y,E=d.y-a.y+h*d.y;
   return(u,v)=>{const w=g*u+h*v+1;return{x:(A*u+B*v+a.x)/w,y:(D*u+E*v+a.y)/w};};
 }
+

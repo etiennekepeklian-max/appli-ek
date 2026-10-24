@@ -10,7 +10,7 @@ export function renderMobileNav(route, pendingCount=0){
 export function mobileTools(){
   const groups=[
     ['Préparer ma journée',[
-      ['orders','Commandes et pickings','Photo, saisie et bilan du jour','chart'],
+      ['orders','Commandes et pickings','Toutes mes feuilles en fin de journée','chart'],
       ['scan','Scanner un produit','Caméra, photo ou référence','scan'],
       ['issues','Écarts et incidents','Noter et partager un constat','alert']]],
     ['Gérer le stock',[
@@ -49,7 +49,7 @@ export function enhanceMobileTables(root,route=''){
       const cells=[...row.children];if(!cells.length)continue;
       const card=document.createElement('article');card.className='record-card';
       if(route==='families')card.classList.add('family-record');
-      if(route==='stock')card.classList.add('product-record');
+      if(route==='stock'){card.classList.add('product-record');const id=row.querySelector('[data-action="edit-product"]')?.dataset.id;if(id){card.dataset.action='view-product';card.dataset.id=id;card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','Voir la fiche '+(cells[1]?.textContent||'produit').trim());}}
       const heading=document.createElement('div');heading.className='record-heading';
       const titleIndex=route==='stock'||route==='history'||route==='movements'?1:0;
       const title=document.createElement('h3');moveContents(cells[titleIndex]||cells[0],title);heading.append(title);card.append(heading);
@@ -94,7 +94,7 @@ export function enhanceMobileView(root,route,customShortcuts){
     if(quick){
       quick.classList.add('mobile-quick-card');
       quick.querySelector('h2').textContent='Que voulez-vous faire ?';
-      const shortcuts=customShortcuts||[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','camera','Une commande','Photo ou saisie'],['new-pending','clock','Un manquant','Suivre le réassort']];
+      const shortcuts=customShortcuts||[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','camera','Ma journée','Toutes mes feuilles'],['new-pending','clock','Un manquant','Suivre le réassort']];
       quick.querySelector('.quick-grid').innerHTML=shortcuts.map(([action,glyph,title,hint])=>`<button class="quick" ${['codes','scan','stock','locations','unknowns','journal'].includes(action)?`data-nav="${action}"`:`data-action="${action}"`}><span class="quick-icon">${icon(glyph)}</span><span>${title}<small>${hint}</small></span></button>`).join('');
       root.insertBefore(quick,root.querySelector('.stats-grid'));
     }
@@ -114,4 +114,5 @@ export function installMobileViewport(){
   document.addEventListener('focusout',()=>requestAnimationFrame(update));
   update();
 }
+
 
