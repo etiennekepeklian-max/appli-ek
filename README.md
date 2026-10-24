@@ -1,6 +1,18 @@
 # EK Logistique
 
-## Outils terrain — version 1.3.0
+## Version 1.4.0 — usage mobile et bilan en fin de journée
+
+- **Enregistrer ma journée** : photographier les pages à la suite ou choisir plusieurs photos dans la galerie, puis analyser et enregistrer toutes les commandes en une fois. Les numéros regroupent les pages ; les numéros illisibles, confusions O/0, lignes inconnues et pages manquantes sont signalés. Vérifier la quantité réellement préparée, particulièrement si la feuille affiche aussi la quantité commandée. Les documents sans en-têtes fiables nécessitent une relecture. Les photos sont conservées progressivement dans un brouillon local reprenable depuis l’accueil. Limites : 100 photos, 25 Mo par photo, 150 Mo par session, sous réserve de l’espace disponible.
+- **Doublons** : une photo identique n’est pas ajoutée deux fois. Une page répétée avec même numéro et même contenu est ignorée ; les cas ambigus sont signalés. Au réimport de la même image, le numéro déjà corrigé est conservé. Les commandes existantes sont écartées par défaut. Pour le même jour, un remplacement explicite ou l’ajout de nouvelles pages identifiables reste possible. Une autre journée est protégée.
+- **Manquants** : commande, référence, casier, priorité, état et précisions. Les quantités et la personne sollicitée ne sont plus demandées. En attente → Réassort reçu → Commande terminée. Les anciennes réceptions partielles restent conservées et apparaissent en attente. Réception groupée : cocher les commandes réellement débloquées, sans répartition de quantités. L’alerte à 30 minutes est conservée avec les mêmes limites de suspension du téléphone.
+- **Catalogue** : huit grandes familles, plus À classer si nécessaire, avec les types détaillés à l’intérieur. Toutes les cartes sont regroupées. La fiche complète s’ouvre en touchant la carte produit ou avec Entrée/Espace : nom, référence, EAN, photo, famille, emplacements et règle de picking. Les classements absents sont proposés d’après des noms explicites ; un classement personnel existant est conservé. Les emplacements viennent uniquement des données saisies/importées.
+- **Picking** : exception produit > règle du type de produit > règle d’une famille parente > estimation signalée. Définir les quantités dans Outils → Familles de produits → Modifier la règle ; laisser l’exception produit vide pour hériter. Aucun 4, 2 ou 6 n’est imposé. Les anciennes commandes gardent les règles utilisées à leur enregistrement.
+- **Annulation au pouce** : barre au-dessus de la navigation avec l’intitulé de la dernière modification. Une modification simple est annulée directement ; un import ou une journée groupée demande confirmation. L’accès durable reste dans l’historique. L’historique et la protection contre les changements concurrents sont conservés.
+- **Import des emplacements CSV** : Outils → Emplacements → Importer les emplacements, également depuis le Catalogue. Une note visible et un modèle téléchargeable décrivent le format ci-dessous. L’aperçu reste obligatoire ; import et annulation groupés.
+
+La lecture automatique doit encore être confrontée aux véritables modèles de feuilles de l’entrepôt. Le bilan proposé est à relire ; les prises inconnues restent estimatives. La saisie manuelle est conservée comme outil de secours et pour corriger les anciens enregistrements.
+
+## Import CSV et outils conservés
 
 ### Import des emplacements par référence
 
@@ -24,8 +36,8 @@ Une ligne par association, plusieurs lignes pour plusieurs casiers d’une réf�
 - De 1 à 4 raccourcis d’accueil personnalisables et ordonnés dans les options.
 - Brouillons locaux des commandes, manquants, produits, écarts, mouvements, comptages et seuils. Reprise depuis l’accueil, conservation des lignes et photos de commande, suppression après enregistrement. Les brouillons ne sont pas synchronisés entre appareils ; les fichiers joints et les données définitives restent inclus dans les sauvegardes.
 - Annulation de la dernière action modifiable depuis l’accueil, les outils ou l’historique. Une nouvelle révision restaure l’état précédent, sans effacer l’historique. Un import ou une réception groupée s’annule en un bloc. Refus si une fiche a été modifiée depuis sur un autre appareil.
-- Attentes regroupées par référence avec total restant et détail des commandes ; retour possible à la vue par commande. Réception groupée avec proposition priorité/ancienneté, relecture et ajustement des quantités avant confirmation. Aucune sur-réception ni clôture automatique des commandes.
-- Repère des **30 minutes depuis le signalement initial**, conservé en réception partielle, supprimé pour les réassorts reçus/clôturés. Notification système après autorisation explicite, option désactivable et rappel visuel. **Sur GitHub Pages sans serveur de notifications, l’heure exacte n’est pas garantie quand l’application est suspendue, le téléphone verrouillé ou l’application fermée. Le contrôle reprend à la réouverture.** Aucun envoi externe de commande ni service tiers de notifications.
+- Attentes regroupées par référence avec le nombre et le détail des commandes concernées ; retour possible à la vue par commande. Réception groupée avec sélection explicite des commandes débloquées, sans quantité ni clôture automatique.
+- Repère des **30 minutes depuis le signalement initial**, conservé pour les anciennes réceptions partielles encore en attente, supprimé pour les réassorts reçus/clôturés. Notification système après autorisation explicite, option désactivable et rappel visuel. **Sur GitHub Pages sans serveur de notifications, l’heure exacte n’est pas garantie quand l’application est suspendue, le téléphone verrouillé ou l’application fermée. Le contrôle reprend à la réouverture.** Aucun envoi externe de commande ni service tiers de notifications.
 - Photos de feuilles : proposition de cadrage pour une feuille claire sur fond sombre, correction manuelle des quatre coins, rotation, redressement réel de perspective, choix de garder l’original ou d’annuler avant OCR. Les coordonnées peuvent aussi être réglées par champs. L’utilisateur vérifie le cadrage et les résultats OCR.
 - **Outils → Journal hebdomadaire** : semaine lundi-dimanche, activité enregistrée, incidents, difficultés, apprentissages et améliorations, notes sauvegardées et export PDF relu. Les jours absents restent absents ; le PDF distingue calculs, estimations et corrections.
 
@@ -68,7 +80,7 @@ Alternative avec Node.js 20 ou ultérieur : `npm start`. Aucun `npm install` n�
 - Code 128 standard, variante avec astérisques dans les données, essai Code 39, zéros initiaux conservés, favoris, historique, affichage agrandi, export SVG/PNG/PDF et planches multi-étiquettes.
 - Import d’une police TTF/OTF/WOFF pour un essai séparé. La convention de la police d’Adrien doit encore être fournie et vérifiée sur Honeywell.
 - Lecture caméra ou photo via BarcodeDetector et repli ZXing. Identification locale avec le catalogue public Draeger Paris et les références ajoutées par l’utilisateur. Correspondances multiples signalées ; recherche Web proposée en l’absence de nom fiable.
-- Commandes en attente : numéro, référence, casier, quantités, personne sollicitée, priorité, notes, réception partielle, réception complète et clôture de commande.
+- Commandes en attente : numéro, référence, casier, priorité, notes, réception complète et clôture de commande.
 - Photos de feuilles, OCR français/anglais exécuté sur l’appareil, texte à vérifier, édition des lignes, estimation des prises selon les conditionnements connus et saisie manuelle.
 - Tableau de bord, objectif journalier paramétrable (1800 par défaut), graphique 7/14/30 jours, commandes distinctes et corrections de jours passés.
 - Produits, familles et sous-familles modifiables, import/export de références, conditionnements, emplacements, mouvements, inventaires, contrôle des vides, seuils de réassort, écarts avec photos et historique complet.
@@ -116,7 +128,7 @@ La caméra et le micro ne fonctionnent généralement pas depuis une simple adre
 
 ## Catalogue et provenance
 
-Collecte officielle du 23 octobre 2026 : **514 fiches publiques, 2754 variantes, 2691 variantes avec EAN**, **51 familles et sous-familles proposées**. Les regroupements sont basés sur les types produit publiés ; il ne s’agit pas de la nomenclature interne de l’entrepôt. Le catalogue public peut omettre des présentoirs ou références réservées aux professionnels. Aucun conditionnement logistique n’a été inventé.
+Collecte officielle du 23 octobre 2026 : **514 fiches publiques, 2754 variantes, 2691 variantes avec EAN**, **52 entrées de familles et sous-familles proposées, regroupées sous huit grandes familles et À classer**. Les regroupements sont basés sur les types produit publiés ; il ne s’agit pas de la nomenclature interne de l’entrepôt. Le catalogue public peut omettre des présentoirs ou références réservées aux professionnels. Aucun conditionnement logistique n’a été inventé.
 
 Sources : https://draegerparis.com/fr et https://fr.checkout.draegerparis.com/collections/all . Les sources exactes figurent dans chaque fiche JSON. Les catégories médicales de Dräger avaient été utilisées par erreur dans une proposition précédente ; elles sont absentes de ce projet.
 

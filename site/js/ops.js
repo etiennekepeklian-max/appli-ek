@@ -166,7 +166,7 @@ async function restoreDraft(key){
   const d=await Store.meta(key);if(!d)throw Error('Ce brouillon n’est plus disponible.');
   app.restoreForm(d);const form=document.querySelector('#dialog [data-form]');
   if(!form)throw Error('Impossible de rouvrir ce formulaire.');form.dataset.restored='1';
-  for(const [name,value] of Object.entries(d.data))for(const el of form.elements)if(el.name===name){if(el.type==='checkbox')el.checked=!!value;else if(el.type!=='file')el.value=value;}
+  for(const [name,value] of Object.entries(d.data))for(const el of form.elements)if(el.name===name){if(el.type==='checkbox')el.checked=!!value;else if(el.type!=='file')el.value=d.form==='pending'&&name==='status'&&value==='partial'?'waiting':value;}
   if(d.form==='product'&&d.productPhotoId){state.draftProductPhotoId=d.productPhotoId;form.querySelector('#product-photo')?.insertAdjacentHTML('afterend',`<img class="product-photo" data-product-photo="${esc(d.productPhotoId)}" alt="Photo du brouillon" hidden>`);void hydratePhotos();}
   if(d.form==='order'){state.orderLines=d.lines||[];state.draftPhotoIds=d.photoIds||[];app.renderOrderLines();const raw=form.querySelector('#order-raw-text');if(raw)raw.value=d.rawText||'';app.updateOrderEstimate();}
   currentDraftKey=key;toast('Brouillon restauré. Vérifiez-le avant de l’enregistrer.');
