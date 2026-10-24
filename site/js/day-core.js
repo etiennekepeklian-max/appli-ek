@@ -20,12 +20,23 @@ export function parseDayPage(text){
     let layout=null,ambiguous=false,headerSeen=false;
     for(const row of section.text){
       const cs=cells(row),hs=cs.map(plain),ref=hs.findIndex(s=>/^(reference(?: produit)?|ref\.?|sku|article|code article)$/.test(s));
+      // OCR often collapses a printed table's columns to single spaces.
+      if(ref<0&&/^(reference|ref\.?|sku|article|code article)\s+/i.test(plain(row.trim()))){
+        const qs=[...plain(row).matchAll(/\b(?:quantite|qte|quantity|qty)(?:\s+(?:preparee?|commandee?|livree?|servie?|realisee?))?/g)].map(m=>m[0]);
+        if(qs.length){const prepared=qs.findIndex(s=>/prepar|livr|servi|realise/.test(s)),q=prepared>=0?prepared:0;layout={words:true,q,total:qs.length,source:prepared>=0?'prepared':/command/.test(qs[q])?'ordered':'generic'};headerSeen=true;ambiguous=qs.length>1&&prepared<0||/prix|total|poids|montant|colis|reste/.test(plain(row));section.quantitySource=layout.source;continue;}
+      }
       if(ref>=0){
         const quantities=hs.map((s,i)=>({s,i})).filter(({s})=>/^(qte|quantite|quantity|qty)\b/.test(s));
         const prepared=quantities.find(({s})=>/prepar|servi|livr|realise/.test(s)),generic=quantities.find(({s})=>/^(qte|quantite|quantity|qty)(?:\s*\(u\))?$/.test(s));
         const q=prepared||generic||quantities[0];
         if(q){layout={ref,q:q.i,source:prepared?'prepared':generic?'generic':'ordered'};headerSeen=true;ambiguous=quantities.length>1&&!prepared;section.quantitySource=layout.source;}
         continue;
+      }
+      if(layout?.words){
+        const ws=row.trim().split(/\s+/),sku=ws[0],numbers=ws.slice(1).filter(s=>/^\d+$/.test(s));
+        if(/^[A-Z0-9][A-Z0-9._/-]{2,119}$/i.test(sku)&&numbers.length>=layout.total){
+          const quantity=Number(numbers.slice(-layout.total)[layout.q]);if(quantity>0)section.lines.push({sku:refKey(sku),quantity,needsReview:ambiguous||layout.source==='ordered',quantitySource:layout.source});continue;
+        }
       }
       if(layout&&cs.length>Math.max(layout.ref,layout.q)&&/^[A-Z0-9][A-Z0-9._/-]{2,119}$/i.test(cs[layout.ref])&&/^\d+$/.test(cs[layout.q])){
         if(Number(cs[layout.q])>0)section.lines.push({sku:refKey(cs[layout.ref]),quantity:Number(cs[layout.q]),needsReview:ambiguous||layout.source==='ordered',quantitySource:layout.source});
@@ -34,6 +45,7 @@ export function parseDayPage(text){
       if(/^(?:page|total|date|client|adresse|designation|reference|commande)\b/i.test(plain(row.trim())))continue;
       const parsed=parseOrderText(row).lines;
       for(const l of parsed)if(Number(l.quantity)>0)section.lines.push({...l,sku:refKey(l.sku),quantity:Number(l.quantity),needsReview:!headerSeen||ambiguous||layout?.source==='ordered'});
+      if(!parsed.length){const simple=row.trim().match(/^([A-Z0-9][A-Z0-9._/-]{2,119})\s+(\d+)$/i);if(simple&&Number(simple[2])>0)section.lines.push({sku:refKey(simple[1]),quantity:Number(simple[2]),needsReview:true});}
     }
     section.needsReview=!headerSeen||ambiguous||section.quantitySource==='ordered'||!section.lines.length;
     section.text=raw;

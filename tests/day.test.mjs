@@ -33,6 +33,11 @@ test('plusieurs commandes par page et préambule non compté',()=>{
   const s=parseDayPage('Adresse livraison\nDate 24/10/2026\n'+text('C001','1/1')+'\n'+text('C002','1/1','EXCEPTION;12'));
   assert.deepEqual(s.map(s=>s.number),['C001','C002']);assert.equal(s[1].lines[0].sku,'EXCEPTION');
 });
+test('tableau OCR réduit à un seul espace, deux colonnes de quantités et descriptions chiffrées',()=>{
+  const p=parseDayPage('Commande N° C001\nPage 1/1\nReference Designation Quantite commandee Quantite preparee\n001234 Carte 8 pieces 16 12');
+  assert.equal(p[0].lines[0].sku,'001234');assert.equal(p[0].lines[0].quantity,12);assert.equal(p[0].needsReview,false);
+  const simple=parseDayPage('Commande C001\nReference Quantite preparee\nDAY001 12');assert.equal(simple[0].lines[0].quantity,12);
+});
 test('regroupement de plusieurs pages et arrondi par ligne avec règles figées',()=>{
   const p=buildDayPlan([photo('a','C001','1/2'),photo('b','C001','2/2','EXCEPTION;12')],[],'2026-10-24',resolver);
   assert.equal(p.problems.length,0);assert.equal(p.orders.length,1);assert.equal(p.orders[0].incomplete,undefined);
