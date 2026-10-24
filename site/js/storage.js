@@ -48,10 +48,10 @@ async function writeEvents(items,undo){
   await new Promise((resolve,reject)=>{const t=db.transaction(undo?['events','meta']:['events'],'readwrite');for(const ev of items)t.objectStore('events').put(ev);if(undo)t.objectStore('meta').put({key:'last-undo',value:undo});t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement interrompu.'));});
   const m=new Map(events.map(e=>[e.id,e]));for(const ev of items)m.set(ev.id,ev);events=[...m.values()];records=latestRecords(events);changed();
 }
-export async function merge(remote){
+export function merge(remote){return serial(async()=>{
   const known=new Set(events.map(e=>e.id));const additions=remote.filter(e=>!known.has(e.id));
   if(additions.length)await writeEvents(additions);return additions.length;
-}
+});}
 export async function markSynced(ids){const s=new Set(ids);const changedItems=events.filter(e=>s.has(e.id)&&!e.synced).map(e=>({...e,synced:true}));if(changedItems.length)await writeEvents(changedItems);}
 export async function markUnsynced(){const items=events.filter(e=>e.synced).map(e=>({...e,synced:false}));if(items.length)await writeEvents(items);}
 export const pendingEvents=()=>events.filter(e=>!e.synced);

@@ -163,9 +163,10 @@ function draftValue(form){
   return {form:form.dataset.form,id:form.dataset.id||'',data,lines:form.dataset.form==='order'?app.readOrderLines():null,rawText:form.querySelector('#order-raw-text')?.value||'',photoIds:[...(state.draftPhotoIds||[])],productPhotoId:state.draftProductPhotoId||null,updatedAt:new Date().toISOString()};
 }
 let draftQueue=Promise.resolve(),draftNamespace;
+const draftFingerprint=value=>JSON.stringify({...value,updatedAt:undefined});
 export function persistDraft(){
   const form=document.querySelector('#dialog [data-form]'),key=draftKey(form);if(!key)return draftQueue;
-  currentDraftKey=key;const value=draftValue(form);draftQueue=draftQueue.catch(()=>{}).then(()=>Store.setMeta(key,value));return draftQueue;
+  currentDraftKey=key;const value=draftValue(form);if(form.dataset.draftBaseline===draftFingerprint(value))return draftQueue;draftQueue=draftQueue.catch(()=>{}).then(()=>Store.setMeta(key,value));return draftQueue;
 }
 export async function clearDraft(form){
   const key=draftKey(form);if(!key)return;form.dataset.draftComplete='1';await draftQueue.catch(()=>{});await Store.setMeta(key,null);currentDraftKey=null;state.draftPhotoIds=[];
@@ -243,7 +244,7 @@ export function installOps(callbacks){
   Store.onChange(()=>{void notifyOverdue();});
   new MutationObserver(()=>{
     const form=document.querySelector('#dialog [data-form]'),key=draftKey(form);if(!form||form.dataset.draftReady||!key)return;
-    form.dataset.draftReady='1';onModalClose(()=>{void persistDraft();});
+    form.dataset.draftReady='1';form.dataset.draftBaseline=draftFingerprint(draftValue(form));onModalClose(()=>{void persistDraft();});
     Store.meta(key).then(d=>{if(d&&form.isConnected&&!form.dataset.restored)form.insertAdjacentHTML('afterbegin',`<div class="info-note">Un brouillon existe pour ce formulaire. ${opsButton('Restaurer le brouillon','resume-draft',`data-key="${esc(key)}"`)}</div>`);});
   }).observe(document.querySelector('#dialog-body'),{childList:true,subtree:true});
   void notifyOverdue();
