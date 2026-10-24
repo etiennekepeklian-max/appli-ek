@@ -29,7 +29,7 @@ try{
   imported=await state(async()=>{const s=await import('./js/storage.js');return s.list('products').find(p=>p.sku==='001234')});assert.deepEqual(imported.locations,['A-01','B-02']);
   console.log('OK import CSV multi-emplacements et annulation persistante');
 
-  await go('stock');await page.locator('[data-filter-search]').fill('001234');await page.locator('.product-record').first().locator('[data-action=edit-product]').click();
+  await go('stock');await page.locator('[data-filter-search]').fill('001234');await page.locator('[data-action=edit-product][data-id="import-001234"]').click();
   await page.locator('[name=name]').fill('Étole Marguerites');await page.locator('[name=aliases]').fill('petit foulard');await page.locator('[name=unitsPerPick]').fill('4');await page.locator('#product-photo').setInputFiles('site/assets/icon-192.png');
   await page.locator('#dialog [data-product-photo][src]').waitFor();await page.locator('[data-form=product] button[type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden'});
   await page.locator('[data-filter-search]').fill('petit foulard');await page.waitForTimeout(250);assert.match(await page.locator('#main').innerText(),/Étole Marguerites/);await page.locator('.product-record .product-photo[src]').waitFor();
