@@ -9,7 +9,7 @@ await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('
 let browser,qaPage;const errors=[];
 const base='http://localhost:8765/';
 try{
-  browser=await chromium.launch({headless:true});
+  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage();
   qaPage=page;
   page.on('pageerror',e=>errors.push(e.message));

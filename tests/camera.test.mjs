@@ -58,3 +58,10 @@ test('une liste restreinte conserve au moins la caméra active et un nom compré
   const camera=new CameraSession({mediaDevices:{async getUserMedia(){return stream('only');},async enumerateDevices(){throw failure('NotAllowedError');}}});
   const opened=await camera.open();assert.deepEqual(opened.cameras,[{deviceId:'only',label:'Objectif only'}]);camera.stop();
 });
+test('lampe et zoom : seules les contraintes disponibles et valides sont appliquées',async()=>{
+  const applied=[],settings={torch:false,zoom:1},track={getCapabilities:()=>({torch:true,zoom:{min:1,max:4,step:.1}}),getSettings:()=>settings,async applyConstraints(c){applied.push(c);Object.assign(settings,c.advanced[0]);},stop(){}};
+  const session=new CameraSession({mediaDevices:{}});session.stream={getVideoTracks:()=>[track],getTracks:()=>[track]};
+  assert.equal(await session.control('torch',true),true);assert.equal(await session.control('zoom',2.5),2.5);
+  await assert.rejects(session.control('zoom',5));await assert.rejects(session.control('unknown',1));assert.equal(applied.length,2);
+  session.stop();await assert.rejects(session.control('torch',true));
+});

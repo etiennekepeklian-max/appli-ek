@@ -1,8 +1,8 @@
 # Validation 1.3.0 — 24 octobre 2026
 
-- 45 tests unitaires passent localement (métier, caméras, CSV, réassort, recherche, semaine et géométrie).
+- 46 tests unitaires passent localement (métier, caméras, CSV, réassort, recherche, semaine et géométrie).
 - Syntaxe JavaScript et intégrité des assets vérifiées ; cache hors ligne régénéré.
-- Le workflow exécute également `tools/ui-smoke.mjs` avec Chromium dans un navigateur neuf : import et annulation, photos/alias, brouillons, codes inconnus, groupement et répartition, PDF hebdomadaire, redressement canvas, conflit de révisions et écrans 320/390/480/1280 px.
+- Le workflow exécute également `tools/ui-smoke.mjs` avec Chrome (moteur Chromium) dans un navigateur neuf : import et annulation, photos/alias, brouillons, codes inconnus, groupement et répartition, PDF hebdomadaire, redressement canvas, conflit de révisions et écrans 320/390/480/1280 px.
 - Le déploiement principal dépend de la réussite de ces contrôles. Les traces de test et PDF factices sont publiés uniquement comme artefacts de vérification GitHub Actions.
 - Lampe, zoom, son, vibration et livraison système des notifications restent dépendants du téléphone/navigateur et demandent un essai réel. L’alerte à 30 minutes ne garantit pas un réveil d’une PWA suspendue ou fermée.
 - La connexion Google réelle reste à configurer/tester ; les deux nouveaux onglets sont ajoutés aux bases existantes lors de la synchronisation. Les fonctionnalités locales restent indépendantes de Google.

@@ -9,7 +9,7 @@ permissions:
   id-token: write
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   verify:
     runs-on: ubuntu-24.04
@@ -23,9 +23,11 @@ jobs:
       - name: Installer le navigateur de test
         run: |
           npm install --no-save --package-lock=false playwright@1.56.1
-          npx playwright install --with-deps chromium
+          google-chrome --version
       - name: Verifier les parcours mobiles
         run: node tools/ui-smoke.mjs
+        env:
+          EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
         if: always()
         with:

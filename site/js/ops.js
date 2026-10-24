@@ -6,7 +6,7 @@ import {parseLocationImport,productLocations,pendingGroups,allocateReceipt,isOve
 import {scanFeedback,unlockFeedback} from './feedback.js';
 
 export const SHORTCUTS=[['codes','Créer un code','Saisir ou dicter','barcode'],['scan','Scanner','Caméra ou photo','scan'],['new-order','Une commande','Photo ou saisie','camera'],['new-pending','Un manquant','Suivre le réassort','clock'],['stock','Catalogue','Chercher un produit','box'],['locations','Emplacements','Retrouver un casier','pin'],['unknowns','Codes inconnus','Identifier plus tard','help'],['journal','Journal de bord','Bilan de la semaine','list'],['receipt','Réception groupée','Répartir le réassort','check']];
-let app,importPreview,receiptRows=[],receiptPlan=[],busy=false,timer,alerting=false,currentDraftKey,hydration=0;
+let app,importPreview,receiptRows=[],receiptPlan=[],busy=false,timer,alerting=false,currentDraftKey,hydration=0,photoRevision=0;
 const object=form=>Object.fromEntries(new FormData(form));
 const opsButton=(text,action,attrs='')=>`<button type="button" class="btn" data-ops-action="${action}" ${attrs}>${text}</button>`;
 const unknownId=code=>'unknown-'+refKey(code);
@@ -170,7 +170,7 @@ export function persistDraft(){
   currentDraftKey=key;const value=draftValue(form);if(form.dataset.draftBaseline===draftFingerprint(value))return draftQueue;draftQueue=draftQueue.catch(()=>{}).then(()=>Store.setMeta(key,value));return draftQueue;
 }
 export async function clearDraft(form){
-  const key=draftKey(form);if(!key)return;form.dataset.draftComplete='1';await draftQueue.catch(()=>{});await Store.setMeta(key,null);currentDraftKey=null;state.draftPhotoIds=[];
+  const key=draftKey(form);if(!key)return;form.dataset.draftComplete='1';await draftQueue.catch(()=>{});await Store.setMeta(key,null);currentDraftKey=null;state.draftPhotoIds=[];if(state.route==='home')app.render();
 }
 async function showDraftBanner(root){
   const drafts=await Store.drafts();if(!root.isConnected||state.route!=='home'||!drafts.length)return;
@@ -233,8 +233,8 @@ export function installOps(callbacks){
     const el=event.target;if(el.id==='journal-date'){state.date=el.value||localDate();app.render();}
     if(el.dataset.opsFile==='locations'&&el.files?.[0]){const file=el.files[0];if(file.size>3e6||!/\.(csv|tsv)$/i.test(file.name)){toast('Choisissez un fichier CSV UTF-8 de moins de 3 Mo.',true);return;}const form=el.closest('form');file.text().then(text=>{if(form.isConnected)form.elements.csv.value=text;importPreview=null;}).catch(()=>toast('Fichier illisible.',true));}
     if(el.name==='productPhoto'&&el.files?.[0]){
-      const form=el.closest('form'),file=el.files[0];
-      import('./photo-tools.js').then(async({compressProductPhoto})=>{const photo=await compressProductPhoto(file);if(!form?.isConnected)return;const id=await Store.storeFile(photo,photo.name,'product-photo');await Store.save('documents',{id,name:photo.name,kind:'product-photo',createdAt:new Date().toISOString()},'Photo produit conservée');if(!form.isConnected)return;state.draftProductPhotoId=id;await persistDraft();el.insertAdjacentHTML('afterend',`<img class="product-photo" data-product-photo="${esc(id)}" alt="Photo choisie" hidden>`);void hydratePhotos();}).catch(e=>toast(e.message,true));
+      const form=el.closest('form'),file=el.files[0],revision=++photoRevision;state.draftProductPhotoId=null;
+      import('./photo-tools.js').then(async({compressProductPhoto})=>{const photo=await compressProductPhoto(file);if(!form?.isConnected||revision!==photoRevision)return;const id=await Store.storeFile(photo,photo.name,'product-photo');await Store.save('documents',{id,name:photo.name,kind:'product-photo',createdAt:new Date().toISOString()},'Photo produit conservée');if(!form.isConnected||revision!==photoRevision)return;state.draftProductPhotoId=id;state.draftProductPhotoFile=file;await persistDraft();form.querySelector('.chosen-product-photo')?.remove();el.insertAdjacentHTML('afterend',`<img class="product-photo chosen-product-photo" data-product-photo="${esc(id)}" alt="Photo choisie" hidden>`);void hydratePhotos();}).catch(e=>toast(e.message,true));
     }
     void persistDraft().catch(()=>toast('Le brouillon n’a pas pu être sauvegardé.',true));
   });
