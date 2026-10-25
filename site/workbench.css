@@ -11,3 +11,8 @@
 
 :root[data-text-size="large"] :is(input,select,textarea,.btn,.field label,.record-facts dd){font-size:1rem}
 :root[data-text-size="large"] :is(.hint,.small,.tool-row small){font-size:.84rem}
+
+/* Main-page forms do not use the dialog’s negative footer margins. */
+#main [data-wb-form]{min-width:0}
+#main [data-wb-form]>.form-actions{position:static;margin:1rem 0 0;padding:1rem 0 0;background:none;backdrop-filter:none;max-width:100%}
+#main [data-wb-form] .btn{white-space:normal;overflow-wrap:anywhere}

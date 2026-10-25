@@ -60,7 +60,7 @@ try{
  assert.deepEqual(await page.evaluate(async()=>{const l=await import('./js/workbench-store.js');return Array.from(new Uint8Array(await l.get('wb-photo').photo.arrayBuffer()));}),[1,2,255]);
  await go('personal');await page.locator('[name=hand]').selectOption('left');await page.locator('[name=textSize]').selectOption('large');await page.locator('[data-wb-form=preferences] [type=submit]').click();assert.equal(await page.locator('html').getAttribute('data-hand'),'left');
  for(const theme of ['light','dark']){await page.evaluate(async theme=>{const s=await import('./js/storage.js');await s.save('preferences',{...s.settings(),id:'main',theme},'Thème de test');},theme);for(const width of [320,390]){await page.setViewportSize({width,height:844});for(const route of ['post','resume','instructions','handoff','personal','progress','improvements','storage','diagnostic','training','conflicts','exports']){
-  await go(route);assert.ok(await page.locator('#main h1').count());assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'Débordement '+route);
+  await go(route);assert.ok(await page.locator('#main h1').count());assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'Débordement '+route+' / '+width+' / '+theme);
   await page.locator('.topbar [data-action=quickhelp]').click();assert.notEqual(await page.locator('#context-help-title').innerText(),'Pikéo');await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
  }
  }}
