@@ -51,10 +51,16 @@ L’ancienne feuille et les fichiers historiques peuvent encore contenir des don
 
 ## Ce qui reste à raccorder ou à fournir
 
-- Comptes personnels avec rôles administrateur/opérateur, chat entre collègues et tableau collectif facultatif : un service d’authentification et de contrôle d’accès doit être installé et connecté. Supabase a été identifié comme une option disponible, mais son application n’est pas encore installée ni connectée dans cette session. GitHub Pages sert des fichiers et ne contrôle pas des autorisations serveur. Les préférences livrées sont personnelles à l’appareil ; elles ne sont pas encore rattachées à un compte.
+- Comptes personnels avec rôles administrateur/opérateur, chat entre collègues et tableau collectif facultatif : Supabase est connecté et le projet Pikéo a été créé le 25 octobre 2026 dans l’organisation choisie par Étienne, en région Paris. Le tarif de création annoncé est de 0 $/mois. Le projet est sain et ne contient encore aucune table applicative ; comptes, rôles et messagerie restent à configurer et à intégrer. GitHub Pages sert des fichiers et ne contrôle pas des autorisations serveur. Les préférences livrées sont personnelles à l’appareil ; elles ne sont pas encore rattachées à un compte.
 - Le PIN de quatre chiffres devra déverrouiller un appareil déjà associé à un compte, avec limitation des essais. Il ne remplace ni une clé de chiffrement ni un mot de passe de service. Ne pas stocker un PIN réversible dans Sheets.
 - Pour le chat : historique chiffré sur les téléphones, relais temporaire chiffré de bout en bout, expiration après réception/délai et protection des clés par appareil. Pas de relais à plusieurs téléphones.
 - Le tableau collectif devra être facultatif et masquable, centré sur entraide/qualité/progrès consentis, sans rang public des moins productifs ni sanction des absences.
 - Portrait de la mascotte à fournir par Étienne : style comics, sourire, tenue de logisticien, carton, marche sur place ; pas de visage inventé.
 - Fichier réel de police C39HrP24DhTt et validation au terminal Honeywell : l’import de police existe, mais ce fichier n’a pas été reçu ici.
 - Godot et Capacitor sont reportés. Bluetooth/Wi-Fi direct entre téléphones, pas Health Connect (46), raccourci natif WeWard et alarmes fiables écran verrouillé attendent une implémentation Android.
+
+## Jeu logistique — recherche, sans intégration
+
+- Demande du 25 octobre 2026 : un jeu inspiré des principes d’Overcooked! 2, où un logisticien prélève les références dans les allées et remplit progressivement un bac pour terminer des commandes.
+- [Recherche et propositions](GAME_RESEARCH.md) : gestes simples, coopération, variété des niveaux, erreurs récupérables, remplissage visible et progression facultative.
+- Attendre un nouveau GO explicite d’Étienne avant toute implantation du jeu. Aucune progression de jeu ne doit être comptabilisée comme du picking professionnel.
