@@ -278,6 +278,7 @@ async function recoveryReminder(){
 }
 export function install(callbacks){
  app=callbacks;
+ window.addEventListener('pikeo-key',()=>{if(['storage','settings'].includes(state.route))app.render();});
  document.addEventListener('click',event=>{
   const button=event.target.closest('[data-wb-action]');if(!button||button.disabled||busy.has(button))return;event.preventDefault();busy.add(button);button.disabled=true;
   Promise.resolve().then(()=>perform(button)).catch(e=>toast(e.message,true)).finally(()=>{busy.delete(button);button.disabled=false;});

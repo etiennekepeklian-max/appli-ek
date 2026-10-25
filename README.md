@@ -1,5 +1,15 @@
 # Pikéo
 
+## Version 1.9.0 — Mon poste et sauvegardes chiffrées
+
+- Un accès « Mon poste » pour matériel, reprise, consignes et lexique, passation, progrès privés, idées et diagnostic.
+- Préférences personnelles de main et de lecture, retours visuels des scans et réussite discrète/festive facultative.
+- Points de restauration locaux avant cette version et avant les restaurations ; historique conservé, copies audio séparées.
+- Sauvegardes personnelles .pikeo et nouveaux envois Google chiffrés sur le téléphone. Charger sa clé .pikeokey avant de synchroniser. Les anciennes copies en clair ne sont pas chiffrées rétroactivement.
+- Les fonctions existantes restent vérifiées. Godot et Capacitor sont reportés. Comptes, rôles et chat attendent le service sécurisé ; aucune protection fictive par boutons masqués.
+
+Détails, activation Google et état des choix : [évolutions web](docs/WEB_EVOLUTIONS.md).
+
 ## Version 1.8.0 — horaires, mémos vocaux et quatre onglets Google
 
 - **Horaires et alertes** dans Plus et sur l’accueil : prise de poste 8 h, pause 10 h 15–10 h 30, déjeuner 12 h 30–13 h 15, fin 16 h. Six rappels à 7 h 52, 10 h 07, 10 h 22, 12 h 22, 13 h 07 et 15 h 52. Lundi à vendredi par défaut, jours et horaires modifiables, heure de Paris. Les rappels sont propres à ce téléphone et restent jusqu’à acquittement. La vibration se relance tant que la page est visible et le navigateur l’autorise ; aucun service d’alarmes écran verrouillé n’est promis par la version web. L’action d’arrêt de la notification est conservée même si la page est fermée.

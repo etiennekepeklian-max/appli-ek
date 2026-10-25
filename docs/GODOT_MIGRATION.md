@@ -1,3 +1,7 @@
+# Décision du 25 octobre 2026
+
+Godot et Capacitor sont reportés. Continuer les évolutions de la version web. Les propositions ci-dessous restent une archive de préparation ; elles ne constituent pas une autorisation de migration. Aucune écriture sur le PC D:\Pikéo n’est possible depuis cet environnement.
+
 # Pikéo : préparer Godot 4, migrer à la toute fin
 
 État : préparation uniquement, aucune application native ni APK livrés. La version web reste utilisée. Attendre la fin des fonctionnalités et l’accord final explicite d’Étienne. À chaque étape fonctionnelle importante, proposer de refaire le point sur la maturité de l’application ; sa réponse décide de la suite. Le volet des Réglages recueille aussi une demande de bilan final, sans autoriser une migration automatique.
