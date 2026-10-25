@@ -17,7 +17,7 @@
     <header class="topbar"><button class="brand mobile-brand" data-nav="home" aria-label="Pikéo accueil"><span class="brand-mark" aria-hidden="true">P</span></button><div class="mobile-app-title"><strong>Pikéo</strong><span class="breadcrumb" id="breadcrumb">Votre espace terrain</span><span id="network" class="connection"><i></i> Sur cet appareil</span></div><div class="topbar-actions"><button class="icon-button" data-action="quickhelp" aria-label="Aide pour cette page" title="Aide">?</button><button class="avatar" data-nav="users" aria-label="Ouvrir mes sessions" id="avatar">EK</button></div></header>
     <div id="demo-banner" hidden></div>
     <main id="main" tabindex="-1"><div class="loading"><span class="loader"></span>Ouverture de votre espace…</div></main>
-    <footer class="app-footer"><span>Pikéo <span id="app-version"></span></span><button data-nav="help">Aide et prise en main</button></footer>
+    <footer class="app-footer"><span>Pikéo <span id="app-version"></span></span><button type="button" id="check-update">Vérifier la version</button><button data-nav="help">Aide et prise en main</button></footer>
   </div>
   <nav class="mobile-nav" aria-label="Navigation principale" id="mobile-nav"></nav>
   <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title" tabindex="-1"></h2><div class="dialog-header-actions"><button type="button" class="icon-button context-help" data-action="quickhelp" aria-label="Aide pour cette action">?</button><button class="icon-button" data-action="close-dialog" aria-label="Fermer"><span aria-hidden="true">×</span></button></div></div><div id="dialog-body"></div></dialog>
@@ -25,7 +25,10 @@
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <noscript>Activez JavaScript pour utiliser Pikéo.</noscript>
   <script src="vendor/jsbarcode.min.js" defer></script><script src="vendor/jspdf.umd.min.js" defer></script>
-  <script type="module" src="js/app.js"></script>
+  <script type="module">
+import {launch} from './js/updates.js?pikeo-v=1.10.1';
+launch(version=>import('./js/app.js'+(version?'?pikeo-v='+version:'')),'1.10.1').catch(error=>{const main=document.getElementById('main');main.replaceChildren();const p=document.createElement('p');p.textContent='Ouverture interrompue : '+error.message;const link=document.createElement('a');link.href='actualiser.html';link.textContent='Actualiser Pikéo sans effacer mes données';main.append(p,link);});
+</script>
 </body>
 </html>
 
