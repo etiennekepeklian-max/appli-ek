@@ -17,7 +17,8 @@ import {loadCatalogue,products,families,familyOptions,findProduct,findProducts,p
 import {renderView,titles} from './views.js';
 import {renderMobileNav,mobileTools,enhanceMobileView,installMobileViewport} from './mobile.js';
 
-let renderPending=false,restoreInput,installPrompt,autoSyncTimer,formSaving=false;
+let renderPending=false,restoreInput,installPrompt,autoSyncTimer;
+const savingForms=new WeakSet();
 const dataObject=form=>Object.fromEntries(new FormData(form));
 const isoNow=()=>new Date().toISOString();
 const getRaw=(type,id)=>Store.get(type,id);
@@ -78,7 +79,7 @@ function updateOrderEstimate(){const el=document.querySelector('#order-estimate'
 async function stableFile(file){let timer;try{const bytes=await Promise.race([file.arrayBuffer(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('La photo n’est pas accessible. Choisissez-la à nouveau depuis la galerie.')),10000);})]);return new File([bytes],file.name||'photo.jpg',{type:file.type||'image/jpeg'});}catch{throw Error('La photo n’est pas lisible. Choisissez-la à nouveau depuis la galerie ou saisissez les lignes manuellement.');}finally{clearTimeout(timer);}}
 async function attachPhoto(file,kind='photo'){const stable=await stableFile(file);const id=await Store.storeFile(stable,stable.name,kind);await Store.save('documents',{id,name:stable.name,kind,createdAt:isoNow()},'Document ajouté');return id;}
 async function handleSubmit(form){
-  if(formSaving)return;const name=form.dataset.form;const d=dataObject(form),id=form.dataset.id||undefined;const button=form.querySelector('[type="submit"]');formSaving=true;if(button)button.disabled=true;
+  if(savingForms.has(form))return;const name=form.dataset.form;const d=dataObject(form),id=form.dataset.id||undefined;const button=form.querySelector('[type="submit"]');savingForms.add(form);if(button)button.disabled=true;
   try{
     switch(name){
       case 'onboarding':await Store.save('preferences',{...Store.settings(),id:'main',name:d.name.trim(),goal:number(d.goal,{min:1,integer:true}),profile:state.formRole,beginner:true,welcomed:true},'Espace configuré');await Ops.clearDraft(form);closeModal();toast('Votre espace est prêt.');break;
@@ -124,7 +125,7 @@ async function handleSubmit(form){
       case 'import-products':{const text=d.text;const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);if(!lines.length||lines.length>500)throw Error('Importez de 1 à 500 lignes à la fois.');let added=0;for(const line of lines){const [sku,name,barcode='',pack='']=line.split(';').map(s=>s.trim());if(/^(référence|reference|sku)$/i.test(sku))continue;if(!sku||!name)throw Error('Chaque ligne doit contenir référence ; nom ; EAN ; unités par prise.');number(pack,{min:1,integer:true,optional:true});}
         for(const line of lines){const [sku,name,barcode='',pack='']=line.split(';').map(s=>s.trim());if(/^(référence|reference|sku)$/i.test(sku))continue;const existing=findProduct(sku);const unitsPerPick=number(pack,{min:1,integer:true,optional:true});await Store.save('products',{...existing,sku:refKey(sku),name,barcode,unitsPerPick},'Référence importée');if(pack){const old=Store.list('packagings').find(p=>refKey(p.sku)===refKey(sku));await Store.save('packagings',{id:old?.id||'pack-'+refKey(sku),sku:refKey(sku),unitsPerPick},'Conditionnement importé');}added++;}await Ops.clearDraft(form);closeModal();toast(`${added} référence(s) importée(s).`);break;}
     }
-  }catch(error){formError(form,error);}finally{formSaving=false;if(button?.isConnected)button.disabled=false;}
+  }catch(error){formError(form,error);}finally{savingForms.delete(form);if(button?.isConnected)button.disabled=false;}
 }
 
 async function seedDemo(){if(Store.list('orders').length)return;await Store.save('preferences',{id:'main',name:'Démo',profile:'preparer',goal:1800,beginner:true,welcomed:true},'Démonstration ouverte');for(let i=4;i>=0;i--){const date=new Date();date.setDate(date.getDate()-i);const day=localDate(date);await Store.save('orders',{id:'demo-order-'+i,number:'DEMO-'+(100+i),date:day,lines:[{sku:'DEMO-STYLO',quantity:4,pack:1}],total:[1230,1510,1640,1390,1720][i],calculationStatus:i===1?'estimated':'verified',status:'completed',notes:'Exemple fictif de démonstration'},'Exemple de commande');}

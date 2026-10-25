@@ -8,7 +8,7 @@ import {SHEETS} from '../site/js/core.js';
 const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe','inherit']});
 await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Serveur indisponible')),15000);server.stdout.on('data',d=>{if(String(d).includes('http://')){clearTimeout(timer);resolve();}});server.on('error',reject);});
 const base='http://localhost:8765/',sheet='synthetic-sheet-12345678901234567890',remote=new Map(Object.values(SHEETS).map(title=>[title,[]]));
-let browser,page,failNext=false,duringAppend,appends=0;const errors=[];
+let browser,page,failNext=false,duringAppend,appends=0,releaseLookup;const errors=[];
 const read=(fn,arg)=>page.evaluate(fn,arg);
 const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.6.0'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
 const close=async()=>{await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();};
@@ -61,6 +61,13 @@ try{
  await go('more');assert.equal(await page.locator('#main details.tool-section').getAttribute('open'),null);await page.getByText('Contrôles de stock',{exact:true}).click();await page.locator('[data-nav=replenishments]').click();await page.getByRole('button',{name:'Ajouter un réglage'}).click();await field('sku').fill('FLOW001');await field('location').fill('PAC001-A');await field('min').fill('2');await field('max').fill('20');await field('current').fill('1');await save('replenishment');
  assert.match(await page.locator('#main').innerText(),/Constaté le/);assert.equal(await read(async()=>{const s=await import('./js/storage.js');return s.list('replenishments')[0].economic}),null);
  console.log('OK recherche commune, code d’emplacement, liste à compléter et constat daté sans niveau économique obligatoire');
+ // A slow optional web lookup must not lock another form after SPA navigation.
+ let lookupDone=false;
+ await context.route('https://fr.checkout.draegerparis.com/search/suggest.json?**',async route=>{await new Promise(resolve=>{releaseLookup=resolve;});lookupDone=true;await route.fulfill({json:{resources:{results:{products:[]}}}}).catch(()=>{});});
+ await go('scan');await page.locator('[name=code]').fill('SLOW-UNKNOWN');const looking=page.waitForRequest(r=>r.url().includes('/search/suggest.json?'));await page.locator('[data-form=lookup-product] [type=submit]').click();await looking;
+ await page.locator('#mobile-nav [data-nav=pending]').click();await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await field('orderNumber').fill('CMD-WHILE-LOOKUP');await field('sku').fill('FLOW002');await page.locator('[data-form=pending] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden',timeout:3000});assert.equal(lookupDone,false);releaseLookup();await context.unroute('https://fr.checkout.draegerparis.com/search/suggest.json?**');
+ console.log('OK une recherche réseau en cours ne bloque pas l’enregistrement d’un autre formulaire');
+
 
  await go('settings');await page.locator('[data-form=settings] [name=name]').fill('Prénom non enregistré');await read(async()=>{const s=await import('./js/storage.js');await s.save('products',{...s.get('products','flow-b'),notes:'Actualisation en arrière-plan'},'Test saisie en cours');});assert.equal(await page.locator('[data-form=settings] [name=name]').inputValue(),'Prénom non enregistré');await page.locator('[name=spreadsheetId]').fill(sheet);await page.locator('[data-google-connect]').click();await page.locator('[data-backup-kind=synced]').waitFor();assert.equal(await read(async()=>{const s=await import('./js/storage.js');return s.pendingEvents().length}),0);assert.ok(appends>0);
  failNext=true;await read(async()=>{const s=await import('./js/storage.js');await s.save('products',{...s.get('products','flow-a'),notes:'À transmettre après coupure'},'Test coupure');});
@@ -79,4 +86,4 @@ try{
  await mkdir('test-results',{recursive:true});await go('home');await page.screenshot({path:'test-results/workflow-home.png',fullPage:true});await go('complete');await page.locator('[data-filter-search]').fill('FLOW');await page.waitForTimeout(200);await page.screenshot({path:'test-results/workflow-complete.png',fullPage:true});
  for(const width of [320,390,480,1280]){await page.setViewportSize({width,height:844});for(const route of ['home','stock','complete','more','orders','settings']){await go(route);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,route+' à '+width+' px');}}
  assert.deepEqual(errors,[]);console.log('OK 24 contrôles supplémentaires de largeur et aucune erreur JavaScript');
-}catch(error){await mkdir('test-results',{recursive:true});await page?.screenshot({path:'test-results/workflow-failure.png',fullPage:true}).catch(()=>{});console.error(await page?.locator('body').innerText().catch(()=>''));throw error;}finally{await browser?.close();server.kill();}
+}catch(error){await mkdir('test-results',{recursive:true});await page?.screenshot({path:'test-results/workflow-failure.png',fullPage:true}).catch(()=>{});console.error(await page?.locator('body').innerText().catch(()=>''));throw error;}finally{releaseLookup?.();await browser?.close();server.kill();}
