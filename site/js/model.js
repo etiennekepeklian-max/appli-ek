@@ -18,7 +18,7 @@ export function products(){if(productCache)return productCache;const m=new Map(s
 export function findProducts(code){const v=refKey(code);return products().filter(p=>refKey(p.sku)===v||p.barcode&&refKey(p.barcode)===v);}
 export function findProduct(code){return findProducts(code)[0];}
 export function productName(sku){return findProduct(sku)?.name||sku;}
-export function recordLabel(r){return r.orderNumber||r.number||r.code||r.sku||r.name||r.title||r.label||r.date||r.id;}
+export function recordLabel(r){return r.orderNumber||r.number||r.sku||r.code||r.name||r.title||r.label||r.date||r.id;}
 export const pendingStatus={waiting:{label:'En attente',kind:'amber'},received:{label:'Réassort reçu',kind:'green'},done:{label:'Commande terminée',kind:'green'}};
 export const issueStatus={open:'À traiter',progress:'En cours',resolved:'Résolu'};
 
