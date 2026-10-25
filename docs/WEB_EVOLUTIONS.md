@@ -41,7 +41,7 @@ Le mode sombre, l’import CSV d’emplacements, les familles rétablies sauf Ca
 
 ## Google
 
-Les quatre onglets sont conservés. Chaque nouveau payload est chiffré ; les colonnes métier visibles sont vides. Un grand payload est réparti dans deux cellules pour respecter la limite de Google. L’identifiant aléatoire d’événement et le nom d’onglet restent des métadonnées techniques visibles.
+Les quatre onglets sont conservés. Chaque nouveau payload est chiffré ; les colonnes métier visibles sont vides. Un grand payload est réparti dans plusieurs cellules pour respecter la limite de Google, y compris avec des caractères multioctets. L’identifiant aléatoire d’événement et le nom d’onglet restent des métadonnées techniques visibles.
 
 Les documents sont chiffrés avant upload, y compris leur nom et leur type d’origine ; Drive affiche un nom technique opaque. Les mémos et repères privés sont exclus. La restauration de documents chiffre/déchiffre côté téléphone.
 

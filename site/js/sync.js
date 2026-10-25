@@ -48,7 +48,7 @@ async function pull(id,key){
   const all=[],active=new Set(SHEET_TABS),chunk=2500;let offset=2;
   while(active.size){for(const tab of active)if(rowCounts.get(tab)<offset)active.delete(tab);const batch=[...active];if(!batch.length)break;const q=new URLSearchParams({valueRenderOption:'UNFORMATTED_VALUE'});for(const tab of batch)q.append('ranges',`'${tab}'!A${offset}:L${Math.min(offset+chunk-1,rowCounts.get(tab))}`);
     const data=await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchGet?${q}`);
-    for(let i=0;i<batch.length;i++){const rows=data.valueRanges?.[i]?.values||[];for(const row of rows){const encrypted=String(row[10]||'').startsWith('{"app":"PikeoEncrypted"');const ev=encrypted?await eventFromSealedRow(row,key):eventFromRow(row);if(ev&&SHEETS[ev.type]===batch[i]){all.push(ev);if(!encrypted)legacyCount++;}}if(rows.length<chunk)active.delete(batch[i]);}
+    for(let i=0;i<batch.length;i++){const rows=data.valueRanges?.[i]?.values||[];for(const row of rows){const encrypted=String(row[10]||'').startsWith('{"app":"PikeoEncrypted"');const ev=encrypted?await eventFromSealedRow(row,key):eventFromRow(row);if(row[0]&&row[10]&&!ev)throw Error('Une révision Google est illisible. Vérifiez la copie de sécurité avant de continuer.');if(ev&&SHEETS[ev.type]===batch[i]){all.push(ev);if(!encrypted)legacyCount++;}}if(rows.length<chunk)active.delete(batch[i]);}
     offset+=chunk;
     if(offset>250002)throw Error('La base dépasse 250 000 lignes par onglet. Exportez et archivez une période avant de continuer.');
   }return all;

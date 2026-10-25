@@ -54,7 +54,7 @@ try{
  await page.evaluate(async()=>{const l=await import('./js/workbench-store.js'),k=await import('./js/secure-session.js');for(const r of l.list('fatigue'))await l.remove(r.id);await k.create();});
  await page.locator('[data-wb-file=encrypted-import]').setInputFiles(encryptedPath);await page.getByText('Clé incorrecte ou fichier modifié. Aucune donnée n’a été restaurée.',{exact:true}).waitFor();
  assert.equal(await page.evaluate(async()=>{const l=await import('./js/workbench-store.js');return l.list('fatigue').length;}),0);
- const chooserPromise=page.waitForEvent('filechooser');await action('load-key').click();const chooser=await chooserPromise;await chooser.setFiles(keyPath);await page.getByText('Clé chargée pour cette session.',{exact:true}).first().waitFor();
+ const chooserPromise=page.waitForEvent('filechooser');await action('load-key').click();const chooser=await chooserPromise;await chooser.setFiles(keyPath);await page.locator('#toast').filter({hasText:'Clé chargée pour cette session.'}).waitFor();
  await page.locator('[data-wb-file=encrypted-import]').setInputFiles(encryptedPath);await action('confirm-import').waitFor();await action('confirm-import').click();await page.locator('#dialog').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(async()=>{const l=await import('./js/workbench-store.js');return l.list('fatigue').length;}),1);
  assert.deepEqual(await page.evaluate(async()=>{const l=await import('./js/workbench-store.js');return Array.from(new Uint8Array(await l.get('wb-photo').photo.arrayBuffer()));}),[1,2,255]);
@@ -67,4 +67,4 @@ try{
  await go('diagnostic');await action('diagnostic').click();await page.getByText('lecture et écriture réussies',{exact:false}).waitFor();
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/workbench-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);console.log('Mon poste : repères, confidentialité, reprise, clé, import atomique, restauration, aide et affichage mobile OK.');
-} catch(e){if(page){console.error(await page.locator('body').innerText().catch(()=>''));await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/workbench-failure.png',fullPage:true}).catch(()=>{});}throw e;}finally{await browser?.close();server.kill();}
+} catch(e){if(page){console.error('Dernier message',await page.locator('#toast').textContent().catch(()=>''));console.error(await page.locator('body').innerText().catch(()=>''));await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/workbench-failure.png',fullPage:true}).catch(()=>{});}throw e;}finally{await browser?.close();server.kill();}

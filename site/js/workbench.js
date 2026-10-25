@@ -135,7 +135,7 @@ async function exportEncrypted(){
  const sealed=await sealJSON(body,Secrets.key(),'backup');jsonDownload(sealed,'pikeo-'+VERSION+'-'+localDate()+'.pikeo');
 }
 function selectKeyFile(){
- const input=document.createElement('input');input.type='file';input.accept='.json,.pikeokey';input.addEventListener('change',async()=>{try{const f=input.files?.[0];if(!f)return;if(f.size>16384)throw Error('Choisissez le petit fichier de clé personnelle.');await Secrets.unlock(JSON.parse(await f.text()));toast('Clé chargée pour cette session.');app.render();}catch(e){toast(e.message,true);}});input.click();
+ const input=document.createElement('input');input.type='file';input.accept='.json,.pikeokey';input.addEventListener('change',async()=>{try{const f=input.files?.[0];if(!f)return;if(f.size>16384)throw Error('Choisissez le petit fichier de clé personnelle.');Secrets.lock();await Secrets.unlock(JSON.parse(await f.text()));toast('Clé chargée pour cette session.');app.render();}catch(e){toast(e.message,true);}});input.click();
 }
 async function readEncrypted(file){
  if(!file)return;if(!Secrets.unlocked())throw Error('Chargez d’abord votre clé personnelle.');
