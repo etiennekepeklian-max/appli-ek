@@ -1,3 +1,4 @@
+import {protectedFiles,hashBytes} from './archive-core.js';
 import {validateEnf} from './enf-core.js';
 import * as Identity from './identity-context.js';
 import {uid,makeEvent,latestRecords,TYPES} from './core.js';
@@ -5,6 +6,7 @@ let db,events=[],records=new Map(),listeners=new Set(),namespace='live',demoMode
 export function setBaseRecords(type,rows){for(const [key] of baseRecords)if(key.startsWith(type+':'))baseRecords.delete(key);for(const row of rows)baseRecords.set(type+':'+row.id,row);}
 const request = r=>new Promise((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
 export async function openStore(demo=false){
+  await mutations.catch(()=>{});
   if(db)db.close();demoMode=demo;namespace=Identity.scope(demo);events=[];records.clear();
   db=await new Promise((resolve,reject)=>{const q=indexedDB.open(`ek-logistique-${namespace}`,1);q.onupgradeneeded=()=>{const d=q.result;d.createObjectStore('events',{keyPath:'id'});d.createObjectStore('files',{keyPath:'id'});d.createObjectStore('meta',{keyPath:'key'});};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});
   events=await request(db.transaction('events').objectStore('events').getAll());records=latestRecords(events);
@@ -25,7 +27,8 @@ export async function save(type,record,action='Modification'){
 let mutations=Promise.resolve();
 const serial=fn=>{const task=mutations.catch(()=>{}).then(fn);mutations=task.catch(()=>{});return task;};
 const undoTypes=new Set(['families','products','enfs','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','journal']);
-async function batch(items,action,{undoable=true,resolves=[]}={}){
+async function batch(items,action,{undoable=true,resolves=[],expectedScope}={}){
+  if(expectedScope&&namespace!==expectedScope)throw Error('L’espace de travail a changé.');
   let clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);const snapshots=[],seen=new Set();
   const next=items.map(({type,record})=>{
     if(!isDemo()&&['products','enfs','families','packagings','locations','replenishments'].includes(type))Identity.assertConfigure();
@@ -50,7 +53,9 @@ export function undoLast(){return serial(async()=>{
   await setMeta('last-undo',null);return info.action;
 });}
 async function writeEvents(items,undo){
+  const ownerDb=db,ownerScope=namespace;
   await new Promise((resolve,reject)=>{const t=db.transaction(undo?['events','meta']:['events'],'readwrite');for(const ev of items)t.objectStore('events').put(ev);if(undo)t.objectStore('meta').put({key:'last-undo',value:undo});t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement interrompu.'));});
+  if(db!==ownerDb||namespace!==ownerScope)return;
   const m=new Map(events.map(e=>[e.id,e]));for(const ev of items)m.set(ev.id,ev);events=[...m.values()];records=latestRecords(events);changed();
 }
 export function merge(remote){return serial(async()=>{
@@ -113,4 +118,34 @@ export async function restoreFilesAndDrafts(snapshot){
  const rows=Array.isArray(snapshot.files)?snapshot.files:[],metadata=(snapshot.metadata||[]).filter(r=>r.key?.startsWith('draft-')||r.key==='day-capture');
  await new Promise((resolve,reject)=>{const t=db.transaction(['files','meta'],'readwrite');for(const row of rows)t.objectStore('files').put(row);for(const row of metadata)t.objectStore('meta').put(row);t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});
  changed();
+}
+
+export function removeArchivedFiles(manifest,expectedScope,archiveName){
+ return serial(async()=>{
+  if(namespace!==expectedScope||!Array.isArray(manifest)||!manifest.length||manifest.length>500||new Set(manifest.map(f=>f.id)).size!==manifest.length)throw Error('La session ou la sélection a changé.');
+  const wanted=new Map(manifest.map(f=>[f.id,f])),current=await files();
+  for(const proof of manifest){const row=current.find(f=>f.id===proof.id);if(!row||row.blob.size!==proof.size||await hashBytes(await row.blob.arrayBuffer())!==proof.sha256)throw Error('Un fichier a changé : créez une nouvelle archive.');}
+  if(namespace!==expectedScope)throw Error('La session a changé.');
+  const count=await new Promise((resolve,reject)=>{
+   const t=db.transaction(['events','files','meta'],'readwrite'),fs=t.objectStore('files'),ms=t.objectStore('meta'),values=[];let left=3,failure;
+   const requests=[t.objectStore('events').getAll(),fs.getAll(),ms.getAll()];
+   requests.forEach((q,i)=>{q.onsuccess=()=>{values[i]=q.result;if(--left)return;try{
+    const [liveEvents,liveFiles,metadata]=values,locked=protectedFiles(liveFiles,liveEvents,metadata),archived={...(metadata.find(r=>r.key==='archived-files')?.value||{})};
+    for(const proof of manifest){const row=liveFiles.find(f=>f.id===proof.id);if(!row||locked.has(row.id)||row.blob.size!==proof.size||(row.name||'fichier')!==proof.name||(row.kind||'document')!==proof.kind||(row.blob.type||'application/octet-stream')!==proof.mime||(row.createdAt||'')!==proof.createdAt)throw Error('Un fichier est maintenant utilisé ou a changé. Aucun retrait effectué.');}
+    for(const proof of manifest){fs.delete(proof.id);archived[proof.id]={name:proof.name,kind:proof.kind,archiveName:String(archiveName||'').slice(0,180),archivedAt:new Date().toISOString()};}
+    ms.put({key:'archived-files',value:archived});
+   }catch(e){failure=e;t.abort();}};});
+   t.oncomplete=()=>resolve(wanted.size);t.onerror=()=>reject(failure||t.error);t.onabort=()=>reject(failure||t.error||Error('Retrait interrompu.'));
+  });changed();return count;
+ });
+}
+export function restoreArchivedFiles(rows,expectedScope){
+ return serial(async()=>{
+  if(namespace!==expectedScope||!Array.isArray(rows)||!rows.length||rows.length>500||rows.some(f=>!f.id||!(f.blob instanceof Blob)||f.kind==='voice'||f.kind==='font'||f.blob.type.startsWith('audio/')))throw Error('L’archive ou la session est invalide.');
+  const count=await new Promise((resolve,reject)=>{
+   const t=db.transaction(['files','meta'],'readwrite'),fs=t.objectStore('files'),ms=t.objectStore('meta');let added=0;
+   const q=ms.get('archived-files');q.onsuccess=()=>{const archived={...(q.result?.value||{})};for(const row of rows){const get=fs.get(row.id);get.onsuccess=()=>{if(!get.result){fs.put(row);added++;}delete archived[row.id];ms.put({key:'archived-files',value:archived});};}};
+   t.oncomplete=()=>resolve(added);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Import interrompu.'));
+  });changed();return count;
+ });
 }
