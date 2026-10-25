@@ -52,8 +52,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
 .hero{background:var(--soft);border-color:var(--line)}.hero p,.hero h2,details p,details li{color:var(--ink)}
 .help-body{padding:22px 20px}.help-footer{padding:0 20px 20px;display:flex;justify-content:flex-end}.dialog-header-actions{display:flex;gap:8px;flex-shrink:0}
 .dialog-top{gap:10px;align-items:flex-start}.dialog-top h2{font-size:18px;line-height:1.4;min-width:0;align-self:center}
-.dialog-top .icon-button,.dialog-top .context-help{font-size:22px;border:1px solid var(--line);min-width:44px;width:44px;height:44px;background:var(--paper);color:var(--ink);font-weight:700}
+.dialog-top .icon-button,.dialog-top .context-help{border-radius:4px;font-size:22px;border:1px solid var(--line);min-width:44px;width:44px;height:44px;background:var(--paper);color:var(--ink);font-weight:700}
 .dialog-top,[data-theme=dark] .dialog-top{background:var(--paper)}
+dialog::backdrop,[data-theme=dark] dialog::backdrop{background:#0008;backdrop-filter:blur(2px)}
 #help-dialog{max-width:480px}#help-dialog .step{font-size:15px;color:var(--ink)}#help-dialog .step:before{border:1px solid var(--line);font-weight:750}
 #jc-message{margin-top:10px;min-height:180px;line-height:1.7}
 .toast{background:#161616;border:1px solid #fff;color:#fff;border-radius:4px}.toast.error{background:#78251f}
