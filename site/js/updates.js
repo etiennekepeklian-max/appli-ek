@@ -1,5 +1,6 @@
 // Updates change application files only. Never erase user databases or preferences.
 const root=new URL('../',import.meta.url),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function bounded(promise,ms){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Le réseau met trop de temps à répondre.')),ms);})]);}finally{clearTimeout(timer);}}
 const versionPattern=/^\d+\.\d+\.\d+$/;
 let registration,appModule,checking,applying=false,currentVersion='',availableVersion='';
 export async function workerVersion(worker){
@@ -7,13 +8,13 @@ export async function workerVersion(worker){
  return new Promise(resolve=>{const channel=new MessageChannel();const finish=value=>{clearTimeout(timer);channel.port1.close();resolve(value);};const timer=setTimeout(()=>finish(''),300);channel.port1.onmessage=e=>finish(e.data?.type==='PIKEO_VERSION'?e.data.version:'');try{worker.postMessage({type:'PIKEO_VERSION'},[channel.port2]);}catch{finish('');}});
 }
 export async function latestVersion(){
- const response=await fetch(new URL('release.json?check='+Date.now(),root),{cache:'no-store',signal:AbortSignal.timeout(8000)});
+ const response=await fetch(new URL('release.json?check='+Date.now(),root),{cache:'no-store',signal:AbortSignal.timeout(4000)});
  if(!response.ok)throw Error('Vérification indisponible. Vos données restent sur cet appareil.');
  const data=await response.json();if(!versionPattern.test(data.version))throw Error('Version publiée illisible.');return data.version;
 }
 async function ensureWorker(version){
  if(!('serviceWorker' in navigator)||location.hostname==='terminal.local')return false;
- registration=await navigator.serviceWorker.register(new URL('sw.js',root),{type:'module',scope:root.pathname,updateViaCache:'none'});
+ registration=await bounded(navigator.serviceWorker.register(new URL('sw.js',root),{type:'module',scope:root.pathname,updateViaCache:'none'}),6000);
  if(await workerVersion(navigator.serviceWorker.controller)===version)return true;
  await Promise.race([registration.update().catch(()=>{}),sleep(4000)]);
  const until=Date.now()+16000;
@@ -50,14 +51,15 @@ async function applyUpdate(){
  }catch(e){applying=false;banner(e.message+' Les données sont conservées.',true);}
 }
 export async function launch(load,expected){
- let target=expected,ready=false;
- if(navigator.onLine){try{target=await latestVersion();}catch{}try{ready=await ensureWorker(target);}catch{}}
+ let target=expected,ready=await workerVersion(navigator.serviceWorker?.controller)===expected;
+ if(!ready&&navigator.onLine){try{target=await latestVersion();}catch{}try{ready=await ensureWorker(target);}catch{}}
  // Before importing modules, activate a complete shell. A running form is never reloaded.
  if(ready)styles(target);
  appModule=await load(ready?target:'');if(appModule.ready)await appModule.ready;
  for(let i=0;i<100&&!document.getElementById('app-version')?.textContent;i++)await sleep(50);
  currentVersion=document.getElementById('app-version')?.textContent||expected;
  document.getElementById('check-update')?.addEventListener('click',()=>void check(true));
+ if(ready&&navigator.onLine)void check();
  if(navigator.onLine&&currentVersion!==target){availableVersion=target;banner('Votre copie locale '+currentVersion+' attend la version '+target+'. Gardez Internet puis appliquez la mise à jour.',true);}
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check();});window.addEventListener('online',()=>void check());setInterval(()=>{if(!document.hidden)void check();},300000);
 }
