@@ -28,7 +28,9 @@ try{
  if(old==='1.5.0'){await page.goto(base+'actualiser.html');await page.getByRole('button',{name:'Installer la dernière version'}).click();}else await page.reload();
  await current(page,'1.10.1');
  const retained=await page.evaluate(async()=>{const s=await import('./js/storage.js'),v=await import('./js/voice-store.js');return {sku:s.get('pending','update-test').sku,draft:(await s.meta('draft:pending:new')).data.sku,files:await Promise.all((await s.files()).map(async f=>await f.blob.text())),voice:await (await v.getMemo('voice-update')).blob.text(),pref:localStorage.getItem('update-keep'),caches:await caches.keys()};});
- assert.equal(retained.sku,'00999');assert.equal(retained.draft,'00777');assert.ok(retained.files.includes('octets conservés'));assert.equal(retained.voice,'audio synthétique');assert.equal(retained.pref,'oui');assert.ok(!retained.caches.some(c=>c.startsWith('ek-shell-legacy')));
+ console.log('Migration',old,JSON.stringify({caches:retained.caches,worker:await page.evaluate(async()=>{const u=await import('./js/updates.js');return {version:await u.workerVersion(navigator.serviceWorker.controller),state:navigator.serviceWorker.controller?.state};})}));
+ await page.waitForFunction(async()=>!(await caches.keys()).some(c=>c.startsWith('ek-shell-legacy')),{},{timeout:10000});
+ assert.equal(retained.sku,'00999');assert.equal(retained.draft,'00777');assert.ok(retained.files.includes('octets conservés'));assert.equal(retained.voice,'audio synthétique');assert.equal(retained.pref,'oui');
  await page.locator('#check-update').click();await page.getByText('Pikéo 1.10.1 est à jour sur cet appareil.').waitFor();
  await context.setOffline(true);await page.reload();await current(page,'1.10.1');assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.get('pending','update-test').sku;}),'00999');await context.setOffline(false);
  // A later publication must not reload or discard an open draft.

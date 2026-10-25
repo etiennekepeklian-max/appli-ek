@@ -15,12 +15,12 @@ export async function latestVersion(){
 async function ensureWorker(version){
  if(!('serviceWorker' in navigator)||location.hostname==='terminal.local')return false;
  registration=await bounded(navigator.serviceWorker.register(new URL('sw.js',root),{type:'module',scope:root.pathname,updateViaCache:'none'}),6000);
- if(await workerVersion(navigator.serviceWorker.controller)===version)return true;
+ if(navigator.serviceWorker.controller?.state==='activated'&&await workerVersion(navigator.serviceWorker.controller)===version)return true;
  await Promise.race([registration.update().catch(()=>{}),sleep(4000)]);
  const until=Date.now()+16000;
  while(Date.now()<until){
-  if(registration.waiting)registration.waiting.postMessage('SKIP_WAITING');
-  if(await workerVersion(navigator.serviceWorker.controller)===version)return true;
+  if(registration.waiting&&await workerVersion(registration.waiting)===version)registration.waiting.postMessage('SKIP_WAITING');
+  if(navigator.serviceWorker.controller?.state==='activated'&&await workerVersion(navigator.serviceWorker.controller)===version)return true;
   if(!registration.installing&&!registration.waiting&&await workerVersion(registration.active)===version){await sleep(80);continue;}
   await sleep(120);
  }
@@ -51,7 +51,7 @@ async function applyUpdate(){
  }catch(e){applying=false;banner(e.message+' Les données sont conservées.',true);}
 }
 export async function launch(load,expected){
- let target=expected,ready=await workerVersion(navigator.serviceWorker?.controller)===expected;
+ let target=expected,ready=navigator.serviceWorker?.controller?.state==='activated'&&await workerVersion(navigator.serviceWorker.controller)===expected;
  if(!ready&&navigator.onLine){try{target=await latestVersion();}catch{}try{ready=await ensureWorker(target);}catch{}}
  // Before importing modules, activate a complete shell. A running form is never reloaded.
  if(ready)styles(target);
