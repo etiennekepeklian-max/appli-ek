@@ -111,8 +111,7 @@ async function cloudBlob(id){
  if(!response.ok)throw Error('Un document Google est inaccessible. Vérifiez les autorisations avant de continuer.');
  return response.blob();
 }
-export async function restoreCloudFiles(){
- if(busy)throw Error('Une synchronisation est en cours.');const key=Secrets.key();if(!key)throw Error('Chargez votre clé personnelle.');
+async function downloadCloudFiles(key){
  let restored=0;
  for(const doc of Store.list('documents')){
   if(await Store.readFile(doc.id))continue;
@@ -124,11 +123,14 @@ export async function restoreCloudFiles(){
  }
  return restored;
 }
+export async function restoreCloudFiles(){
+ if(busy)throw Error('Une synchronisation est en cours.');const key=Secrets.key();if(!key)throw Error('Chargez votre clé personnelle.');busy=true;try{return await downloadCloudFiles(key);}finally{busy=false;}
+}
 export async function prepareEncryptedMigration(){
  if(busy)throw Error('Attendez la fin de la synchronisation.');
  if(!connected())throw Error('Connectez votre compte Google.');
  const key=Secrets.key(),c=connection();if(!key)throw Error('Chargez votre clé personnelle.');
- const remote=await pull(c.spreadsheetId,key);await Store.merge(remote);
- const files=await restoreCloudFiles();
- return {events:remote.length,files,legacy:legacyCount};
+ busy=true;try{const remote=await pull(c.spreadsheetId,key);await Store.merge(remote);
+ const files=await downloadCloudFiles(key);
+ return {events:remote.length,files,legacy:legacyCount};}finally{busy=false;}
 }

@@ -17,3 +17,8 @@ test('Les documents binaires retrouvent exactement leurs octets',async()=>{
  const key=await importRecoveryKey(await generateRecoveryKey()),bytes=new Uint8Array([0,1,2,128,255]),e=await sealBytes(bytes,key,'document');
  assert.deepEqual(await openBytes(e,key,'document'),bytes);
 });
+
+test('Une grosse révision respecte la limite Google de 50 000 caractères par cellule',async()=>{
+ const key=await importRecoveryKey(await generateRecoveryKey()),event={id:'long-event',type:'orders',updatedAt:'2026-10-25T10:00:00Z',record:{id:'long',notes:'é'.repeat(20000)}};
+ const row=await sealedEventRow(event,key);assert.ok(row[11].length>0);assert.ok(row.every(cell=>cell.length<50000));assert.deepEqual((await eventFromSealedRow(row,key)).record,event.record);
+});

@@ -1,7 +1,7 @@
 // Deliberately separate from storage.js: audio NEVER enters Google sync or JSON backups.
 import {uid} from './core.js';
 let dbPromise,namespace='live';
-export function useVoiceNamespace(demo=false){namespace=demo?'demo':'live';dbPromise=null;}
+export function useVoiceNamespace(demo=false){const next=demo?'demo':'live';if(next===namespace)return;const previous=dbPromise;namespace=next;dbPromise=null;void previous?.then(db=>db.close()).catch(()=>{});}
 function database(){return dbPromise||=new Promise((resolve,reject)=>{const q=indexedDB.open(`ek-voice-${namespace}`,1);q.onupgradeneeded=()=>q.result.createObjectStore('memos',{keyPath:'id'});q.onsuccess=()=>resolve(q.result);q.onerror=()=>{dbPromise=null;reject(q.error);};});}
 async function transact(mode,operation){const db=await database();return new Promise((resolve,reject)=>{const t=db.transaction('memos',mode);let result;const q=operation(t.objectStore('memos'));q.onsuccess=()=>{result=q.result;};t.oncomplete=()=>resolve(result);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement audio interrompu.'));});}
 export const listMemos=async()=> (await transact('readonly',s=>s.getAll())).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));

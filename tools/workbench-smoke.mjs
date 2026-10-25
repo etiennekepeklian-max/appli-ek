@@ -31,7 +31,7 @@ try{
  await action('resume-order','TEST-A').click();await field('line').fill('12');await field('bin').fill('Bac 3');await field('next').fill('Reprendre à la ligne 12');await save();assert.match(await page.locator('#main').innerText(),/Bac 3/);
  await go('handoff');await page.locator('[name=selected][value=wb-b]').check();await page.locator('[data-wb-form=handoff] [type=submit]').click();const text=await page.locator('[data-wb-preview]').inputValue();assert.ok(text.includes('Vérifier la disponibilité'));assert.ok(!text.includes('Note privée client test'));await close();
  await go('storage');await action('checkpoint').click();await page.waitForFunction(async()=>{const s=await import('./js/workbench-store.js');return (await s.listSnapshots()).length>=2;});
- const snapshot=await page.evaluate(async()=>{const s=await import('./js/workbench-store.js');return (await s.listSnapshots()).find(r=>r.id.startsWith('manual-')).id;});
+ console.log('Points de test',JSON.stringify(await page.evaluate(async()=>{const s=await import('./js/workbench-store.js');return s.listSnapshots();})));const snapshot=await page.evaluate(async()=>{const s=await import('./js/workbench-store.js');return (await s.listSnapshots()).find(r=>r.id.startsWith('manual-')).id;});
  await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.save('products',{id:'wb-temporary',sku:'WB-TEMP',name:'Après le point'},'Après le point');});
  await action('restore-point',snapshot).click();await action('confirm-restore',snapshot).click();await page.locator('#dialog').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.get('products','wb-temporary')?.deleted;}),true);
