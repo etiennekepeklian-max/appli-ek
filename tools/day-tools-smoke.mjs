@@ -1,3 +1,4 @@
+import {waitForState} from './poll.mjs';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
@@ -55,7 +56,7 @@ try{
  const restored=await page.evaluate(async data=>{const v=await import('./js/voice-store.js'),second=await v.importMemos(data),rows=await v.listMemos();return {count:rows.length,second,hash:Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await rows[0].blob.arrayBuffer()))).join(',')};},backup);
  assert.equal(restored.count,1);assert.equal(restored.second,0);assert.equal(restored.hash,audio.hash);
  await go('voice');await page.locator('.memo-card').waitFor();await page.locator('#memo-name').fill('Sauvé en quittant');await page.getByRole('button',{name:'Enregistrer',exact:true}).click();await page.getByRole('button',{name:'Arrêter et conserver'}).waitFor();await page.waitForFunction(()=>document.querySelector('#voice-live')?.textContent.includes('0:01'));await page.locator('#mobile-nav [data-nav=home]').click();
- await page.waitForFunction(async()=>{const v=await import('./js/voice-store.js');return (await v.listMemos()).length===2;});
+ await waitForState(page,async()=>{const v=await import('./js/voice-store.js');return (await v.listMemos()).length===2;});
  await go('voice');await page.locator('#memo-count').filter({hasText:'2'}).waitFor();
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller);await context.setOffline(true);await page.reload();await page.locator('#memo-count').filter({hasText:'2'}).waitFor();await context.setOffline(false);
  assert.deepEqual(outbound.filter(url=>/^https:\/\/(sheets\.googleapis|www\.googleapis|accounts\.google)/.test(url)),[]);

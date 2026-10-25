@@ -253,6 +253,7 @@ export function enhance(root,route){
  if(route==='home')root.insertAdjacentHTML('beforeend','<section class="card section-gap wb-home"><h2>Mes repères de travail</h2><div class="actions">'+link('Mon poste','post','box')+link('Reprendre une préparation','resume','clock')+link('Mes progrès','progress','chart')+'</div></section>');
  if(route==='pending'){
   root.querySelector('.filters')?.insertAdjacentHTML('afterend','<div class="actions section-gap">'+link('Préparations à reprendre','resume','clock')+link('Préparer une passation','handoff','arrow')+'</div>');
+  for(const b of root.querySelectorAll('.ops-groups [data-action="message-jc"]')){const r=Store.get('pending',b.dataset.id);if(r)b.insertAdjacentHTML('afterend',small('Relancer JC','remind-jc',r.id));}
   for(const card of root.querySelectorAll('.pending-card')){
    const id=card.querySelector('[data-action="edit-pending"]')?.dataset.id,r=Store.get('pending',id);
    if(!r)continue;
