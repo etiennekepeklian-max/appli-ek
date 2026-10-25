@@ -51,10 +51,7 @@ export async function stopWorkAlerts(keys){
  try{const registration=await navigator.serviceWorker?.getRegistration();const notifications=await registration?.getNotifications({tag:'pikeo-work-alert'});for(const notification of notifications||[])notification.close();}catch{}
  if(!Store.isDemo())await writeAlertAcks([...selected]);
 }
-export function migrationReview(){
- const review=read('ek-godot-review',{});
- return `<details class="card settings-section"><summary>Préparer la version Godot 4</summary><p class="hint section-gap">La migration est prévue à la toute fin, après validation de toutes les fonctions. Les données et les interfaces Android sont préparées pour conserver votre travail.</p><p>Estimez-vous que Pikéo est terminée ?</p><div class="actions section-gap"><button class="btn full" data-schedule-action="godot-later">J’ai encore des évolutions à faire</button><button class="btn full" data-schedule-action="godot-review">Prête pour un bilan final</button></div><p class="hint section-gap" id="godot-review-status">${review.status==='review'?'Bilan final demandé ; la migration attend encore votre accord.':review.status==='later'?'Évolutions en cours. Nous referons le point à une prochaine étape.':'Nous referons le point aux étapes importantes.'}</p></details>`;
-}
+export function migrationReview(){return '';}
 export async function installSchedule({render}){
  document.addEventListener('click',e=>{const b=e.target.closest('[data-schedule-action]');if(!b)return;e.preventDefault();const action=b.dataset.scheduleAction;
   void (async()=>{

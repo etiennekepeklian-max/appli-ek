@@ -5,6 +5,7 @@ export function unlockFeedback(){
   try{const Audio=globalThis.AudioContext||globalThis.webkitAudioContext;if(Audio){context||=new Audio();if(context.state==='suspended')context.resume().catch(()=>{});}}catch{}
 }
 export function scanFeedback(kind='success'){
+  window.dispatchEvent(new CustomEvent('pikeo-scan-feedback',{detail:{kind}}));
   const prefs=Store.settings();
   if(prefs.scanVibration)try{navigator.vibrate?.(kind==='success'?70:kind==='unknown'?[50,65,50]:[120,70,120]);}catch{}
   if(!prefs.scanSound)return;

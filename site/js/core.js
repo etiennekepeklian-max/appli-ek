@@ -1,4 +1,4 @@
-export const VERSION = '1.8.0';
+export const VERSION = '1.9.0';
 export const SCHEMA = 1;
 export const TYPES = ['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
 export const LEGACY_SHEETS = {families:'Familles',products:'References',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
@@ -65,12 +65,12 @@ export function makeEvent(type,record,action,actor,deviceId,lastClock=0){
 }
 export function rowForEvent(ev){
   const r=ev.record;
-  return [ev.id,r.id,ev.updatedAt,ev.actor||'',ev.action||'',r.name||r.title||r.label||r.number||r.sku||'',r.orderNumber||r.number||'',r.sku||r.reference||'',r.location||r.from||'',r.quantity??r.total??'',JSON.stringify({type:ev.type,record:r,schema:ev.schema}),ev.deviceId||''];
+  return [ev.id,r.id,ev.updatedAt,ev.actor||'',ev.action||'',r.name||r.title||r.label||r.number||r.sku||'',r.orderNumber||r.number||'',r.sku||r.reference||'',r.location||r.from||'',r.quantity??r.total??'',JSON.stringify({type:ev.type,record:r,schema:ev.schema,...(ev.baseEventId?{baseEventId:ev.baseEventId}:{}),...(ev.resolves?.length?{resolves:ev.resolves}:{})}),ev.deviceId||''];
 }
 export function eventFromRow(row,type){
   if(!row[0]||!row[10])return null;
   try {const data=JSON.parse(row[10]);if(!TYPES.includes(data.type)||(type&&data.type!==type)||!data.record?.id||typeof row[2]!=='string'||!Number.isFinite(Date.parse(row[2])))return null;
-    return {id:String(row[0]),type:data.type,record:data.record,updatedAt:row[2],actor:row[3]||'',action:row[4]||'',deviceId:row[11]||'',schema:data.schema||1,synced:true};
+    return {id:String(row[0]),type:data.type,record:data.record,updatedAt:row[2],actor:row[3]||'',action:row[4]||'',deviceId:row[11]||'',schema:data.schema||1,synced:true,...(data.baseEventId?{baseEventId:String(data.baseEventId)}:{}),...(Array.isArray(data.resolves)?{resolves:data.resolves.filter(s=>typeof s==='string')}:{}),};
   }catch{return null;}
 }
 export function parseOrderText(text){

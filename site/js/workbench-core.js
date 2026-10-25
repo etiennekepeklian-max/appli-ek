@@ -10,7 +10,7 @@ export function cleanRecord(kind,input,now=new Date()){
  const row={...input,kind,title:String(input.title||'').trim().slice(0,160),notes:String(input.notes||'').trim().slice(0,4000)};
  if(!row.title)throw Error('Donnez un titre à cette fiche.');
  row.date=input.date||localDate(now);
- if(!/^\d{4}-\d{2}-\d{2}$/.test(row.date)||!Number.isFinite(Date.parse(row.date+'T12:00:00Z')))throw Error('Date invalide.');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(row.date)||!Number.isFinite(Date.parse(row.date+'T12:00:00Z'))||new Date(row.date+'T12:00:00Z').toISOString().slice(0,10)!==row.date)throw Error('Date invalide.');
  if(kind==='resume'){row.orderNumber=refKey(input.orderNumber);row.line=String(input.line||'').slice(0,80);row.bin=String(input.bin||'').slice(0,80);row.location=refKey(input.location);row.next=String(input.next||'').trim().slice(0,400);}
  if(['instruction','card','term'].includes(kind)){row.author=String(input.author||'').trim().slice(0,80);row.source=String(input.source||'').trim().slice(0,160);row.sku=refKey(input.sku);row.reviewDate=input.reviewDate||'';row.confirmed=!!input.confirmed;if(row.reviewDate&&!/^\d{4}-\d{2}-\d{2}$/.test(row.reviewDate))throw Error('Date de revue invalide.');}
  if(kind==='goal'){row.target=Number(input.target);row.progress=Number(input.progress||0);if(!Number.isInteger(row.target)||row.target<1||row.target>999||!Number.isInteger(row.progress)||row.progress<0)throw Error('Choisissez un objectif de 1 à 999 et une progression entière positive.');row.active=input.active!==false&&input.active!=='false';}

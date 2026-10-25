@@ -106,7 +106,7 @@ async function saveDay(form){
   if(!items.length)throw Error('Toutes ces commandes sont déjà enregistrées ou écartées.');
   if(!form.elements.confirmed.checked)throw Error('Confirmez le bilan avant l’enregistrement.');
   await Store.saveBatch(items,'Journée du '+session.date+' : '+items.length+' commande(s)');
-  state.date=session.date;session=null;await persist();closeModal();app.navigate('orders');toast('Journée enregistrée : '+items.length+' commande(s). Le bilan est disponible.');
+  const savedDate=session.date;state.date=savedDate;session=null;await persist();closeModal();app.navigate('orders');toast('Journée enregistrée : '+items.length+' commande(s). Le bilan est disponible.');window.dispatchEvent(new CustomEvent('pikeo-day-saved',{detail:{date:savedDate}}));
 }
 async function cropPage(id){
   const p=session.pages.find(p=>p.id===id),f=await Store.readFile(p.photoId);if(!f)throw Error('Photo indisponible.');

@@ -31,3 +31,18 @@ export async function importMemos(data){
  // Validate everything before writing; restore atomically and preserve existing IDs.
  const db=await database();return new Promise((resolve,reject)=>{const t=db.transaction('memos','readwrite'),s=t.objectStore('memos');let count=0;for(const row of rows){const q=s.get(row.id);q.onsuccess=()=>{if(!q.result){const {data,...memo}=row;s.put(memo);count++;}};}t.oncomplete=()=>resolve(count);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Import interrompu.'));});
 }
+
+
+// Local voice checkpoints have their own database; they are never synced or exported with business data.
+function recoveryDatabase(){return new Promise((resolve,reject)=>{const q=indexedDB.open('ek-voice-recovery-'+namespace,1);q.onupgradeneeded=()=>q.result.createObjectStore('snapshots',{keyPath:'id'});q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});}
+export async function snapshotVersion(id){
+ const rows=await listMemos(),db=await recoveryDatabase();
+ try{await new Promise((resolve,reject)=>{const t=db.transaction('snapshots','readwrite'),s=t.objectStore('snapshots'),q=s.get(id);q.onsuccess=()=>{if(!q.result)s.put({id,createdAt:new Date().toISOString(),memos:rows});};t.oncomplete=resolve;t.onerror=()=>reject(t.error);});}finally{db.close();}
+}
+export async function restoreVoiceVersion(id){
+ const db=await recoveryDatabase();let row;try{row=await requestRecovery(db,id);}finally{db.close();}
+ if(!row)throw Error('Aucune copie audio pour ce point de restauration.');
+ await snapshotVersion('before-voice-restore-'+Date.now());
+ for(const memo of row.memos)await saveMemo(memo);return row.memos.length;
+}
+function requestRecovery(db,id){return new Promise((resolve,reject)=>{const q=db.transaction('snapshots').objectStore('snapshots').get(id);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});}

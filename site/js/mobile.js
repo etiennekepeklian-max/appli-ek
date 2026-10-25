@@ -9,7 +9,7 @@ export function renderMobileNav(route, pendingCount=0){
 
 export function mobileTools(profile='preparer'){
  const groups=[
-  ['Ma journée',[['schedule','Horaires et alertes','Huit minutes avant chaque début et fin','clock'],['voice','Mémos vocaux','Enregistrer et exporter sur ce téléphone','mic'],['orders','Photos et bilan','Toutes les feuilles en fin de journée','camera'],['journal','Journal de la semaine','Bilan, observations et PDF','list']]],
+  ['Ma journée',[['post','Mon poste','Matériel, repères, consignes et passation','box'],['schedule','Horaires et alertes','Huit minutes avant chaque début et fin','clock'],['voice','Mémos vocaux','Enregistrer et exporter sur ce téléphone','mic'],['orders','Photos et bilan','Toutes les feuilles en fin de journée','camera'],['journal','Journal de la semaine','Bilan, observations et PDF','list']]],
   ['Produits et emplacements',[['stock','Chercher un produit ou un casier','Référence, EAN, nom ou adresse','box'],['locations','Emplacements et import CSV','Adresses PAC, PAD et RES','pin'],['complete','À compléter','Emplacements, noms et règles manquants','edit'],['families','Familles et règles de picking','Règles communes et exceptions produit','layers'],['unknowns','Codes à identifier','Retrouver les lectures inconnues','help']]],
   ['Manquants et réassorts',[['pending','Suivre les manquants','Par commande ou par référence','clock']]],
   ['Codes-barres',[['codes','Créer et retrouver mes codes','Favoris, récents et étiquettes','barcode'],['scan','Scanner un produit','Caméra, photo ou saisie','scan']]],
