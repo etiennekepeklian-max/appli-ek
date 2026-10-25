@@ -3,7 +3,7 @@ import {state,esc} from './ui.js';
 
 function currentContext(){
  const dialog=[...document.querySelectorAll('dialog[open]')].filter(d=>d.id!=='help-dialog').at(-1);
- if(!dialog)return '';
+ if(!dialog)return document.querySelector('#work-alert')?'schedule-alert':'';
  const form=dialog.querySelector('[data-form],[data-ops-form],[data-day-form]');
  if(dialog.dataset.helpContext)return dialog.dataset.helpContext;
  const marker=dialog.querySelector('[data-help-context]');if(marker)return marker.dataset.helpContext;

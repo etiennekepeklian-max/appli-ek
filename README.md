@@ -1,5 +1,14 @@
 # Pikéo
 
+## Version 1.8.0 — horaires, mémos vocaux et quatre onglets Google
+
+- **Horaires et alertes** dans Plus et sur l’accueil : prise de poste 8 h, pause 10 h 15–10 h 30, déjeuner 12 h 30–13 h 15, fin 16 h. Six rappels à 7 h 52, 10 h 07, 10 h 22, 12 h 22, 13 h 07 et 15 h 52. Lundi à vendredi par défaut, jours et horaires modifiables, heure de Paris. Les rappels sont propres à ce téléphone et restent jusqu’à acquittement. La vibration se relance tant que la page est visible et le navigateur l’autorise ; aucun service d’alarmes écran verrouillé n’est promis par la version web. L’action d’arrêt de la notification est conservée même si la page est fermée.
+- **Mémos vocaux** dans Plus : enregistrement avec le microphone, écoute, renommage, suppression confirmée, export audio, partage système et sauvegarde/import dédiés. Quitter l’écran ou passer en arrière-plan arrête et conserve le son. Base locale distincte ; aucun mémo ni son dans Google, Drive automatique, l’historique métier ou le JSON général. L’export explicite des mémos est nécessaire pour changer de téléphone. Si l’espace manque, le son reste exportable en mémoire tant que la page n’est pas fermée.
+- **Google Sheets** : uniquement `produit`, `manquant`, `objectif picking`, `historique`. Les types et toutes les révisions restent dans `payload_json`, avec les mêmes douze colonnes et les mêmes identifiants. Une ancienne base non regroupée est signalée, sans recréer les anciens onglets ni effacer les données locales. Les nouvelles bases ont exactement les quatre onglets. Aucun identifiant de base privée n’est publié.
+- **Scanner** : caméra ouverte automatiquement, reprise du dernier objectif, arrêt après lecture, recherche manuelle, photo ou départ de l’écran. Une permission refusée laisse disponibles la réouverture, la photo et la saisie.
+- **Godot 4** : préparation seulement dans [le plan de migration](docs/GODOT_MIGRATION.md). La migration attend la fin des fonctionnalités et l’accord final d’Étienne. Un bilan est proposé aux étapes importantes et depuis les Réglages.
+- **Aide** : les nouveaux écrans/actions et les conseils Google, scanner et sauvegarde sont couverts. Les parcours navigateur couvrent aussi les exports/restaurations audio, les acquittements et le rechargement hors ligne.
+
 ## Version 1.7.0 — Pikéo, Contraste terrain et aide contextuelle
 
 - Nom choisi : **Pikéo**. Apparence **Contraste terrain** : noir, blanc et jaune, grandes actions lisibles, modes clair et sombre ; codes-barres toujours noirs sur blanc.

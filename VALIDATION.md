@@ -1,5 +1,19 @@
 # Validation — version 1.4.0
 
+## Version 1.8.0 — horaires, audio local et quatre onglets
+
+77 tests métier réussis. Les six transitions donnent 07:52, 10:07, 10:22, 12:22, 13:07 et 15:52 avec les horaires demandés. Vérifications des durées modifiées, jours non travaillés, dimanche explicite, heure de Paris été/hiver, fenêtre de rattrapage de huit minutes, rappel acquitté, désactivation et horaires invalides. Chaque type d’événement est reconstruit dans son onglet regroupé en conservant les zéros et la révision.
+
+Trois parcours Chromium réussis : `ui-smoke`, `workflow-smoke`, `day-tools-smoke`. Les fonctions précédentes (dont OCR réel sur pages synthétiques, imports, brouillons, annulations, codes, aide et synchronisation sur serveur Google simulé avec fusion de deux appareils) restent vérifiées. Les nouveaux parcours ouvrent réellement la caméra avec un périphérique synthétique sans bouton d’ouverture, libèrent le flux en quittant le scanner et enregistrent un vrai flux audio synthétique via MediaRecorder. Le son est lu, renommé, téléchargé, supprimé puis restauré par le sélecteur de fichier. Son empreinte SHA-256 est identique après restauration ; un second import n’ajoute aucun doublon. Quitter l’écran conserve l’enregistrement et libère le microphone. Un rechargement réellement hors ligne retrouve les mémos. Aucun audio n’entre dans les fichiers synchronisés ni le JSON général.
+
+Les alertes restent présentes après navigation et rechargement ; l’arrêt est conservé et empêche une nouvelle alerte pour la même occurrence. La vibration est simulée pour vérifier sa relance et son annulation. Un arrêt reste accessible à l’intérieur d’une fenêtre modale, sans fermer ni modifier sa saisie. Les nouveaux écrans et l’aide sont vérifiés en clair/sombre à 320, 390, 480 et 1280 px (32 couples supplémentaires), en plus des 52 vérifications précédentes. Revue visuelle des nouveaux écrans effectuée, avec boutons longs empilés sur le mobile.
+
+La base Google existante a été regroupée en exactement quatre onglets, après copie de sécurité séparée. Les 67 lignes d’événements ont été comparées cellule par cellule (douze colonnes), avant et après, avec les mêmes identifiants et contenus. La notice a été conservée dans les notes des en-têtes ; aucun historique n’a été écrasé. Les formats natifs et les quatre rendus issus d’un export de contrôle ont été inspectés ; l’importeur de rendu affiche quelques cellules vides et panneaux figés de manière imparfaite, vérifiés directement dans l’API native comme vides. Aucune valeur artificielle n’a été réécrite dans Google. Le consentement OAuth reste celui de la version précédente ; le code de synchronisation n’ajoute aucun onglet ancien. Aucun identifiant de feuille privée n’est enregistré dans le dépôt.
+
+Revue de l’aide : deux nouvelles routes (horaires et mémos), arrêt d’alerte, renommage/suppression/export audio, scanner automatique, accueil, sauvegarde générale et organisation Google. La page Aide et le guide Google correspondent aux nouvelles fonctions. Les consignes et contrats Godot sont préparés dans `docs/GODOT_MIGRATION.md` et `AGENTS.md` ; aucune migration, création de projet Godot ou livraison APK n’a été effectuée.
+
+Limites : la vibration physique et les autorisations du téléphone réel restent à tester sur l’appareil d’Étienne. La version web relance la vibration tant qu’elle est visible, mais ne garantit aucun rappel à écran verrouillé/application fermée. Le futur planificateur Android est requis pour ce comportement. Les données audio locales peuvent disparaître si le navigateur est effacé ; l’export des mémos est explicite et séparé. L’écoute/export synthétique n’établit pas la qualité du microphone physique.
+
 La version 1.4 conserve les enregistrements, historiques, fichiers et sauvegardes existants. Aucun effacement global ni migration destructive.
 
 ## Vérifications métier

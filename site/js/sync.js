@@ -1,5 +1,5 @@
 import * as Store from './storage.js';
-import {SHEETS,HEADERS,rowForEvent,eventFromRow} from './core.js';
+import {SHEETS,SHEET_TABS,HEADERS,rowForEvent,eventFromRow} from './core.js';
 export const DEFAULT_SHEET='';
 export const DEFAULT_CLIENT_ID='296553280936-dmrbf1rsbchdqgh2cgeuks1gjg0n10dq.apps.googleusercontent.com';
 let accessToken='',expires=0,busy=false,identityPromise,lastError='';
@@ -40,13 +40,12 @@ async function api(url,{method='GET',body,headers={},retry=true}={}){
 async function pull(id){
   const metadata=await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}?fields=sheets(properties(title,gridProperties(rowCount)))`);
   const rowCounts=new Map(metadata.sheets.map(s=>[s.properties.title,s.properties.gridProperties.rowCount]));
-  const additions=['Codes_inconnus','Journal_hebdomadaire'].filter(tab=>!rowCounts.has(tab));
-  if(additions.length){await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}:batchUpdate`,{method:'POST',body:{requests:additions.map(title=>({addSheet:{properties:{title}}}))}});await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchUpdate`,{method:'POST',body:{valueInputOption:'RAW',data:additions.map(tab=>({range:`'${tab}'!A1:L1`,values:[HEADERS]}))}});for(const tab of additions)rowCounts.set(tab,1000);}
-  for(const tab of Object.values(SHEETS))if(!rowCounts.has(tab))throw Error(`L’onglet « ${tab} » manque dans cette feuille. Utilisez la base fournie ou créez une nouvelle base depuis les réglages.`);
-  const types=Object.keys(SHEETS),all=[],active=new Set(types),chunk=2500;let offset=2;
-  while(active.size){for(const type of active)if(rowCounts.get(SHEETS[type])<offset)active.delete(type);const batch=[...active];if(!batch.length)break;const q=new URLSearchParams({valueRenderOption:'UNFORMATTED_VALUE'});for(const type of batch)q.append('ranges',`'${SHEETS[type]}'!A${offset}:L${Math.min(offset+chunk-1,rowCounts.get(SHEETS[type]))}`);
+  // Never recreate the old tabs. A legacy base must be migrated deliberately.
+  for(const tab of SHEET_TABS)if(!rowCounts.has(tab))throw Error(`Cette base utilise encore l’ancienne organisation, ou l’onglet « ${tab} » manque. Utilisez la base regroupée en produit, manquant, objectif picking et historique. Vos données locales sont conservées.`);
+  const all=[],active=new Set(SHEET_TABS),chunk=2500;let offset=2;
+  while(active.size){for(const tab of active)if(rowCounts.get(tab)<offset)active.delete(tab);const batch=[...active];if(!batch.length)break;const q=new URLSearchParams({valueRenderOption:'UNFORMATTED_VALUE'});for(const tab of batch)q.append('ranges',`'${tab}'!A${offset}:L${Math.min(offset+chunk-1,rowCounts.get(tab))}`);
     const data=await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchGet?${q}`);
-    for(let i=0;i<batch.length;i++){const rows=data.valueRanges?.[i]?.values||[];for(const row of rows){const ev=eventFromRow(row,batch[i]);if(ev)all.push(ev);}if(rows.length<chunk)active.delete(batch[i]);}
+    for(let i=0;i<batch.length;i++){const rows=data.valueRanges?.[i]?.values||[];for(const row of rows){const ev=eventFromRow(row);if(ev&&SHEETS[ev.type]===batch[i])all.push(ev);}if(rows.length<chunk)active.delete(batch[i]);}
     offset+=chunk;
     if(offset>250002)throw Error('La base dépasse 250 000 lignes par onglet. Exportez et archivez une période avant de continuer.');
   }return all;
@@ -59,7 +58,7 @@ async function ensureFolder(){
   saveConnection({folderId:f.id});return f.id;
 }
 async function uploadFiles(){
-  const files=await Store.files();const toUpload=files.filter(f=>!Store.get('documents',f.id)?.driveId);if(!toUpload.length)return;
+  const files=await Store.files();const toUpload=files.filter(f=>f.kind!=='voice'&&!f.blob.type?.startsWith('audio/')&&!Store.get('documents',f.id)?.driveId);if(!toUpload.length)return;
   const folder=await ensureFolder();
   for(const f of toUpload){emit(`Sauvegarde du document ${f.name}…`);
     const q="trashed = false and appProperties has { key='ek-local-id' and value='"+f.id.replace(/[^a-zA-Z0-9_-]/g,'')+"' }";
@@ -82,8 +81,8 @@ export async function sync(){
     const remote=await pull(c.spreadsheetId);const received=await Store.merge(remote);await Store.markSynced(remote.map(e=>e.id));
     await uploadFiles();
     let sent=0;const events=Store.pendingEvents();
-    for(const [type,tab] of Object.entries(SHEETS)){
-      const queue=events.filter(e=>e.type===type);
+    for(const tab of SHEET_TABS){
+      const queue=events.filter(e=>SHEETS[e.type]===tab);
       for(let start=0;start<queue.length;start+=150){const chunk=queue.slice(start,start+150);emit('Enregistrement des modifications dans Google Sheets…');
         await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(c.spreadsheetId)}/values/${encodeURIComponent("'"+tab+"'!A:L")}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:'POST',body:{majorDimension:'ROWS',values:chunk.map(rowForEvent)}});
         await Store.markSynced(chunk.map(e=>e.id));sent+=chunk.length;
@@ -93,8 +92,8 @@ export async function sync(){
   }catch(e){busy=false;emit(e.message,{error:true});throw e;}finally{busy=false;}
 }
 export async function createDatabase(){
-  const sheets=[{properties:{title:'Mode_emploi'}},...Object.values(SHEETS).map(title=>({properties:{title,gridProperties:{rowCount:1000,columnCount:12,frozenRowCount:1}}}))];
+  const sheets=SHEET_TABS.map(title=>({properties:{title,gridProperties:{rowCount:1000,columnCount:12,frozenRowCount:1}}}));
   const data=await api('https://sheets.googleapis.com/v4/spreadsheets',{method:'POST',body:{properties:{title:'Pikéo — Base de données',locale:'fr_FR',timeZone:'Europe/Paris'},sheets}});
-  await api(`https://sheets.googleapis.com/v4/spreadsheets/${data.spreadsheetId}/values:batchUpdate`,{method:'POST',body:{valueInputOption:'RAW',data:Object.values(SHEETS).map(tab=>({range:`'${tab}'!A1:L1`,values:[HEADERS]})).concat([{range:"'Mode_emploi'!A1:B5",values:[['Pikéo','Base événementielle'],['Principe','Chaque ligne conserve une version de fiche. Ne pas supprimer les anciennes lignes.'],['Documents','Photos conservées dans un dossier privé Google Drive.'],['Stock officiel','Application indépendante de Velocity.'],['Sauvegarde','Export JSON et CSV disponibles dans l’application.']]}])}});
+  await api(`https://sheets.googleapis.com/v4/spreadsheets/${data.spreadsheetId}/values:batchUpdate`,{method:'POST',body:{valueInputOption:'RAW',data:SHEET_TABS.map(tab=>({range:`'${tab}'!A1:L1`,values:[HEADERS]}))}});
   saveConnection({spreadsheetId:data.spreadsheetId,folderId:''});return data.spreadsheetId;
 }

@@ -164,8 +164,8 @@ async function openCamera(deviceId){
     stopCamera();throw Error(cameraErrorMessage(error));
   }
 }
-export async function scanPhoto(file){unlockFeedback();await loadScript('vendor/zxing-browser.min.js');const url=URL.createObjectURL(file);try{const reader=new ZXingBrowser.BrowserMultiFormatReader();const result=await reader.decodeFromImageUrl(url);await lookupProduct(result.getText());}catch{throw Error('Aucun code lisible sur cette photo. Cadrez le code entier, net et sans reflet, puis réessayez.');}finally{URL.revokeObjectURL(url);}}
-export async function lookupProduct(raw){const code=String(raw).trim();if(!code)throw Error('Saisissez un code.');state.scanResult={code};let el=document.querySelector('#scan-result');if(!el)return;
+export async function scanPhoto(file){unlockFeedback();stopCamera();await loadScript('vendor/zxing-browser.min.js');const url=URL.createObjectURL(file);try{const reader=new ZXingBrowser.BrowserMultiFormatReader();const result=await reader.decodeFromImageUrl(url);await lookupProduct(result.getText());}catch{throw Error('Aucun code lisible sur cette photo. Cadrez le code entier, net et sans reflet, puis réessayez.');}finally{URL.revokeObjectURL(url);}}
+export async function lookupProduct(raw){const code=String(raw).trim();if(!code)throw Error('Saisissez un code.');stopCamera();state.scanResult={code};let el=document.querySelector('#scan-result');if(!el)return;
   let matches=findProducts(code);const unique=new Map(matches.map(p=>[`${p.sku}:${p.barcode}:${p.name}`,p]));matches=[...unique.values()];
   scanFeedback(matches.length?'success':'unknown');
   if(matches.length){for(const p of matches)await resolveUnknowns(p);}else await recordUnknown(code);
