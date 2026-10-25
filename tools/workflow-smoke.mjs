@@ -10,7 +10,7 @@ await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Se
 const base='http://localhost:8765/',sheet='synthetic-sheet-12345678901234567890',remote=new Map(Object.values(SHEETS).map(title=>[title,[]]));
 let browser,page,failNext=false,duringAppend,appends=0,releaseLookup;const errors=[];
 const read=(fn,arg)=>page.evaluate(fn,arg);
-const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.6.0'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
+const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.7.0'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
 const close=async()=>{await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();};
 const field=name=>page.locator('#dialog [name="'+name+'"]');
 const save=async type=>{await page.locator('[data-form="'+type+'"] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden'});};
@@ -41,6 +41,18 @@ try{
  await page.getByRole('button',{name:'Enregistrer et ajouter un autre manquant'}).click();await page.waitForFunction(()=>document.querySelector('[name=sku]')?.value==='');assert.equal(await field('orderNumber').inputValue(),'CMD-001');assert.equal(await field('location').inputValue(),'');assert.equal(await field('notes').inputValue(),'');
  await field('sku').fill('FLOW002');await save('pending');assert.equal(await read(async()=>{const s=await import('./js/storage.js');return s.list('pending').filter(r=>r.orderNumber==='CMD-001').length}),2);
  console.log('OK enchaînement des manquants et préférence explicite entre plusieurs emplacements');
+
+ await context.grantPermissions(['clipboard-read','clipboard-write']);
+ const jcCard=page.locator('.pending-card').filter({hasText:'RES002-B'});
+ await jcCard.getByRole('button',{name:'Message pour JC',exact:true}).click();
+ const expectedJC='JC, j’ai besoin de la référence FLOW001 pour poursuivre ma préparation. Emplacement concerné : RES002-B. Peux-tu aller chercher l’article ? Merci !';
+ assert.equal(await page.locator('[data-jc-message]').inputValue(),expectedJC);
+ await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/message pour JC/);await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
+ await page.getByRole('button',{name:'Copier le message',exact:true}).click();await page.getByText('Message copié.',{exact:true}).waitFor();assert.equal(await read(()=>navigator.clipboard.readText()),expectedJC);await close();
+ await page.locator('.pending-card').filter({hasText:'FLOW002'}).getByRole('button',{name:'Message pour JC',exact:true}).click();await page.getByRole('button',{name:'Compléter la fiche',exact:true}).click();assert.equal(await field('sku').inputValue(),'FLOW002');
+ await field('orderNumber').fill('SAISIE-CONSERVEE');await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/manquant/);await page.keyboard.press('Escape');await page.locator('#help-dialog').waitFor({state:'hidden'});assert.equal(await field('orderNumber').inputValue(),'SAISIE-CONSERVEE');assert.equal(await page.locator('#dialog').getAttribute('open'),'');await close();
+ console.log('OK modèle JC, copie réelle, casier absent et aide sans perte de saisie');
+
 
  await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await field('orderNumber').fill('CMD-001');await field('sku').fill('FLOW001');await page.locator('[data-pending-duplicates]:not([hidden])').waitFor();await page.locator('[data-form=pending] [type=submit]').click();await page.locator('[data-form-error]:not([hidden])').waitFor();assert.match(await page.locator('[data-form-error]').innerText(),/déjà signalée/);
  await page.getByRole('button',{name:'Ouvrir l’attente existante'}).click();assert.ok(await page.locator('[data-form=pending]').getAttribute('data-id'));await close();
@@ -85,5 +97,14 @@ try{
  console.log('OK rechargement hors ligne réel avec service worker et brouillon conservé');
  await mkdir('test-results',{recursive:true});await go('home');await page.screenshot({path:'test-results/workflow-home.png',fullPage:true});await go('complete');await page.locator('[data-filter-search]').fill('FLOW');await page.waitForTimeout(200);await page.screenshot({path:'test-results/workflow-complete.png',fullPage:true});
  for(const width of [320,390,480,1280]){await page.setViewportSize({width,height:844});for(const route of ['home','stock','complete','more','orders','settings']){await go(route);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,route+' à '+width+' px');}}
+
+ await page.setViewportSize({width:390,height:844});
+ const helpRoutes=['home','codes','scan','pending','orders','stock','families','locations','complete','unknowns','movements','inventories','issues','replenishments','history','journal','settings','more','help'];
+ for(const theme of ['light','dark']){
+  await page.evaluate(async theme=>{const s=await import('./js/storage.js');await s.save('preferences',{...s.settings(),id:'main',theme},'Test thème');},theme);
+  for(const route of helpRoutes){await go(route);assert.equal(await page.locator('html').getAttribute('data-theme'),theme);await page.locator('.topbar [data-action=quickhelp]').click();await page.locator('#help-dialog[open]').waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,route+' / '+theme);assert.ok((await page.locator('#help-dialog .step').count())>=2);await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();}
+  await go('home');assert.match(await page.title(),/Pikéo/);await page.screenshot({path:'test-results/pikeo-home-'+theme+'.png',fullPage:true});
+ }
+ console.log('OK aide sur 19 écrans en clair/sombre et identité Pikéo');
  assert.deepEqual(errors,[]);console.log('OK 24 contrôles supplémentaires de largeur et aucune erreur JavaScript');
 }catch(error){await mkdir('test-results',{recursive:true});await page?.screenshot({path:'test-results/workflow-failure.png',fullPage:true}).catch(()=>{});console.error(await page?.locator('body').innerText().catch(()=>''));throw error;}finally{releaseLookup?.();await browser?.close();server.kill();}

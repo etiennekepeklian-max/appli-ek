@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "EK Logistique",
-  "short_name": "EK Logistique",
+  "name": "Pikéo",
+  "short_name": "Pikéo",
   "description": "Votre espace logistique conçu pour le téléphone : codes, scan, commandes et stock.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f3f6f4",
-  "theme_color": "#f3f6f4",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "fr",
   "categories": [
     "productivity",
@@ -43,4 +43,3 @@
     }
   ]
 }
-

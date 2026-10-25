@@ -73,7 +73,7 @@ export function applyTheme(){
   const setting=Store.settings().theme||localStorage.getItem('ek-theme')||'system';
   const dark=setting==='dark'||setting==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
   document.documentElement.dataset.theme=dark?'dark':'light';document.documentElement.style.colorScheme=dark?'dark':'light';
-  localStorage.setItem('ek-theme',setting);document.querySelector('meta[name=theme-color]')?.setAttribute('content',dark?'#111b1a':'#f3f6f4');
+  localStorage.setItem('ek-theme',setting);document.querySelector('meta[name=theme-color]')?.setAttribute('content',dark?'#111111':'#ffffff');
 }
 export function saveGoogleForm(){
   const form=document.querySelector('[data-form=google-settings]');if(!form)return null;

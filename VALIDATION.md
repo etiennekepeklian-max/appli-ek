@@ -41,3 +41,14 @@ Le nouveau parcours utilise un service worker réel pour vérifier le rechargeme
 Les limites sur les modèles réels de feuilles, le matériel Honeywell, la caméra physique et les notifications lorsque le téléphone est suspendu restent celles des versions précédentes. Les contrôles de stock sont des outils complémentaires à Velocity. Les anciennes dates de comptage inconnues ne sont pas remplacées par la date de modification des seuils.
 
 Le verrou de soumission est propre à chaque formulaire : une recherche Web lente laissée en arrière-plan ne bloque pas un nouveau manquant. Un parcours dédié garde la réponse réseau en attente pendant l’enregistrement d’un autre formulaire.
+
+
+## Version 1.7.0 — Pikéo
+
+72 tests métier réussis. Le modèle de message 3 conserve la référence exacte (dont les zéros) et l’emplacement ; un champ absent bloque la génération avec accès à la correction. Le parcours navigateur vérifie la copie réelle du texte, la demande de complément, ainsi que l’ouverture/fermeture de l’aide sans perte de la saisie et sans fermeture du formulaire.
+
+Revue de l’aide effectuée pour les 19 routes et les principales actions : manquant, message JC, produit, familles, import CSV, journée et vérification de page, cadrage photo, contrôles, historique et sauvegardes. Le test de couverture signale toute route sans aide. Les 19 écrans sont parcourus en mode clair et sombre, en plus des 52 contrôles écran/largeur existants à 320, 390, 480 et 1280 px. Aucun débordement ni erreur JavaScript. Le cadrage bénéficie du même bouton contextuel ; son contenu et ses réglages ne sont pas remplacés.
+
+Les parcours existants passent : OCR réel sur feuilles synthétiques, regroupement par commande, CSV et annulation, brouillons et rechargement hors ligne, scanner simulé, Code 39 relu par ZXing et logique Google sur serveur synthétique avec reprise et fusion de deux appareils. Les nouvelles vérifications n’utilisent aucun compte ni donnée de production. Le rendu Contraste terrain a été vérifié visuellement ; les codes restent noirs sur blanc.
+
+Le nom affiché et les icônes deviennent Pikéo. Identité du manifeste, IndexedDB, préférences, périmètres OAuth et signature technique des sauvegardes existantes conservés. Aucun fichier Google existant n’est renommé et aucun message n’est envoyé à JC par l’application.

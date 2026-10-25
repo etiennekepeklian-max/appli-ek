@@ -2,27 +2,28 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f3f6f4"><meta name="description" content="Codes-barres, commandes, pickings et suivi de stock. Une application simple pour le quotidien en entrepôt.">
+  <meta name="theme-color" content="#ffffff"><meta name="description" content="Codes-barres, commandes, pickings et suivi de stock. Une application simple pour le quotidien en entrepôt.">
   <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>EK Logistique</title>
+  <title>Pikéo</title>
   <link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="assets/icon.svg"><link rel="apple-touch-icon" href="assets/icon-192.png">
   <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="mobile.css">
-  <link rel="stylesheet" href="ops.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="workflow.css"><script>try{const t=localStorage.getItem("ek-theme")||"system";document.documentElement.dataset.theme=t==="dark"||t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch{}</script>
+  <link rel="stylesheet" href="ops.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="workflow.css"><link rel="stylesheet" href="terrain.css"><script>try{const t=localStorage.getItem("ek-theme")||"system";document.documentElement.dataset.theme=t==="dark"||t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch{}</script>
 </head>
 <body>
   <!-- Kept hidden so an already cached 1.0 entrypoint can finish updating. -->
   <aside id="sidebar" hidden aria-hidden="true"></aside>
   <a class="skip-link" href="#main">Aller au contenu</a>
   <div class="app-shell">
-    <header class="topbar"><button class="brand mobile-brand" data-nav="home" aria-label="EK Logistique accueil"><span class="brand-mark">ek<span>•</span></span></button><div class="mobile-app-title"><strong>Logistique</strong><span class="breadcrumb" id="breadcrumb">Votre espace terrain</span><span id="network" class="connection"><i></i> Sur cet appareil</span></div><div class="topbar-actions"><button class="icon-button" data-action="quickhelp" aria-label="Aide pour cette page" title="Aide">?</button><button class="avatar" data-nav="settings" aria-label="Ouvrir mes réglages" id="avatar">EK</button></div></header>
+    <header class="topbar"><button class="brand mobile-brand" data-nav="home" aria-label="Pikéo accueil"><span class="brand-mark" aria-hidden="true">P</span></button><div class="mobile-app-title"><strong>Pikéo</strong><span class="breadcrumb" id="breadcrumb">Votre espace terrain</span><span id="network" class="connection"><i></i> Sur cet appareil</span></div><div class="topbar-actions"><button class="icon-button" data-action="quickhelp" aria-label="Aide pour cette page" title="Aide">?</button><button class="avatar" data-nav="settings" aria-label="Ouvrir mes réglages" id="avatar">EK</button></div></header>
     <div id="demo-banner" hidden></div>
     <main id="main" tabindex="-1"><div class="loading"><span class="loader"></span>Ouverture de votre espace…</div></main>
-    <footer class="app-footer"><span>EK Logistique <span id="app-version"></span></span><button data-nav="help">Aide et prise en main</button></footer>
+    <footer class="app-footer"><span>Pikéo <span id="app-version"></span></span><button data-nav="help">Aide et prise en main</button></footer>
   </div>
   <nav class="mobile-nav" aria-label="Navigation principale" id="mobile-nav"></nav>
-  <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title" tabindex="-1"></h2><button class="icon-button" data-action="close-dialog" aria-label="Fermer"><span aria-hidden="true">×</span></button></div><div id="dialog-body"></div></dialog>
+  <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title" tabindex="-1"></h2><div class="dialog-header-actions"><button type="button" class="icon-button context-help" data-action="quickhelp" aria-label="Aide pour cette action">?</button><button class="icon-button" data-action="close-dialog" aria-label="Fermer"><span aria-hidden="true">×</span></button></div></div><div id="dialog-body"></div></dialog>
+  <dialog id="help-dialog" aria-labelledby="context-help-title"><div class="dialog-top"><h2 id="context-help-title" tabindex="-1"></h2><button type="button" class="icon-button" data-action="close-help" aria-label="Fermer l’aide">×</button></div><div class="help-body"></div><div class="help-footer"><button type="button" class="btn primary" data-action="close-help">Reprendre</button></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-  <noscript>Activez JavaScript pour utiliser EK Logistique.</noscript>
+  <noscript>Activez JavaScript pour utiliser Pikéo.</noscript>
   <script src="vendor/jsbarcode.min.js" defer></script><script src="vendor/jspdf.umd.min.js" defer></script>
   <script type="module" src="js/app.js"></script>
 </body>

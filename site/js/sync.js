@@ -55,7 +55,7 @@ async function ensureFolder(){
   const c=connection();if(c.folderId)return c.folderId;
   const q="trashed = false and mimeType = 'application/vnd.google-apps.folder' and appProperties has { key='ek-database' and value='"+c.spreadsheetId.replace(/[^a-zA-Z0-9_-]/g,'')+"' }";
   const found=await api('https://www.googleapis.com/drive/v3/files?'+new URLSearchParams({q,fields:'files(id,name)'}));
-  const f=found.files?.[0]||await api('https://www.googleapis.com/drive/v3/files?fields=id,name',{method:'POST',body:{name:'EK Logistique — Documents',mimeType:'application/vnd.google-apps.folder',appProperties:{'ek-database':c.spreadsheetId}}});
+  const f=found.files?.[0]||await api('https://www.googleapis.com/drive/v3/files?fields=id,name',{method:'POST',body:{name:'Pikéo — Documents',mimeType:'application/vnd.google-apps.folder',appProperties:{'ek-database':c.spreadsheetId}}});
   saveConnection({folderId:f.id});return f.id;
 }
 async function uploadFiles(){
@@ -94,7 +94,7 @@ export async function sync(){
 }
 export async function createDatabase(){
   const sheets=[{properties:{title:'Mode_emploi'}},...Object.values(SHEETS).map(title=>({properties:{title,gridProperties:{rowCount:1000,columnCount:12,frozenRowCount:1}}}))];
-  const data=await api('https://sheets.googleapis.com/v4/spreadsheets',{method:'POST',body:{properties:{title:'EK Logistique — Base de données',locale:'fr_FR',timeZone:'Europe/Paris'},sheets}});
-  await api(`https://sheets.googleapis.com/v4/spreadsheets/${data.spreadsheetId}/values:batchUpdate`,{method:'POST',body:{valueInputOption:'RAW',data:Object.values(SHEETS).map(tab=>({range:`'${tab}'!A1:L1`,values:[HEADERS]})).concat([{range:"'Mode_emploi'!A1:B5",values:[['EK Logistique','Base événementielle'],['Principe','Chaque ligne conserve une version de fiche. Ne pas supprimer les anciennes lignes.'],['Documents','Photos conservées dans un dossier privé Google Drive.'],['Stock officiel','Application indépendante de Velocity.'],['Sauvegarde','Export JSON et CSV disponibles dans l’application.']]}])}});
+  const data=await api('https://sheets.googleapis.com/v4/spreadsheets',{method:'POST',body:{properties:{title:'Pikéo — Base de données',locale:'fr_FR',timeZone:'Europe/Paris'},sheets}});
+  await api(`https://sheets.googleapis.com/v4/spreadsheets/${data.spreadsheetId}/values:batchUpdate`,{method:'POST',body:{valueInputOption:'RAW',data:Object.values(SHEETS).map(tab=>({range:`'${tab}'!A1:L1`,values:[HEADERS]})).concat([{range:"'Mode_emploi'!A1:B5",values:[['Pikéo','Base événementielle'],['Principe','Chaque ligne conserve une version de fiche. Ne pas supprimer les anciennes lignes.'],['Documents','Photos conservées dans un dossier privé Google Drive.'],['Stock officiel','Application indépendante de Velocity.'],['Sauvegarde','Export JSON et CSV disponibles dans l’application.']]}])}});
   saveConnection({spreadsheetId:data.spreadsheetId,folderId:''});return data.spreadsheetId;
 }

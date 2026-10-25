@@ -67,7 +67,7 @@ export async function exportData(){
   return {app:'EK Logistique',schema:1,exportedAt:new Date().toISOString(),events,files:fileData};
 }
 export async function importData(data){
-  if(data.app!=='EK Logistique'||data.schema!==1||!Array.isArray(data.events)||!Array.isArray(data.files??[]))throw Error('Ce fichier n’est pas une sauvegarde EK Logistique reconnue.');
+  if(data.app!=='EK Logistique'||data.schema!==1||!Array.isArray(data.events)||!Array.isArray(data.files??[]))throw Error('Ce fichier n’est pas une sauvegarde Pikéo reconnue.');
   const valid=data.events.every(e=>e.id&&TYPES.includes(e.type)&&e.record?.id&&Number.isFinite(Date.parse(e.updatedAt))&&JSON.stringify(e.record).length<43000);
   if(!valid)throw Error('La sauvegarde contient une fiche invalide.');
   await merge(data.events.map(e=>({...e,synced:false})));

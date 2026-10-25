@@ -46,7 +46,7 @@ export async function exportCode(format){const g=state.generated;if(!g)throw Err
   if(format==='svg'){download(new Blob([g.svg],{type:'image/svg+xml'}),`code-${name}.svg`);return;}
   const png=await svgPNG(g.svg);
   if(format==='png'){const blob=await (await fetch(png)).blob();download(blob,`code-${name}.png`);return;}
-  const pdf=new jspdf.jsPDF({orientation:'landscape',format:'a5'});pdf.setFontSize(14);pdf.text('EK Logistique · '+g.format,15,20);const img=pdf.getImageProperties(png);const w=175,h=w*img.height/img.width;pdf.addImage(png,'PNG',17,35,w,Math.min(85,h));pdf.setFontSize(9);pdf.text('Texte lu : '+g.payload,17,133);download(pdf.output('blob'),`code-${name}.pdf`);
+  const pdf=new jspdf.jsPDF({orientation:'landscape',format:'a5'});pdf.setFontSize(14);pdf.text('Pikéo · '+g.format,15,20);const img=pdf.getImageProperties(png);const w=175,h=w*img.height/img.width;pdf.addImage(png,'PNG',17,35,w,Math.min(85,h));pdf.setFontSize(9);pdf.text('Texte lu : '+g.payload,17,133);download(pdf.output('blob'),`code-${name}.pdf`);
 }
 export async function compareCodes(){
   const input=document.querySelector('#code-input')?.value?.trim()||state.codeValue||'001234';
