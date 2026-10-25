@@ -1,3 +1,4 @@
+import {scope as userScope} from './identity-context.js';
 import {uid} from './core.js';
 import {cleanRecord,personalPreferences} from './workbench-core.js';
 let namespace='live',promise,rows=[];
@@ -5,7 +6,7 @@ const localKey=()=> 'pikeo-personal-'+namespace;
 const request=q=>new Promise((resolve,reject)=>{q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});
 function database(){return promise||=new Promise((resolve,reject)=>{const q=indexedDB.open('pikeo-workbench-'+namespace,1);q.onupgradeneeded=()=>{q.result.createObjectStore('records',{keyPath:'id'});q.result.createObjectStore('snapshots',{keyPath:'id'});q.result.createObjectStore('meta',{keyPath:'key'});};q.onsuccess=()=>resolve(q.result);q.onerror=()=>{promise=null;reject(q.error);};});}
 async function transaction(store,mode,operation){const db=await database();return new Promise((resolve,reject)=>{const t=db.transaction(store,mode);let result;const q=operation(t.objectStore(store));if(q)q.onsuccess=()=>{result=q.result;};t.oncomplete=()=>resolve(result);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement local interrompu.'));});}
-export async function open(demo=false){const next=demo?'demo':'live';if(namespace!==next){namespace=next;promise=null;}rows=await transaction('records','readonly',s=>s.getAll());return rows;}
+export async function open(demo=false){const next=userScope(demo);if(namespace!==next){namespace=next;promise=null;}rows=await transaction('records','readonly',s=>s.getAll());return rows;}
 export const list=kind=>rows.filter(r=>!kind||r.kind===kind).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
 export const get=id=>rows.find(r=>r.id===id);
 export function preferences(){try{return personalPreferences(JSON.parse(localStorage.getItem(localKey())||'{}'));}catch{return personalPreferences();}}

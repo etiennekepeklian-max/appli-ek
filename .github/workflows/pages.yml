@@ -1,7 +1,7 @@
 name: Verifier et publier EK Logistique
 on:
   push:
-    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9]
+    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10]
   workflow_dispatch:
 permissions:
   contents: read

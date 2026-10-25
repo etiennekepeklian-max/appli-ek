@@ -48,7 +48,7 @@ try{
  assert.equal(invalid,true);assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.allEvents().length;}),before);
 
  await go('storage');
- const keyDownloadPromise=page.waitForEvent('download');await action('create-key').click();const keyDownload=await keyDownloadPromise,keyPath=await keyDownload.path(),keyFile=JSON.parse(await readFile(keyPath,'utf8'));assert.equal(keyFile.app,'PikeoRecoveryKey');await close();
+ await page.locator('[data-legacy-crypto]').evaluate(e=>e.open=true);const keyDownloadPromise=page.waitForEvent('download');await action('create-key').click();const keyDownload=await keyDownloadPromise,keyPath=await keyDownload.path(),keyFile=JSON.parse(await readFile(keyPath,'utf8'));assert.equal(keyFile.app,'PikeoRecoveryKey');await close();
  await page.evaluate(async()=>{const s=await import('./js/workbench-store.js');await s.save('resume',{id:'wb-photo',title:'Repère avec photo',date:'2026-10-25',photo:new Blob([new Uint8Array([1,2,255])],{type:'image/jpeg'})});});
  const downloadPromise=page.waitForEvent('download');await action('encrypted-export').click();const encryptedDownload=await downloadPromise,encryptedPath=await encryptedDownload.path(),encryptedText=await readFile(encryptedPath,'utf8');assert.ok(!encryptedText.includes('Privé hors Google'));assert.ok(!encryptedText.includes('Repère avec photo'));await close();
  await page.evaluate(async()=>{const l=await import('./js/workbench-store.js'),k=await import('./js/secure-session.js');for(const r of l.list('fatigue'))await l.remove(r.id);await l.remove('wb-photo');await k.create();});

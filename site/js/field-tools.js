@@ -70,7 +70,7 @@ export function enhanceFields(root,route){
 }
 function previewBarcode(form){const p=form.querySelector('#barcode-location-preview');if(p)p.textContent=locationValue(form.elements.value.value,form.elements.barcodeLocationType.value)||'Le préfixe sera ajouté automatiquement.';}
 export function applyTheme(){
-  const setting=Store.settings().theme||localStorage.getItem('ek-theme')||'system';
+  const setting=Store.settings().theme||(Store.scope()==='live'?localStorage.getItem('ek-theme'):null)||'system';
   const dark=setting==='dark'||setting==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
   document.documentElement.dataset.theme=dark?'dark':'light';document.documentElement.style.colorScheme=dark?'dark':'light';
   localStorage.setItem('ek-theme',setting);document.querySelector('meta[name=theme-color]')?.setAttribute('content',dark?'#111111':'#ffffff');

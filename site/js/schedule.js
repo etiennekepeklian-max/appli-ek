@@ -2,7 +2,7 @@ import * as Store from './storage.js';
 import {readAlertAcks,writeAlertAcks} from './alert-acks.js';
 import {DEFAULT_SCHEDULE,validateSchedule,scheduleEvents,dueReminders,zonedParts} from './schedule-core.js';
 import {state,esc,icon,pageHeading,field,check,toast} from './ui.js';
-const settingsKey=()=>`ek-work-schedule-${Store.isDemo()?'demo':'live'}`;
+const settingsKey=()=>`ek-work-schedule-${Store.scope()}`;
 const ledgerKey=()=>settingsKey()+'-alerts';
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
 export function currentSchedule(){try{return validateSchedule(read(settingsKey(),DEFAULT_SCHEDULE));}catch{return structuredClone(DEFAULT_SCHEDULE);}}

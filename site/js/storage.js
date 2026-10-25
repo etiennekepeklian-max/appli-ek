@@ -1,21 +1,23 @@
+import * as Identity from './identity-context.js';
 import {uid,makeEvent,latestRecords,TYPES} from './core.js';
-let db,events=[],records=new Map(),listeners=new Set(),namespace='live',baseRecords=new Map();
+let db,events=[],records=new Map(),listeners=new Set(),namespace='live',demoMode=false,baseRecords=new Map();
 export function setBaseRecords(type,rows){for(const [key] of baseRecords)if(key.startsWith(type+':'))baseRecords.delete(key);for(const row of rows)baseRecords.set(type+':'+row.id,row);}
 const request = r=>new Promise((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
 export async function openStore(demo=false){
-  if(db)db.close();namespace=demo?'demo':'live';events=[];records.clear();
+  if(db)db.close();demoMode=demo;namespace=Identity.scope(demo);events=[];records.clear();
   db=await new Promise((resolve,reject)=>{const q=indexedDB.open(`ek-logistique-${namespace}`,1);q.onupgradeneeded=()=>{const d=q.result;d.createObjectStore('events',{keyPath:'id'});d.createObjectStore('files',{keyPath:'id'});d.createObjectStore('meta',{keyPath:'key'});};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});
   events=await request(db.transaction('events').objectStore('events').getAll());records=latestRecords(events);
   if(!localStorage.getItem('ek-device-id'))localStorage.setItem('ek-device-id',uid());
 }
-export const isDemo=()=>namespace==='demo';
+export const isDemo=()=>demoMode;
+export const scope=()=>namespace;
 export const onChange=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 const changed=()=>{for(const fn of listeners)fn();};
 export const allEvents=()=>events;
 export const getEvents=(type,id)=>events.filter(e=>(!type||e.type===type)&&(!id||e.record.id===id)).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
 export const list=(type,{includeDeleted=false}={})=>[...records.entries()].filter(([k,r])=>k.startsWith(type+':')&&(includeDeleted||!r.deleted)).map(([,r])=>r);
 export const get=(type,id)=>records.get(`${type}:${id}`);
-export function settings(){const s=list('preferences').find(p=>p.id==='main')||{};return {name:'Étienne',profile:'preparer',goal:1800,beginner:true,scanSound:true,scanVibration:true,waitNotifications:true,homeShortcuts:['codes','new-pending','new-order','stock'],...s};}
+export function settings(){const s=list('preferences').find(p=>p.id==='main')||{};return {name:'Étienne',profile:'preparer',goal:1800,beginner:true,scanSound:true,scanVibration:true,waitNotifications:true,homeShortcuts:['codes','new-pending','new-order','stock'],...s,...(Identity.identity().name?{name:Identity.identity().name}:{})};}
 export async function save(type,record,action='Modification'){
   return (await saveBatch([{type,record}],action))[0];
 }
@@ -25,6 +27,7 @@ const undoTypes=new Set(['families','products','packagings','locations','pending
 async function batch(items,action,{undoable=true,resolves=[]}={}){
   let clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);const snapshots=[],seen=new Set();
   const next=items.map(({type,record})=>{
+    if(!isDemo()&&['products','families','packagings','locations','replenishments'].includes(type))Identity.assertConfigure();
     const r={...record,id:record.id||uid()};delete r._eventId;delete r.updatedAt;
     const key=type+':'+r.id;if(seen.has(key))throw Error('Deux écritures concernent la même fiche.');seen.add(key);
     const before=get(type,r.id)||baseRecords.get(type+':'+r.id),e=makeEvent(type,r,action,settings().name,localStorage.getItem('ek-device-id'),clock);clock=Date.parse(e.updatedAt);
