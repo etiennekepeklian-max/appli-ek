@@ -5,7 +5,7 @@ import {refKey,localDate,uid,toCSV} from './core.js';
 import {parseLocationImport,productLocations,pendingGroups,allocateReceipt,isOverdue,isWaiting,waitStarted,WAIT_LIMIT,weeklySummary,weekDates,matchesSearch} from './ops-core.js';
 import {scanFeedback,unlockFeedback} from './feedback.js';
 
-export const SHORTCUTS=[['codes','Créer un code','Saisir ou dicter','barcode'],['scan','Scanner','Caméra ou photo','scan'],['new-order','Ma journée','Toutes mes feuilles','camera'],['new-pending','Un manquant','Suivre le réassort','clock'],['stock','Catalogue','Chercher un produit','box'],['locations','Emplacements','Retrouver un casier','pin'],['unknowns','Codes inconnus','Identifier plus tard','help'],['journal','Journal de bord','Bilan de la semaine','list'],['receipt','Réception groupée','Choisir les commandes débloquées','check']];
+export const SHORTCUTS=[['enfs','Mes ENF','Références et quantités','layers'],['codes','Créer un code','Saisir ou dicter','barcode'],['scan','Scanner','Caméra ou photo','scan'],['new-order','Ma journée','Toutes mes feuilles','camera'],['new-pending','Un manquant','Suivre le réassort','clock'],['stock','Catalogue','Chercher un produit','box'],['locations','Emplacements','Retrouver un casier','pin'],['unknowns','Codes inconnus','Identifier plus tard','help'],['journal','Journal de bord','Bilan de la semaine','list'],['receipt','Réception groupée','Choisir les commandes débloquées','check']];
 let app,importPreview,receiptRows=[],receiptPlan=[],busy=false,timer,alerting=false,currentDraftKey,hydration=0,photoRevision=0;
 const object=form=>Object.fromEntries(new FormData(form));
 const opsButton=(text,action,attrs='')=>`<button type="button" class="btn" data-ops-action="${action}" ${attrs}>${text}</button>`;

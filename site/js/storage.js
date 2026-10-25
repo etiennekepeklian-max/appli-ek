@@ -1,3 +1,4 @@
+import {validateEnf} from './enf-core.js';
 import * as Identity from './identity-context.js';
 import {uid,makeEvent,latestRecords,TYPES} from './core.js';
 let db,events=[],records=new Map(),listeners=new Set(),namespace='live',demoMode=false,baseRecords=new Map();
@@ -23,12 +24,12 @@ export async function save(type,record,action='Modification'){
 }
 let mutations=Promise.resolve();
 const serial=fn=>{const task=mutations.catch(()=>{}).then(fn);mutations=task.catch(()=>{});return task;};
-const undoTypes=new Set(['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','journal']);
+const undoTypes=new Set(['families','products','enfs','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','journal']);
 async function batch(items,action,{undoable=true,resolves=[]}={}){
   let clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);const snapshots=[],seen=new Set();
   const next=items.map(({type,record})=>{
-    if(!isDemo()&&['products','families','packagings','locations','replenishments'].includes(type))Identity.assertConfigure();
-    const r={...record,id:record.id||uid()};delete r._eventId;delete r.updatedAt;
+    if(!isDemo()&&['products','enfs','families','packagings','locations','replenishments'].includes(type))Identity.assertConfigure();
+    const r={...record,id:record.id||uid()};if(type==='enfs'&&!r.deleted)Object.assign(r,validateEnf(r));delete r._eventId;delete r.updatedAt;
     const key=type+':'+r.id;if(seen.has(key))throw Error('Deux écritures concernent la même fiche.');seen.add(key);
     const before=get(type,r.id)||baseRecords.get(type+':'+r.id),e=makeEvent(type,r,action,settings().name,localStorage.getItem('ek-device-id'),clock);clock=Date.parse(e.updatedAt);
     e.baseEventId=before?._eventId||null;if(resolves.length)e.resolves=[...new Set(resolves)];
@@ -72,7 +73,7 @@ export async function exportData(){
 }
 export async function prepareImport(data){
  if(data?.app!=='EK Logistique'||data.schema!==1||!Array.isArray(data.events)||!Array.isArray(data.files??[])||data.events.length>250000)throw Error('Ce fichier n’est pas une sauvegarde Pikéo reconnue.');
- const valid=data.events.every(e=>typeof e.id==='string'&&e.id&&TYPES.includes(e.type)&&typeof e.record?.id==='string'&&e.record.id&&Number.isFinite(Date.parse(e.updatedAt))&&JSON.stringify(e.record).length<43000);
+ const valid=data.events.every(e=>{if(!(typeof e.id==='string'&&e.id&&TYPES.includes(e.type)&&typeof e.record?.id==='string'&&e.record.id&&Number.isFinite(Date.parse(e.updatedAt))&&JSON.stringify(e.record).length<43000))return false;if(e.type==='enfs'&&!e.record.deleted){try{validateEnf(e.record);}catch{return false;}}return true;});
  if(!valid)throw Error('La sauvegarde contient une fiche invalide.');
  const assets=[];
  for(const f of data.files??[]){

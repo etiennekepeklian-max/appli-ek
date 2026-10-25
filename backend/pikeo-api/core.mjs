@@ -9,3 +9,9 @@ export async function verify(payload,signature,jwk,now=Date.now()){
 }
 export async function hash(value){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(n=>n.toString(16).padStart(2,'0')).join('');}
 export function validMessage(m){return uuid(m?.id)&&uuid(m.recipientDevice)&&m.envelope?.version===1&&/^[-\w+/=]{16}$/.test(m.envelope.iv)&&typeof m.envelope.ciphertext==='string'&&m.envelope.ciphertext.length<12000&&/^[-\w+/=]+$/.test(m.envelope.ciphertext)&&!!publicKey(m.envelope.ephemeral);}
+
+export function mergeSharedEnfs(incoming,current){
+ const records=incoming.records.map(r=>({...r})),ids=new Set(records.filter(r=>r.type==='enfs').map(r=>r.record.id));
+ for(const row of current?.records||[])if(row.type==='enfs'&&!ids.has(row.record.id))records.push(row);
+ return {...incoming,records};
+}

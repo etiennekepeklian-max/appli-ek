@@ -1,8 +1,8 @@
-export const VERSION = '1.10.1';
+export const VERSION = '1.11.0';
 export const SCHEMA = 1;
-export const TYPES = ['families','products','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
-export const LEGACY_SHEETS = {families:'Familles',products:'References',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
-export const SHEETS = {families:'produit',products:'produit',packagings:'produit',locations:'produit',pending:'manquant',replenishments:'manquant',issues:'manquant',orders:'objectif picking',days:'objectif picking',movements:'historique',counts:'historique',documents:'historique',codes:'historique',preferences:'historique',unknowns:'historique',journal:'historique'};
+export const TYPES = ['families','products','enfs','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
+export const LEGACY_SHEETS = {families:'Familles',products:'References',enfs:'ENF',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
+export const SHEETS = {families:'produit',products:'produit',enfs:'produit',packagings:'produit',locations:'produit',pending:'manquant',replenishments:'manquant',issues:'manquant',orders:'objectif picking',days:'objectif picking',movements:'historique',counts:'historique',documents:'historique',codes:'historique',preferences:'historique',unknowns:'historique',journal:'historique'};
 export const SHEET_TABS = [...new Set(Object.values(SHEETS))];
 export const HEADERS = ['event_id','record_id','updated_at','actor','action','label','order_number','reference','location','quantity','payload_json','device_id'];
 export const uid = () => globalThis.crypto?.randomUUID?.() || `ek-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;

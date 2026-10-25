@@ -1,5 +1,5 @@
 import postgres from 'npm:postgres@3.4.9';
-import {nameKey,cleanName,uuid,publicKey,verify,hash,validMessage} from './core.mjs';
+import {nameKey,cleanName,uuid,publicKey,verify,hash,validMessage,mergeSharedEnfs} from './core.mjs';
 const db=postgres(Deno.env.get('SUPABASE_DB_URL'),{ssl:'require',prepare:false,max:1,idle_timeout:20,connect_timeout:10});
 const allowed=new Set(['https://etiennekepeklian-max.github.io','http://localhost:8765','http://127.0.0.1:8765']);
 class HttpError extends Error{constructor(status,message){super(message);this.status=status;}}
@@ -55,8 +55,9 @@ async function handle(req){
     }
     if(p.action==='config-get')return (await sql`select version,data from pikeo_private.shared_config where id=true`)[0];
     if(p.action==='config-put'){
-     admin();if(!Array.isArray(p.data?.records)||p.data.records.length>10000||!p.data.records.every(r=>['products','families','packagings','locations','replenishments'].includes(r.type)&&typeof r.record?.id==='string'))reject(400,'Paramètres partagés invalides.');
-     const r=await sql`update pikeo_private.shared_config set data=${sql.json(p.data)},version=version+1,updated_at=now() where id=true and version=${Number(p.version)} returning version`;if(!r.length)reject(409,'Les réglages ont changé. Actualisez avant de publier.');return r[0];
+     admin();if(!Array.isArray(p.data?.records)||p.data.records.length>10000||!p.data.records.every(r=>['products','enfs','families','packagings','locations','replenishments'].includes(r.type)&&typeof r.record?.id==='string'))reject(400,'Paramètres partagés invalides.');
+     const previous=(await sql`select data from pikeo_private.shared_config where id=true`)[0];const shared=mergeSharedEnfs(p.data,previous?.data);
+     const r=await sql`update pikeo_private.shared_config set data=${sql.json(shared)},version=version+1,updated_at=now() where id=true and version=${Number(p.version)} returning version`;if(!r.length)reject(409,'Les réglages ont changé. Actualisez avant de publier.');return r[0];
     }
     if(p.action==='send'){
      if(!Array.isArray(p.messages)||!p.messages.length||p.messages.length>20||!p.messages.every(validMessage))reject(400,'Message invalide.');

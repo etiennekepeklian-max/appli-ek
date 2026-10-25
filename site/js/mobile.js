@@ -3,14 +3,14 @@ import {icon} from './icons.js';
 // The same phone interface is used at every screen width.
 export function renderMobileNav(route, pendingCount=0){
   const items=[['home','Accueil','home'],['codes','Codes','barcode'],['pending','Manquants','clock'],['stock','Produits','box'],['more','Plus','more']];
-  const active=['stock','families','locations','complete','unknowns'].includes(route)?'stock':items.some(([key])=>key===route)?route:'more';
+  const active=['stock','enfs','families','locations','complete','unknowns'].includes(route)?'stock':items.some(([key])=>key===route)?route:'more';
   return items.map(([key,label,glyph])=>`<button type="button" data-nav="${key}" class="${active===key?'active ':''}${key==='scan'?'scan-tab':''}" ${active===key?'aria-current="page"':''}><span class="nav-icon">${icon(glyph)}${key==='pending'&&pendingCount?`<span class="nav-count" aria-label="${pendingCount} attente(s)">${pendingCount>99?'99+':pendingCount}</span>`:''}</span><span>${label}</span></button>`).join('');
 }
 
 export function mobileTools(profile='preparer'){
  const groups=[
   ['Ma journée',[['post','Mon poste','Matériel, repères, consignes et passation','box'],['schedule','Horaires et alertes','Huit minutes avant chaque début et fin','clock'],['voice','Mémos vocaux','Enregistrer et exporter sur ce téléphone','mic'],['orders','Photos et bilan','Toutes les feuilles en fin de journée','camera'],['journal','Journal de la semaine','Bilan, observations et PDF','list']]],
-  ['Produits et emplacements',[['stock','Chercher un produit ou un casier','Référence, EAN, nom ou adresse','box'],['locations','Emplacements et import CSV','Adresses PAC, PAD et RES','pin'],['complete','À compléter','Emplacements, noms et règles manquants','edit'],['families','Familles et règles de picking','Règles communes et exceptions produit','layers'],['unknowns','Codes à identifier','Retrouver les lectures inconnues','help']]],
+  ['Produits et emplacements',[['enfs','ENF — références et quantités','Photographier une feuille ou consulter sa composition','layers'],['stock','Chercher un produit ou un casier','Référence, EAN, nom ou adresse','box'],['locations','Emplacements et import CSV','Adresses PAC, PAD et RES','pin'],['complete','À compléter','Emplacements, noms et règles manquants','edit'],['families','Familles et règles de picking','Règles communes et exceptions produit','layers'],['unknowns','Codes à identifier','Retrouver les lectures inconnues','help']]],
   ['Manquants et réassorts',[['pending','Suivre les manquants','Par commande ou par référence','clock']]],
   ['Codes-barres',[['codes','Créer et retrouver mes codes','Favoris, récents et étiquettes','barcode'],['scan','Scanner un produit','Caméra, photo ou saisie','scan']]],
   ['Mon espace',[['users','Sessions et collègues','Mon nom, mes messages et les habilitations','user'],['history','Historique et annulation','Retrouver les actions enregistrées','history'],['settings','Réglages et sauvegardes','Apparence, options et copies','settings'],['help','Aide et prise en main','Les gestes essentiels','help']]]
