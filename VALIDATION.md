@@ -1,6 +1,6 @@
 # Validation — version 1.10.1
 
-Correction des mises à jour PWA : contrôle de version publié indépendant du cache, activation d’une coque complète avant import des modules, actualisation des styles et page de récupération sans effacement. Formulaires ouverts protégés ; point local avant rechargement volontaire. Le parcours update-smoke doit vérifier les passages depuis les copies 1.5 et 1.7, la conservation des fiches/fichiers/brouillons/mémos et le redémarrage hors ligne, en plus des 96 tests métier et des six parcours existants. Aide actualisation et sauvegardes relue.
+Correction des mises à jour PWA : contrôle de version publié indépendant du cache, activation d’une coque complète avant import des modules, actualisation des styles et page de récupération sans effacement. Formulaires ouverts protégés ; point local avant rechargement volontaire. Le parcours update-smoke vérifie les passages depuis des caches 1.5 et 1.7 simulés, la conservation des fiches/fichiers/brouillons/mémos et le redémarrage hors ligne, en plus des 96 tests métier et des six parcours existants. Aide actualisation et sauvegardes relue.
 
 Audit des demandes : voir docs/TASK_AUDIT.md. Le personnage définitif et le choix de son animation restent à finaliser avec Étienne. Les cinq propositions sont isolées de l’application ; aucun jeu ni déploiement Android ajouté.
 
