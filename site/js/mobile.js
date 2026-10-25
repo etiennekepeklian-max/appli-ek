@@ -2,7 +2,7 @@ import {icon} from './icons.js';
 
 // The same phone interface is used at every screen width.
 export function renderMobileNav(route, pendingCount=0){
-  const items=[['home','Accueil','home'],['codes','Codes','barcode'],['pending','Manquants','clock'],['stock','Produits','box'],['more','Plus','more']];
+  const items=[['home','Accueil','home'],['codes','Codes','barcode'],['pending','Manquants','clock'],['stock','Produits','box'],['more','Outils','more']];
   const active=['stock','enfs','families','locations','complete','unknowns'].includes(route)?'stock':items.some(([key])=>key===route)?route:'more';
   return items.map(([key,label,glyph])=>`<button type="button" data-nav="${key}" class="${active===key?'active ':''}${key==='scan'?'scan-tab':''}" ${active===key?'aria-current="page"':''}><span class="nav-icon">${icon(glyph)}${key==='pending'&&pendingCount?`<span class="nav-count" aria-label="${pendingCount} attente(s)">${pendingCount>99?'99+':pendingCount}</span>`:''}</span><span>${label}</span></button>`).join('');
 }
@@ -85,9 +85,10 @@ export function enhanceMobileView(root,route,customShortcuts){
     if(quick){
       quick.classList.add('mobile-quick-card');
       quick.querySelector('h2').textContent='Que voulez-vous faire ?';
-      const shortcuts=customShortcuts||[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','camera','Ma journée','Toutes mes feuilles'],['new-pending','clock','Un manquant','Suivre le réassort']];
-      quick.querySelector('.quick-grid').innerHTML=shortcuts.map(([action,glyph,title,hint])=>`<button class="quick" ${['codes','scan','stock','locations','unknowns','journal'].includes(action)?`data-nav="${action}"`:`data-action="${action}"`}><span class="quick-icon">${icon(glyph)}</span><span>${title}<small>${hint}</small></span></button>`).join('');
-      root.insertBefore(quick,root.querySelector('.stats-grid'));
+      const shortcuts=customShortcuts?.length?customShortcuts:[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','camera','Ma journée','Toutes mes feuilles'],['new-pending','clock','Un manquant','Suivre le réassort']];
+      quick.querySelector('.quick-grid').innerHTML=shortcuts.map(([action,glyph,title,hint])=>`<button class="quick" ${['enfs','codes','scan','stock','locations','unknowns','journal'].includes(action)?`data-nav="${action}"`:`data-action="${action}"`}><span class="quick-icon">${icon(glyph)}</span><span>${title}<small>${hint}</small></span></button>`).join('');
+      root.insertBefore(quick,root.querySelector('.common-search'));
+      quick.insertAdjacentHTML('afterend','<div class="home-enf-link"><button type="button" class="btn" data-nav="enfs">'+icon('layers')+'ENF — références et quantités</button></div>');
     }
   }
 }

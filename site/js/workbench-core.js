@@ -1,6 +1,6 @@
 import {refKey,localDate} from './core.js';
 
-export const KINDS=['equipment','resume','instruction','card','term','gratitude','goal','improvement','fatigue','day-action'];
+export const KINDS=['equipment','resume','instruction','card','term','gratitude','goal','improvement','fatigue','day-action','appearance'];
 export const CAUSES=[['','Non précisé'],['empty','Emplacement vide'],['address','Adresse à vérifier'],['damaged','Article abîmé'],['identify','Référence à confirmer'],['other','Autre']];
 export const IMPROVEMENT_STATES=[['proposed','Proposée'],['reviewed','Examinée'],['trial','En essai'],['applied','Appliquée'],['closed','Classée']];
 export const PERSONAL_DEFAULTS={hand:'both',textSize:'normal',scanVisual:true,celebration:'discreet',shareAchievements:false,recoveryTimes:[]};

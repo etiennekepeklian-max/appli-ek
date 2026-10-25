@@ -1,3 +1,4 @@
+import * as Mascot from './mascot.js';
 import * as Sync from './sync.js';
 import * as Store from './storage.js';
 import * as Local from './workbench-store.js';
@@ -11,6 +12,7 @@ import {state,esc,fmt,icon,nav,pageHeading,field,check,modal,closeModal,toast,fo
 import {products} from './model.js';
 
 export const ROUTES={post:'Mon poste',resume:'Préparations à reprendre',instructions:'Consignes et rappels',handoff:'Passation',personal:'Mes préférences',progress:'Mes progrès',improvements:'Mes améliorations',storage:'Espace et sauvegardes',diagnostic:'Diagnostic hors ligne',training:'Prise en main',conflicts:'Modifications à comparer',exports:'Partager un bilan'};
+let mascotImport=Promise.resolve();
 let app,search='',revision=0,diagResult=[],lastCelebration='',timer,busy=new WeakSet(),drafts={};
 const wbButton=(label,action,id='',kind='')=>'<button type="button" class="btn '+kind+'" data-wb-action="'+action+'" data-id="'+esc(id)+'">'+label+'</button>';
 const small=(label,action,id='')=>wbButton(label,action,id,'small');
@@ -52,7 +54,11 @@ function progressView(){
 }
 function personalView(){
  const p=Local.preferences();
- return pageHeading('Mes préférences','Ces choix restent personnels à cet appareil.')+back()+fullForm('preferences',field('hand','Utilisation à une main',p.hand,{select:[{value:'both',label:'Disposition habituelle'},{value:'left',label:'Main gauche'},{value:'right',label:'Main droite'}],full:true})+field('textSize','Taille de lecture',p.textSize,{select:[{value:'normal',label:'Habituelle'},{value:'large',label:'Agrandie'}]})+field('celebration','Réussite de fin de journée',p.celebration,{select:[{value:'off',label:'Sans animation'},{value:'discreet',label:'Message discret'},{value:'festive',label:'Feu d’artifice bref'}]})+'<div class="field full">'+check('scanVisual','Confirmation visuelle des scans',p.scanVisual)+'</div>'+field('recoveryTimes','Mes rappels de récupération',p.recoveryTimes.join(', '),{full:true,placeholder:'Ex. 10:30, 14:00',hint:'Facultatifs, huit horaires maximum. Ils apparaissent lorsque l’application est ouverte ; aucune précision écran verrouillé n’est promise.'}))+'<section class="card section-gap"><h2>Mes raccourcis et mon apparence</h2>'+hint('Le thème, les sons, les vibrations et les raccourcis restent disponibles dans Réglages.')+link('Ouvrir mes réglages','settings','settings')+'</section>';
+ return pageHeading('Mes préférences','Ces choix restent personnels à cet appareil.')+back()+fullForm('preferences',field('theme','Apparence',Store.settings().theme||'system',{select:[{value:'system',label:'Comme mon téléphone'},{value:'light',label:'Mode clair'},{value:'dark',label:'Mode sombre'}],full:true})+field('hand','Utilisation à une main',p.hand,{select:[{value:'both',label:'Disposition habituelle'},{value:'left',label:'Main gauche'},{value:'right',label:'Main droite'}],full:true})+field('textSize','Taille de lecture',p.textSize,{select:[{value:'normal',label:'Habituelle'},{value:'large',label:'Agrandie'}]})+field('celebration','Réussite de fin de journée',p.celebration,{select:[{value:'off',label:'Sans animation'},{value:'discreet',label:'Message discret'},{value:'festive',label:'Feu d’artifice bref'}]})+'<div class="field full">'+check('scanVisual','Confirmation visuelle des scans',p.scanVisual)+'</div>'+field('recoveryTimes','Mes rappels de récupération',p.recoveryTimes.join(', '),{full:true,placeholder:'Ex. 10:30, 14:00',hint:'Facultatifs, huit horaires maximum. Ils apparaissent lorsque l’application est ouverte ; aucune précision écran verrouillé n’est promise.'}))+mascotPreferences()+'<section class="card section-gap"><h2>Mes raccourcis et mon apparence</h2>'+hint('L’apparence se règle ci-dessus. Les sons, vibrations et raccourcis se trouvent dans Réglages.')+link('Ouvrir mes réglages','settings','settings')+'</section>';
+}
+function mascotPreferences(){
+ const selected=Local.get('personal-mascot');
+ return '<section class="card section-gap"><h2>Ma mascotte</h2><p class="hint">Importez la planche d’animation fournie. Elle reste sur ce téléphone et dans vos copies personnelles, sans envoi à Google ni publication.</p><div class="actions"><span class="mascot-sprite mascot-deposit" aria-hidden="true"></span><p>'+ (selected?'Ma mascotte personnelle est active.':'La mascotte générique est active.')+'</p></div><label class="field"><span>Importer ma mascotte</span><input type="file" accept="image/webp,image/png" data-wb-file="mascot"></label>'+ (selected?wbButton('Utiliser la mascotte générique','default-mascot'):'')+'</section>';
 }
 function trainingView(){
  return pageHeading('Prise en main','Essayer les gestes avec des exemples séparés.')+back()+'<section class="card"><h2>Trois gestes pour commencer</h2><ol class="wb-lessons"><li>Retrouver une référence et vérifier son nom.</li><li>Noter un manquant puis préparer le message pour JC.</li><li>Photographier les feuilles et vérifier le bilan proposé.</li></ol>'+hint('Les exercices utilisent la démonstration. Ils ne valident aucune habilitation ni procédure de votre employeur.')+'<button class="btn primary full" data-action="enter-demo">Ouvrir les exemples</button></section><section class="card section-gap"><h2>Retrouver un geste</h2>'+link('Consignes et rappels','instructions','list')+' '+link('Aide de l’application','help','help')+'</section>';
@@ -146,7 +152,7 @@ async function readEncrypted(file){
  modal('Fusionner la sauvegarde',hint('Le contenu du fichier a été vérifié. Les révisions et fichiers absents seront ajoutés ; vos saisies récentes sont conservées.')+'<p>'+body.data.events.length+' révision(s) · '+body.data.files.length+' fichier(s)</p><div class="form-actions">'+wbButton('Confirmer la fusion','confirm-import','','primary')+'</div>');
  document.querySelector('#dialog').dataset.helpContext='storage';
 }
-async function perform(button){
+async function perform(button){if(button.dataset.wbAction==='default-mascot'){await Local.remove('personal-mascot');Mascot.applyPersonal();app.render();toast('Mascotte générique activée.');return;}
  const action=button.dataset.wbAction,id=button.dataset.id;
  if(action==='new')return recordForm(id);
  if(action==='edit'){const r=Local.get(id);if(r)return recordForm(r.kind,r);}
@@ -200,7 +206,7 @@ async function submit(form){
   const f=form.elements.photo?.files?.[0];if(f){const {compressProductPhoto}=await import('./photo-tools.js');photo=await compressProductPhoto(f);}
   await Local.save(kind,{...old,...d,id:form.dataset.id||undefined,photo,confirmed:!!d.confirmed,active:!!d.active});form.dataset.saved='1';delete drafts[kind];await Local.setMeta('form-'+kind,null);closeModal();app.render();toast('Repère enregistré sur cet appareil.');return;
  }
- if(name==='preferences'){const p=personalPreferences({...Local.preferences(),...d,scanVisual:!!d.scanVisual,recoveryTimes:String(d.recoveryTimes||'').split(/[,;\s]+/).filter(Boolean)});if(String(d.recoveryTimes||'').split(/[,;\s]+/).filter(Boolean).some(t=>!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t)))throw Error('Utilisez des heures au format 10:30, séparées par des virgules.');Local.savePreferences(p);applyPreferences();toast('Préférences personnelles enregistrées.');return;}
+ if(name==='preferences'){const p=personalPreferences({...Local.preferences(),...d,scanVisual:!!d.scanVisual,recoveryTimes:String(d.recoveryTimes||'').split(/[,;\s]+/).filter(Boolean)});if(String(d.recoveryTimes||'').split(/[,;\s]+/).filter(Boolean).some(t=>!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t)))throw Error('Utilisez des heures au format 10:30, séparées par des virgules.');if(!['system','light','dark'].includes(d.theme))throw Error('Choisissez un mode d’apparence.');await Store.save('preferences',{...Store.settings(),id:'main',theme:d.theme},'Apparence personnelle modifiée');Local.savePreferences(p);applyPreferences();toast('Préférences personnelles enregistrées.');return;}
  if(name==='handoff'){const ids=new FormData(form).getAll('selected'),rows=Store.list('pending').filter(r=>ids.includes(r.id));return previewText('Passation à relire',handoffText(rows,{includeNotes:!!d.includeNotes}));}
  if(name==='compare-order'){const events=Store.getEvents('orders',form.dataset.id),a=events.find(e=>e.id===d.before),b=events.find(e=>e.id===d.after);if(!a||!b||a.id===b.id)throw Error('Choisissez deux versions différentes.');return showOrderChanges(a,b);}
  if(name==='compare-days'){
@@ -229,13 +235,14 @@ async function unpackPersonal(data){
  for(const r of data.records)if(r.photoData){const bytes=fromBase64(r.photoData);if(bytes.length>10e6||!/^image\/(?:jpeg|png|webp)$/.test(r.photoType))throw Error('Photo de repère invalide.');r.photo=new Blob([bytes],{type:r.photoType});delete r.photoData;delete r.photoType;}
  return data;
 }
-export async function open(demo=false){
+export async function open(demo=false){await mascotImport.catch(()=>{});
  await Local.open(demo);drafts={};
  for(const kind of KINDS){const d=await Local.meta('form-'+kind);if(d)drafts[kind]=d;}
  applyPreferences();
  try{await Recovery.ensureVersionSnapshot();}catch(e){toast('Le point automatique n’a pas pu être créé : '+e.message,true);}
 }
 export function applyPreferences(){
+ Mascot.applyPersonal();
  const p=Local.preferences();document.documentElement.dataset.hand=p.hand;document.documentElement.dataset.textSize=p.textSize;
 }
 const photoURLs=new Map();
@@ -288,6 +295,11 @@ export function install(callbacks){
  document.addEventListener('change',event=>{
   const input=event.target;
   if(input.matches('[data-wb-equipment]')){const r=Local.get(input.dataset.wbEquipment);void Local.save('equipment',{...r,checkedDate:input.checked?localDate():''}).catch(e=>toast(e.message,true));}
+  if(input.dataset.wbFile==='mascot'){
+   const file=input.files?.[0],owner=Store.scope();if(!file)return;
+   mascotImport=mascotImport.catch(()=>{}).then(async()=>{await Mascot.validateSprite(file);if(Store.scope()!==owner)throw Error('La session a changé. Réimportez la mascotte dans la bonne session.');await Local.save('appearance',{id:'personal-mascot',title:'Ma mascotte personnelle',photo:file});Mascot.applyPersonal();if(input.isConnected)app.render();toast('Mascotte enregistrée sur cet appareil.');});
+   void mascotImport.catch(e=>toast(e.message,true)).finally(()=>{input.value='';});
+  }
   if(input.dataset.wbFile==='encrypted-import')void readEncrypted(input.files?.[0]).catch(e=>toast(e.message,true)).finally(()=>{input.value='';});
  });
  let searchTimer;

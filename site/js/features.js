@@ -1,3 +1,4 @@
+import * as Mascot from './mascot.js';
 import * as Store from './storage.js';
 import {state,esc,icon,modal,closeModal,onModalClose,toast,btn,download,fmt} from './ui.js';
 import {voiceCode,validBarcode,spokenInteger} from './core.js';
@@ -179,7 +180,8 @@ export async function lookupProduct(raw){const code=String(raw).trim();if(!code)
   el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p>${found.length?`<h3 class="section-gap">Pistes trouvées sur le site officiel</h3><p class="hint">Vérifiez la référence avant de retenir une dénomination.</p>${found.map(p=>`<p class="section-gap"><a href="${esc(new URL(p.url,'https://fr.checkout.draegerparis.com').href)}" target="_blank" rel="noopener noreferrer">${esc(p.title)} ↗</a></p>`).join('')}`:'<p class="info-note">Code conservé dans Outils → Codes inconnus.</p><h3 class="section-gap">Aucune correspondance certaine</h3><p class="small muted section-gap">Ce code peut être une référence interne ou un produit absent du catalogue public. Vous pouvez rechercher sa dénomination sur Internet ou créer sa fiche.</p>'}<div class="actions section-gap"><a class="btn" href="${searchURL}" target="_blank" rel="noopener noreferrer">${icon('search')}Rechercher sur Internet</a>${btn('Ajouter ce produit','new-product-from-scan','plus','primary',`data-code="${esc(code)}"`)}</div>`;
 }
 let ocrWorker;
-export async function recognizePhoto(file,onProgress=()=>{}){
+export async function recognizePhoto(file,onProgress=()=>{}){return Mascot.during(()=>readPhoto(file,onProgress),'Lecture de votre document…');}
+async function readPhoto(file,onProgress=()=>{}){
   await loadScript('vendor/ocr/tesseract.min.js');const absolute=path=>new URL(path,document.baseURI).href;
   if(!ocrWorker){onProgress('Préparation du moteur de lecture…');ocrWorker=await Tesseract.createWorker(['fra','eng'],1,{workerPath:absolute('vendor/ocr/worker.min.js'),corePath:absolute('vendor/ocr/core'),langPath:absolute('vendor/ocr/lang'),workerBlobURL:false,gzip:true,logger:m=>{if(m.status==='recognizing text')onProgress(`Lecture du document : ${Math.round((m.progress||0)*100)} %`);else if(m.status==='loading language traineddata')onProgress('Préparation des langues de reconnaissance…');}});}
   let source=file;try{const bitmap=await createImageBitmap(file);const factor=Math.min(1,2600/Math.max(bitmap.width,bitmap.height));if(factor<1){const canvas=document.createElement('canvas');canvas.width=Math.round(bitmap.width*factor);canvas.height=Math.round(bitmap.height*factor);canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);source=canvas;}bitmap.close();}catch{}

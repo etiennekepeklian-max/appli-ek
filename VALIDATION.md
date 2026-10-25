@@ -109,3 +109,15 @@ Revue de l’aide effectuée pour les 19 routes et les principales actions : man
 Les parcours existants passent : OCR réel sur feuilles synthétiques, regroupement par commande, CSV et annulation, brouillons et rechargement hors ligne, scanner simulé, Code 39 relu par ZXing et logique Google sur serveur synthétique avec reprise et fusion de deux appareils. Les nouvelles vérifications n’utilisent aucun compte ni donnée de production. Le rendu Contraste terrain a été vérifié visuellement ; les codes restent noirs sur blanc.
 
 Le nom affiché et les icônes deviennent Pikéo. Identité du manifeste, IndexedDB, préférences, périmètres OAuth et signature technique des sauvegardes existantes conservés. Aucun fichier Google existant n’est renommé et aucun message n’est envoyé à JC par l’application.
+
+
+## Version 1.13.0 — mascotte, navigation et contraste
+
+- Demande d’Étienne : portrait dédié et choix 3 « Dépose soignée », présence à l’ouverture ; accès plus intuitifs et contraste du mode sombre.
+- Sauvegarde du code : branche `backup/v1.12.0-before-ux-mascot-2026-10-25`, avant toute modification de publication. Le portrait original et l’illustration personnelle restent hors dépôt. L’import local de la planche s’effectue dans Mes préférences, avec repli générique.
+- Mascotte illustrée : huit poses transparentes, asset WebP optimisé, dépose à l’ouverture et marche sur place pendant les traitements réels. Aucun blocage de l’interface ni durée artificielle ; réduction des animations respectée.
+- Recherche de fonctions dans l’en-tête et dans Outils, annuaire commun et alias métier. Accueil compact, raccourcis conservés, ENF visible, adresses dans les résultats produits et priorité aux correspondances exactes.
+- Contraste corrigé dans les surfaces, champs, textes secondaires, graphiques et pieds de fenêtre ; codes noirs sur blanc conservés. Apparence accessible à l’opérateur dans Mes préférences.
+- Aide revue : écran Accueil, Outils, Préférences, catalogue, page Aide et nouveau contexte de fenêtre `tool-finder`. Le retour de l’aide ne réinitialise pas la recherche.
+- Vérifications locales : 119 tests métier réussis et syntaxe/assets vérifiés. Contrôle visuel dans l’aperçu : recherche « mode sombre », aide et retour, accès aux préférences puis accueil sombre.
+- Les vérifications navigateur complètes et les mesures de contraste sont exigées par le job `ergonomics` avant publication ; résultats consignés dans les artifacts CI.

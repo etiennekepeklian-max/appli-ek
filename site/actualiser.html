@@ -2,6 +2,6 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Actualiser Pikéo</title><style>
 body{font-family:system-ui,sans-serif;max-width:36rem;margin:10vh auto;padding:24px;line-height:1.6}button,a{font:inherit}button{padding:14px 18px;border-radius:10px;border:1px solid currentColor;cursor:pointer}button:disabled{opacity:.6}p{overflow-wrap:anywhere}
 </style></head><body><h1>Actualiser Pikéo</h1><p>Ouvrez cette page sur chaque appareil qui affiche une ancienne version.</p><p>La mise à jour remplace uniquement les fichiers de l’application. Vos fiches, photos, brouillons, mémos et sessions restent sur cet appareil.</p><p>Terminez vos saisies et fermez les autres fenêtres Pikéo avant de continuer.</p><button id="repair-update" type="button">Installer la dernière version</button><p id="update-status" role="status">Internet est nécessaire pour télécharger la mise à jour.</p><p><a href="./">Revenir à Pikéo</a></p><p>N’effacez pas les données du navigateur pour actualiser l’application.</p><script type="module">
-import {repair} from './js/updates.js?pikeo-v=1.12.0';
-document.getElementById('repair-update').addEventListener('click',()=>repair('1.12.0'));
+import {repair} from './js/updates.js?pikeo-v=1.13.0';
+document.getElementById('repair-update').addEventListener('click',()=>repair('1.13.0'));
 </script></body></html>
