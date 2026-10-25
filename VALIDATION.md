@@ -2,11 +2,11 @@
 
 ## Version 1.9.0 — Mon poste, récupération et chiffrement
 
-La branche de travail a passé les tests métier et les parcours existants ; les vérifications finales incluent désormais deux parcours supplémentaires : workbench-smoke et cloud-smoke. Les données de test sont synthétiques, les API Google simulées. Aucun compte Google privé, vraie feuille, photo réelle, PIN ni clé réelle n’est utilisé dans les tests.
+91 tests métier réussis. Les cinq parcours navigateur ui-smoke, workflow-smoke, day-tools-smoke, workbench-smoke et cloud-smoke sont passés sur la branche de travail. Les données de test sont synthétiques, les API Google simulées. Aucun compte Google privé, vraie feuille, photo réelle, PIN ni clé réelle n’est utilisé dans les tests.
 
 Contrôles : reprise bloquée tant qu’une référence manque, matériel configurable, consigne avec aide sans perte de saisie et brouillon repris, objectif facultatif, ressenti absent de l’export métier, passation sans notes par défaut, points locaux et restauration en nouvelles révisions, import métier refusé sans écriture si fichier invalide. Clé aléatoire, IV distincts, authentification du contenu, mauvaise clé et contenu modifié refusés, révisions longues et multioctets réparties pour respecter Google.
 
-Les parcours vérifient aussi l’export/import chiffré réel depuis les boutons (dont photos des repères privés), l’absence de nouvel envoi Google sans clé, la conservation des anciennes lignes en clair, les nouveaux événements et documents chiffrés, le retour binaire des documents sur un second appareil et la préparation d’une nouvelle base sans détruire l’ancienne. Les nouveaux écrans sont parcourus en clair/sombre à 320 et 390 pixels avec lecture agrandie.
+Les parcours vérifient aussi l’export/import chiffré réel depuis les boutons (dont photos des repères privés), l’absence de nouvel envoi Google sans clé, la conservation des anciennes lignes en clair, les nouveaux événements et documents chiffrés, le retour binaire des documents sur un second appareil et la préparation d’une nouvelle base sans détruire l’ancienne. Les nouveaux écrans sont parcourus en clair/sombre à 320 et 390 pixels avec lecture agrandie. La fusion de sauvegarde garde un seul petit objectif actif et conserve l’objectif déjà en cours.
 
 Aide relue et mise à jour : nouvelles routes et formulaires, Google et chiffrement, import/restauration, mémos et copies audio séparées, cause/suite des manquants, consignes produit et page Aide. Les ouvertures de ? conservent les saisies.
 

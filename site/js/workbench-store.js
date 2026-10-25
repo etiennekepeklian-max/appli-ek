@@ -23,5 +23,15 @@ export const readSnapshot=id=>transaction('snapshots','readonly',s=>s.get(id));
 export async function saveSnapshot(row){return transaction('snapshots','readwrite',s=>s.add(row));}
 export const localData=()=>({preferences:preferences(),records:structuredClone(rows)});
 export function validateLocal(data){if(!Array.isArray(data?.records)||data.records.length>10000)throw Error('Repères personnels invalides.');for(const r of data.records){if(typeof r.id!=='string'||!r.id||!Number.isFinite(Date.parse(r.updatedAt)))throw Error('Repère personnel invalide.');cleanRecord(r.kind,r);}return data;}
-export async function restoreLocal(data,{replace=false}={}){validateLocal(data);const checked=data.records.map(r=>({...r,...cleanRecord(r.kind,r)})),db=await database();await new Promise((resolve,reject)=>{const t=db.transaction('records','readwrite'),s=t.objectStore('records');if(replace)s.clear();for(const row of checked){const old=rows.find(r=>r.id===row.id);if(replace||!old||old.updatedAt<row.updatedAt)s.put(row);}t.oncomplete=resolve;t.onerror=()=>reject(t.error);});rows=await transaction('records','readonly',s=>s.getAll());if(data.preferences)savePreferences(data.preferences);}
+export async function restoreLocal(data,{replace=false}={}){
+ validateLocal(data);
+ const checked=data.records.map(r=>({...r,...cleanRecord(r.kind,r)})),merged=new Map((replace?[]:rows).map(r=>[r.id,r]));
+ for(const r of checked){const old=merged.get(r.id);if(!old||old.updatedAt<r.updatedAt)merged.set(r.id,r);}
+ const active=[...merged.values()].filter(r=>r.kind==='goal'&&r.active).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+ const previous=replace?null:rows.find(r=>r.kind==='goal'&&r.active&&merged.get(r.id)?.active),chosen=previous?.id||active[0]?.id;
+ for(const r of active)if(r.id!==chosen)merged.set(r.id,{...r,active:false});
+ const db=await database();
+ await new Promise((resolve,reject)=>{const t=db.transaction('records','readwrite'),s=t.objectStore('records');if(replace)s.clear();for(const r of merged.values())s.put(r);t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});
+ rows=await transaction('records','readonly',s=>s.getAll());if(data.preferences)savePreferences(data.preferences);
+}
 export async function storageSummary(){return {records:rows.length,photos:rows.filter(r=>r.photo instanceof Blob).reduce((n,r)=>n+r.photo.size,0),snapshots:(await listSnapshots()).length};}
