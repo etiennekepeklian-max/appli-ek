@@ -213,7 +213,7 @@ async function handleAction(button){const action=button.dataset.action,id=button
   case 'create-database':if(!Sync.connected())throw Error('Connectez d’abord votre compte Google.');if(confirm('Créer une nouvelle base Google Sheets et l’utiliser pour les prochaines synchronisations ? Votre base précédente sera conservée.')){await Sync.createDatabase();await Sync.sync();render();toast('Nouvelle base créée.');}break;
   case 'cache-ocr':await Features.cacheOCR();break;
   case 'install-app':if(installPrompt){await installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;}else modal('Installer Pikéo',`<div class="steps"><div class="step"><div>Ouvrez l’application dans Chrome sur votre téléphone, depuis son adresse HTTPS.</div></div><div class="step"><div>Touchez le menu <b>⋮</b> puis <b>Ajouter à l’écran d’accueil</b> ou <b>Installer l’application</b>.</div></div><div class="step"><div>Ouvrez l’icône Pikéo. La première ouverture prépare les outils disponibles hors ligne.</div></div></div><p class="hint section-gap">Sur iPhone, utilisez Safari → Partager → Sur l’écran d’accueil.</p>`);break;
-  case 'help-update':case 'quickhelp':case 'help-code':case 'help-pending':case 'help-pickings':case 'help-scan':case 'help-stock':case 'help-backup':showHelp(action);break;
+  case 'help-archive':case 'help-update':case 'quickhelp':case 'help-code':case 'help-pending':case 'help-pickings':case 'help-scan':case 'help-stock':case 'help-backup':showHelp(action);break;
   default:if(action.startsWith('export-'))exportSection(action.slice(7));
 }}
 

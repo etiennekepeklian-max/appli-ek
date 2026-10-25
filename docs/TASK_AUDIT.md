@@ -1,3 +1,7 @@
+# Complément de l’audit — 1.12
+
+Les éléments web 33 et 36 sont complétés ; le 47 dispose d’un guide et de liens officiels actuels. Voir [WEB_FINISH.md](WEB_FINISH.md). Les tableaux suivants conservent le détail du contrôle initial, avec les statuts actualisés. Android et jeu restent reportés ; portrait, choix d’animation, matériel réel et police restent à fournir/valider.
+
 # Audit des demandes Pikéo — 25 octobre 2026
 
 Sources : échanges disponibles du projet et PDF « Pikeo-50-idees-terrain.pdf », 21 pages. Le GO englobe les idées retenues ; la mention initiale « réflexion » ne les annule plus. Seuls le jeu et la phase Android (Godot ou Capacitor) restent reportés. Présence dans le code et essais synthétiques ne remplacent pas les essais sur téléphone/terminal réel.
@@ -47,9 +51,9 @@ Sources : échanges disponibles du projet et PDF « Pikeo-50-idees-terrain.pdf �
 | 27 | Rappels de récupération | Présents et désactivables, page visible nécessaire. |
 | 31 | Conflits de saisie | Présents avec ascendance des événements ; historique ancien conservé. |
 | 32 | Export limité | Présent : période/type/notes facultatives et aperçu. |
-| 33 | Espace et archivage | Partiel : volumes et exports ; archivage guidé par sélection à finaliser. |
+| 33 | Espace et archivage | Livré en 1.12 : sélection, archive vérifiée, retrait local facultatif protégé et import. |
 | 34 | Diagnostic hors ligne | Présent : cache, OCR, stockage, sauvegardes. |
-| 36 | Parcours guidé | Partiel : exemples de démonstration ; petites missions et progression à finaliser. |
+| 36 | Parcours guidé | Livré en 1.12 : trois exercices avec progression locale, reprise et séparation des données réelles. |
 | 37 | Fiches de rappel | Présentes et éditables. |
 | 38 | Lexique métier | Présent ; définitions réelles à renseigner/valider. |
 | 39 | Utilisation à une main | Présente ; préférence gauche/droite et lecture agrandie, essai terrain nécessaire. |
@@ -59,7 +63,7 @@ Sources : échanges disponibles du projet et PDF « Pikeo-50-idees-terrain.pdf �
 | 44 | Reconnaissance de l’entraide | Présente dans le bilan privé, aucun envoi automatique. |
 | 45 | Petit objectif choisi | Présent, un seul actif, pause sans pénalité. |
 | 46 | Pas de la journée/du poste | Report Android/Health Connect ; aucun compteur inventé dans le web. |
-| 47 | Accès guidé WeWard | Partiel : lien au site officiel ; ouverture directe/validation dans l’application non livrées. |
+| 47 | Accès guidé WeWard | Guide web livré en 1.12, liens officiels et validation manuelle dans WeWard ; ouverture directe dépendante du système. |
 | 48 | Boîte à améliorations | Présente : états, interlocuteur et résultat. |
 
 ## Omission confirmée : personnage animé
@@ -74,7 +78,7 @@ Sources : échanges disponibles du projet et PDF « Pikeo-50-idees-terrain.pdf �
 ## Travail restant hors Android et jeu
 
 - Portrait dédié, choix de l’ouverture et intégration du personnage.
-- Archivage guidé (33), missions guidées (36), accès WeWard à préciser (47).
+- 33, 36 et le guide web 47 livrés en 1.12 ; aucune intégration native WeWard/Health Connect à ce stade.
 - Matériel réel (03), consignes/lexique et conditionnements à valider sur le terrain.
 - Police exacte TTF/OTF et essais Honeywell.
 - Contrôle PC/téléphone de l’actualisation ; activation admin et synchronisation Google sur les appareils concernés.

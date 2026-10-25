@@ -1,3 +1,11 @@
+# Validation — version 1.12.0
+
+Onze tests supplémentaires : intégrité binaire des archives, noms/liste contrôlés, refus d’une autre sélection, audio/polices exclus, bornes de volume et protection des fichiers utilisés ; exercices d’adresse, quantités et progression fondée sur le manquant correspondant.
+
+Le parcours web-tools-smoke vérifie le téléchargement réel d’une archive, sa sélection et sa vérification, le refus intégral si une photo devient utilisée, le retrait facultatif puis l’import binaire sans écraser les fichiers présents, la conservation des événements et des mémos. Il exécute les trois missions par leurs vrais formulaires de démonstration, la reprise hors ligne, la remise à zéro et le retour inchangé aux données réelles ; il contrôle les liens officiels WeWard et l’aide à 320/390 px en clair/sombre. Ces vérifications complètent les huit parcours antérieurs.
+
+Aide archive, missions, WeWard et page Aide relues. Aucun effacement automatique de copies de version. Pas d’Android, pas de jeu et pas de mascotte définitive sans le choix/photo. Aucun accès au PC D:\Pikéo revendiqué.
+
 # Validation — version 1.11.0
 
 ENF : huit tests métier supplémentaires couvrent références/zéros, code compact, EAN, nombres de descriptions, quantité absente/invalide, doublons et regroupement volontaire, sérialisation Google dans produit, conservation des compositions lors d’une ancienne publication et retrait explicite. Le parcours enf-smoke exécute le véritable OCR local sur une photo de feuille synthétique, la relecture obligatoire, la déduplication de photo, l’aide, le brouillon rechargé, l’export/import et le refus atomique d’une composition invalide, l’interdiction de modification opérateur et les largeurs 320/390 en clair/sombre. Ces vérifications complètent les sept parcours existants.

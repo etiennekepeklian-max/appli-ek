@@ -71,7 +71,7 @@ export const HELP={
  receipt:['Recevoir un réassort',['Sélectionnez uniquement les commandes que ce réassort débloque réellement.','La cause et la prochaine action sont facultatives, rangées avec les précisions. La réception ne clôture pas la préparation. Terminez les commandes séparément lorsqu’elles sont prêtes.']]
 };
 const aliases={pending:'pending',family:'families',location:'locations',movement:'movements',count:'inventories',issue:'issues',replenishment:'replenishments','google-settings':'cloud',save:'orders',page:'day-page'};
-const actions={'help-update':'updates','help-code':'codes','help-pending':'pending','help-pickings':'orders','help-scan':'scan','help-stock':'stock','help-backup':'cloud'};
+const actions={'help-archive':'archive','help-update':'updates','help-code':'codes','help-pending':'pending','help-pickings':'orders','help-scan':'scan','help-stock':'stock','help-backup':'cloud'};
 export function helpFor({route='home',context='',action='quickhelp'}={}){return HELP[actions[action]||aliases[context]||context]||HELP[route]||HELP.home;}
 export function jcMessage({sku,location}={}){
  const reference=String(sku||'').trim(),address=String(location||'').trim();
