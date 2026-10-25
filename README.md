@@ -1,5 +1,13 @@
 # Pikéo
 
+## Version 1.10.0 — sessions par nom, habilitations et données lisibles
+
+- Aucune saisie de mot de passe ou PIN. Étienne active son accès administrateur avec son fichier privé, puis attribue les habilitations aux appareils.
+- Sessions avec données, mémos et préférences séparés. L’espace personnel initial reste intact.
+- Produits, commandes, historique et documents Google lisibles, sans clé obligatoire. Les anciennes lignes connues du téléphone sont converties après sauvegarde.
+- Messages avec historique local et relais temporaire chiffré, exports séparés et participation collective facultative sans classement de cadence.
+- Aide mise à jour. Le jeu et les migrations de plateforme restent reportés. [Mode d’emploi et limites](docs/SESSIONS.md).
+
 ## Version 1.9.0 — Mon poste et sauvegardes chiffrées
 
 - Un accès « Mon poste » pour matériel, reprise, consignes et lexique, passation, progrès privés, idées et diagnostic.

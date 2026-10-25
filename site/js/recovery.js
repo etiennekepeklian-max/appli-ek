@@ -1,3 +1,4 @@
+import * as Chat from './chat-store.js';
 import * as Store from './storage.js';
 import * as Personal from './workbench-store.js';
 import * as AudioStore from './voice-store.js';
@@ -16,7 +17,7 @@ export async function makeSnapshot(reason='Point de restauration manuel',id='man
  const row={id,version:VERSION,createdAt:new Date().toISOString(),reason,eventCount:data.events.length,fileCount:data.files.length,data,personal:Personal.localData(),schedule:localStorage.getItem('ek-work-schedule-'+(Store.scope()))};
  // Voice recovery remains in a different local database and never enters this snapshot.
  AudioStore.useVoiceNamespace(Store.isDemo());await AudioStore.snapshotVersion(id);
- await Personal.saveSnapshot(row);
+ await Chat.snapshotVersion(id);await Personal.saveSnapshot(row);
  return row;
 }
 export async function restoreSnapshot(id){

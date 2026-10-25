@@ -48,10 +48,11 @@ async function pull(id,key,capture=[]){
   const rowCounts=new Map(metadata.sheets.map(s=>[s.properties.title,s.properties.gridProperties.rowCount]));
   // Never recreate the old tabs. A legacy base must be migrated deliberately.
   for(const tab of SHEET_TABS)if(!rowCounts.has(tab))throw Error(`Cette base utilise encore l’ancienne organisation, ou l’onglet « ${tab} » manque. Utilisez la base regroupée en produit, manquant, objectif picking et historique. Vos données locales sont conservées.`);
+  const known=new Map(Store.allEvents().map(e=>[e.id,e]));
   const all=[],active=new Set(SHEET_TABS),chunk=2500;let offset=2;
   while(active.size){for(const tab of active)if(rowCounts.get(tab)<offset)active.delete(tab);const batch=[...active];if(!batch.length)break;const q=new URLSearchParams({valueRenderOption:'UNFORMATTED_VALUE'});for(const tab of batch)q.append('ranges',`'${tab}'!A${offset}:L${Math.min(offset+chunk-1,rowCounts.get(tab))}`);
     const data=await api(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchGet?${q}`);
-    for(let i=0;i<batch.length;i++){const rows=data.valueRanges?.[i]?.values||[];for(const [rowIndex,row] of rows.entries()){const encrypted=String(row[10]||'').startsWith('{"app":"PikeoEncrypted"');if(encrypted&&!key)throw Error('Cette base contient des anciennes lignes chiffrées. Chargez la clé utilisée à l’époque dans Espace et sauvegardes pour les convertir. Les nouveaux envois ne demandent aucune clé.');const ev=encrypted?await eventFromSealedRow(row,key):eventFromRow(row);if(row[0]&&row[10]&&!ev)throw Error('Une révision Google est illisible. Vérifiez la copie de sécurité avant de continuer.');if(ev&&SHEETS[ev.type]===batch[i]){all.push(ev);if(encrypted){legacyCount++;capture.push({tab:batch[i],row:offset+rowIndex,raw:row,event:ev});}}}if(rows.length<chunk)active.delete(batch[i]);}
+    for(let i=0;i<batch.length;i++){const rows=data.valueRanges?.[i]?.values||[];for(const [rowIndex,row] of rows.entries()){const encrypted=String(row[10]||'').startsWith('{"app":"PikeoEncrypted"');if(encrypted&&!key&&!known.has(row[0]))throw Error('Cette base contient des anciennes lignes chiffrées absentes de ce téléphone. Chargez leur ancienne clé ou importez la copie JSON de votre appareil d’origine. Les nouveaux envois ne demandent aucune clé.');const ev=encrypted?(key?await eventFromSealedRow(row,key):{...known.get(row[0]),synced:true}):eventFromRow(row);if(row[0]&&row[10]&&!ev)throw Error('Une révision Google est illisible. Vérifiez la copie de sécurité avant de continuer.');if(ev&&SHEETS[ev.type]===batch[i]){all.push(ev);if(encrypted){legacyCount++;capture.push({tab:batch[i],row:offset+rowIndex,raw:row,event:ev});}}}if(rows.length<chunk)active.delete(batch[i]);}
     offset+=chunk;
     if(offset>250002)throw Error('La base dépasse 250 000 lignes par onglet. Exportez et archivez une période avant de continuer.');
   }return all;
@@ -87,7 +88,8 @@ export async function sync(){
   busy=true;lastError='';emit('Lecture de la sauvegarde Google…');
   try{
     const previousSheet=await Store.meta('lastSyncSheet');if(previousSheet&&previousSheet!==c.spreadsheetId)await Store.markUnsynced();
-    const remote=await pull(c.spreadsheetId,key);const received=await Store.merge(remote);await Store.markSynced(remote.map(e=>e.id));
+    const oldRows=[];const remote=await pull(c.spreadsheetId,key,oldRows);const received=await Store.merge(remote);await Store.markSynced(remote.map(e=>e.id));
+    if(oldRows.length){await (await import('./recovery.js')).makeSnapshot('Avant conversion automatique de l’historique Google');await rewriteRows(oldRows,c.spreadsheetId);}
     await uploadFiles();
     let sent=0;const events=Store.pendingEvents();
     for(const tab of SHEET_TABS){
@@ -139,12 +141,15 @@ export async function prepareEncryptedMigration(){
  return {events:remote.length,files,legacy:legacyCount};}finally{busy=false;}
 }
 
-export async function makeHistoryReadable(){
- assertConfigure();if(busy)throw Error('Attendez la synchronisation en cours.');const key=Secrets.unlocked()?Secrets.key():null;if(!key)throw Error('Chargez la clé utilisée pour les anciennes lignes chiffrées.');
- busy=true;try{const c=connection(),rows=[];await pull(c.spreadsheetId,key,rows);if(!rows.length)return 0;
+async function rewriteRows(rows,id){
  // Recheck all source cells before writing. Other devices only append new revisions.
- for(let i=0;i<rows.length;i+=100){const chunk=rows.slice(i,i+100),q=new URLSearchParams();for(const r of chunk)q.append('ranges',"'"+r.tab+"'!A"+r.row+':L'+r.row);const current=await api('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(c.spreadsheetId)+'/values:batchGet?'+q);for(let j=0;j<chunk.length;j++){const found=current.valueRanges?.[j]?.values?.[0]||[];if(JSON.stringify(found)!==JSON.stringify(chunk[j].raw))throw Error('La base a changé. Relisez la sauvegarde avant de relancer la conversion.');}}
- for(let i=0;i<rows.length;i+=100){const chunk=rows.slice(i,i+100);await api('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(c.spreadsheetId)+'/values:batchUpdate',{method:'POST',body:{valueInputOption:'RAW',data:chunk.map(r=>({range:"'"+r.tab+"'!A"+r.row+':L'+r.row,values:[rowForEvent(r.event)]}))}});}
+ for(let i=0;i<rows.length;i+=100){const chunk=rows.slice(i,i+100),q=new URLSearchParams();for(const r of chunk)q.append('ranges',"'"+r.tab+"'!A"+r.row+':L'+r.row);const current=await api('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(id)+'/values:batchGet?'+q);for(let j=0;j<chunk.length;j++){const found=current.valueRanges?.[j]?.values?.[0]||[];if(JSON.stringify(found)!==JSON.stringify(chunk[j].raw))throw Error('La base a changé. Relisez la sauvegarde avant de relancer la conversion.');}}
+ for(let i=0;i<rows.length;i+=100){const chunk=rows.slice(i,i+100);await api('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(id)+'/values:batchUpdate',{method:'POST',body:{valueInputOption:'RAW',data:chunk.map(r=>({range:"'"+r.tab+"'!A"+r.row+':L'+r.row,values:[rowForEvent(r.event)]}))}});}
  legacyCount=0;return rows.length;
- }finally{busy=false;}
+}
+export async function prepareHistoryReadable(){
+ assertConfigure();if(busy)throw Error('Attendez la synchronisation.');if(!connected())throw Error('Connectez votre compte Google.');busy=true;try{const remote=await pull(connection().spreadsheetId,Secrets.unlocked()?Secrets.key():null);await Store.merge(remote);return remote.length;}finally{busy=false;}
+}
+export async function makeHistoryReadable(){
+ assertConfigure();if(busy)throw Error('Attendez la synchronisation en cours.');busy=true;try{const rows=[];await pull(connection().spreadsheetId,Secrets.unlocked()?Secrets.key():null,rows);return await rewriteRows(rows,connection().spreadsheetId);}finally{busy=false;}
 }

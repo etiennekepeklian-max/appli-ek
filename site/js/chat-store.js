@@ -19,3 +19,11 @@ async function exchange(){const user=API.current();if(!user||!navigator.onLine)r
  // Acknowledge only after durable local writes. Retries are deduplicated.
  if(ids.length&&current())await API.request('ack',{ids});
 }
+
+export async function snapshotVersion(id){const u=API.current();if(!u)return;const key=u.id+':'+id;if(await Local.checkpoint(key))return;await Local.saveCheckpoint({key,deviceId:u.id,id,at:new Date().toISOString(),localKey:u.keys.local,messages:await Local.messages(u.id)});}
+export async function exportHistory(){const u=API.current();if(!u)throw Error('Ouvrez votre session.');const rows=await history();if(API.current()?.id!==u.id)throw Error('La session a changé.');return {app:'PikeoMessages',schema:1,name:u.name,exportedAt:new Date().toISOString(),messages:rows.map(({id,peer,peerName,direction,at,text})=>({id,peer,peerName,direction,at,text}))};}
+export async function importHistory(data){const u=API.current();if(!u)throw Error('Ouvrez votre session.');const norm=v=>String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();if(data?.app!=='PikeoMessages'||data.schema!==1||norm(data.name)!==norm(u.name)||!Array.isArray(data.messages)||data.messages.length>20000)throw Error('Choisissez la sauvegarde de messages de ce même utilisateur.');
+ const rows=[];for(const m of data.messages){if(typeof m.id!=='string'||!m.id||typeof m.peer!=='string'||typeof m.peerName!=='string'||!['in','out'].includes(m.direction)||typeof m.text!=='string'||m.text.length>2000||!Number.isFinite(Date.parse(m.at)))throw Error('Un message du fichier est invalide.');rows.push({key:u.id+':'+m.id,deviceId:u.id,id:m.id,peer:m.peer,peerName:m.peerName.slice(0,40),direction:m.direction,at:m.at,status:'imported',body:await localSeal({text:m.text},u.keys.local)});}
+ if(API.current()?.id!==u.id)throw Error('La session a changé.');await snapshotVersion('before-import-'+Date.now());return Local.mergeMessages(rows);
+}
+export async function restoreVersion(id){const u=API.current();if(!u)throw Error('Ouvrez votre session.');const row=await Local.checkpoint(u.id+':'+id);if(!row)throw Error('Copie de messages introuvable.');const rows=[];for(const m of row.messages)rows.push({...m,...await localOpen(m.body,row.localKey)});return importHistory({app:'PikeoMessages',schema:1,name:u.name,messages:rows});}

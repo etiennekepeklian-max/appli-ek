@@ -1,3 +1,7 @@
+# Décision du 25 octobre au soir — version 1.10
+
+[Sessions, droits et Google lisible](SESSIONS.md) remplace les propositions antérieures de PIN et de chiffrement intégral ci-dessous. Le projet Supabase est raccordé au service de sessions. Le jeu, Godot et Capacitor restent reportés. Les sections 1.9 suivantes décrivent la version précédente.
+
 # Pikéo 1.9 — évolutions web et reprise
 
 ## Ce qui est livré

@@ -1,3 +1,13 @@
+# Validation — version 1.10.0
+
+96 tests métier. Contrat du serveur réel validé avec des profils synthétiques : signature, expiration, anti-rejeu, permissions, propriétaire distinct du simple nom Étienne, révocation, message chiffré et accusé réservé au destinataire. Les tables privées refusent les accès directs des rôles navigateur ; les conseillers de sécurité Supabase ne signalent aucun problème après configuration. Une purge planifiée vérifie la durée des copies temporaires.
+
+Les parcours navigateur vérifient les fonctions existantes et le nouveau parcours de sessions : données, voix et ressenti séparés, retour aux données initiales, opérateur limité, admin activé par fichier privé, deux appareils pour le chat, export/import sans renvoi, opt-in collectif, aide et largeur mobile. Google est simulé dans ces parcours : nouveaux envois lisibles sans clé, documents binaires identiques, conservation des révisions et conversion des anciennes lignes depuis une clé ou une copie locale.
+
+Aide révisée : sessions/habilitations, messages, sauvegardes, Google lisible, collectif facultatif et page Aide. Aucune nouvelle demande de PIN ; aucune clé réelle ni donnée privée dans le dépôt ou les tests. Les copies 1.9 sont conservées. Les clés d’accès administrateur sont fournies séparément à Étienne. Le code du jeu est inchangé.
+
+Limites inchangées : la version web doit être ouverte pour les alertes ; pas de Bluetooth direct, de Health Connect ni de tests matériels Honeywell. Aucune connexion au compte Google réel ni accès au PC D:\Pikéo depuis cet environnement.
+
 # Validation — version 1.9.0
 
 ## Version 1.9.0 — Mon poste, récupération et chiffrement
