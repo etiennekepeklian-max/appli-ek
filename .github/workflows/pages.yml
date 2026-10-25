@@ -1,7 +1,7 @@
 name: Verifier et publier EK Logistique
 on:
   push:
-    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1]
+    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11]
   workflow_dispatch:
 permissions:
   contents: read
@@ -67,9 +67,25 @@ jobs:
         with:
           name: updates-ui-checks
           path: test-results
+  enfs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: node tools/prepare.mjs && node tools/enf-smoke.mjs
+        env:
+          EK_TEST_BROWSER_CHANNEL: chrome
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enf-ui-checks
+          path: test-results
   deploy:
     if: github.ref == 'refs/heads/main'
-    needs: [verify, sessions, updates]
+    needs: [verify, sessions, updates, enfs]
     runs-on: ubuntu-24.04
     environment:
       name: github-pages

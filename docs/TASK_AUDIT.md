@@ -79,3 +79,7 @@ Sources : échanges disponibles du projet et PDF « Pikeo-50-idees-terrain.pdf �
 - Police exacte TTF/OTF et essais Honeywell.
 - Contrôle PC/téléphone de l’actualisation ; activation admin et synchronisation Google sur les appareils concernés.
 - Copie sur D:\Pikéo à réaliser lorsque ce chemin devient accessible ; conserver une copie externe des données locales.
+
+## Complément demandé pendant l’audit : ENF
+
+Section ajoutée en version 1.11 : accès accueil/catalogue/Plus, consultation de la composition, photographie de feuille, OCR local, tableau référence/quantité modifiable et validation explicite. Voir [ENF.md](ENF.md). Le sens interne du sigle reste à préciser ; aucun développement n’est inventé. Une vraie feuille permettra d’affiner la lecture.

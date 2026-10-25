@@ -1,3 +1,9 @@
+# Validation — version 1.11.0
+
+ENF : huit tests métier supplémentaires couvrent références/zéros, code compact, EAN, nombres de descriptions, quantité absente/invalide, doublons et regroupement volontaire, sérialisation Google dans produit, conservation des compositions lors d’une ancienne publication et retrait explicite. Le parcours enf-smoke exécute le véritable OCR local sur une photo de feuille synthétique, la relecture obligatoire, la déduplication de photo, l’aide, le brouillon rechargé, l’export/import et le refus atomique d’une composition invalide, l’interdiction de modification opérateur et les largeurs 320/390 en clair/sombre. Ces vérifications complètent les sept parcours existants.
+
+L’aide ENF et les points d’accès accueil/catalogue/Plus ont été révisés. Aucun modèle réel de feuille ENF n’a encore été fourni. Android et jeu restent en attente ; la mascotte reste un prototype distinct à choisir.
+
 # Validation — version 1.10.1
 
 Correction des mises à jour PWA : contrôle de version publié indépendant du cache, activation d’une coque complète avant import des modules, actualisation des styles et page de récupération sans effacement. Formulaires ouverts protégés ; point local avant rechargement volontaire. Le parcours update-smoke vérifie les passages depuis des caches 1.5 et 1.7 simulés, la conservation des fiches/fichiers/brouillons/mémos et le redémarrage hors ligne, en plus des 96 tests métier et des six parcours existants. Aide actualisation et sauvegardes relue.

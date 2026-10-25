@@ -1,5 +1,5 @@
 import {writeAlertAcks} from './js/alert-acks.js';
-const APP_VERSION='1.10.1';
+const APP_VERSION='1.11.0';
 const SHELL='ek-shell-v1-c6c0a03f1376';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;

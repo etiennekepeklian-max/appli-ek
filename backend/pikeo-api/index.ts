@@ -10,7 +10,7 @@ async function handle(req){
  const origin=req.headers.get('origin');if(origin&&!allowed.has(origin))return new Response('Origine refusée',{status:403});
  const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origin||'https://etiennekepeklian-max.github.io','Access-Control-Allow-Headers':'content-type,apikey','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','Vary':'Origin'};
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
- if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'1.10.0',status:'ready'}),{headers});
+ if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'1.11.0',status:'ready'}),{headers});
  try{
   if(req.method!=='POST')reject(405,'Méthode non autorisée.');
   const text=await req.text();if(text.length>2500000)reject(413,'Demande trop volumineuse.');
