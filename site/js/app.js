@@ -27,7 +27,7 @@ import * as Sync from './sync.js';
 import * as Features from './features.js';
 import * as Ops from './ops.js';
 import {compressProductPhoto,editDocumentPhoto} from './photo-tools.js';
-import {VERSION,uid,localDate,refKey,number,estimateLines,dailyStats,parseOrderText,toCSV,validateFamilyParent} from './core.js';
+import {VERSION,uid,localDate,refKey,orderKey,number,estimateLines,dailyStats,parseOrderText,toCSV,validateFamilyParent} from './core.js';
 import {state,esc,icon,fmt,btn,nav,badge,field,check,modal,modalForm,closeModal,toast,formError,download,jsonDownload,pdfReport,dateLabel,timestampLabel,optionalDetails} from './ui.js';
 import {loadCatalogue,products,families,familyOptions,findProduct,findProducts,productName,recordLabel,pendingStatus} from './model.js';
 import {renderView,titles} from './views.js';
@@ -135,7 +135,7 @@ async function handleSubmit(form){
       case 'order':{
         const rows=readOrderLines();if(!rows.length)throw Error('Ajoutez au moins une ligne.');
         if(rows.some(l=>!l.sku.trim()||l.quantity===''))throw Error('Chaque ligne doit avoir une référence et une quantité. Supprimez les lignes vides.');
-        const numberValue=refKey(d.number);if(Store.list('orders').some(o=>o.id!==id&&refKey(o.number)===numberValue))throw Error('Cette commande est déjà enregistrée. Modifiez sa fiche pour ajouter ses autres pages et éviter un double comptage.');
+        const numberValue=refKey(d.number);if(Store.list('orders').some(o=>o.id!==id&&orderKey(o.number)===orderKey(numberValue)))throw Error('Cette commande est déjà enregistrée. Modifiez sa fiche pour ajouter ses autres pages et éviter un double comptage.');
         const e=estimateLines(rows.map(l=>({...l,sku:refKey(l.sku)})));const previous=state.selectedOrder;const photoIds=[...new Set([...(previous?.photoIds||[]),...(state.draftPhotoIds||[])])];for(const photo of state.orderPhotos)photoIds.push(await attachPhoto(photo));
         await Store.save('orders',{...previous,id,number:numberValue,date:d.date,lines:e.lines,total:e.total,rangeMax:e.maximum,unknownLines:e.unknown,calculationStatus:e.status,status:'completed',notes:d.notes.trim(),photoIds,reviewed:true},id?'Commande corrigée':'Commande terminée enregistrée');state.date=d.date;await Ops.clearDraft(form);closeModal();render();toast(e.unknown?'Commande enregistrée avec une estimation à affiner.':'Commande enregistrée.');break;
       }

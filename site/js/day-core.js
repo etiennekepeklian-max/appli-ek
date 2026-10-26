@@ -1,7 +1,16 @@
-import {refKey,estimateLines,parseOrderText} from './core.js';
+import {refKey,orderKey,estimateLines,parseOrderText,dailyStats,localDate} from './core.js';
 
 const plain=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-const command=/^(?:.*?\b)?(?:n[°o]?\s*(?:de\s*)?(?:commande|order)|(?:commande|order|bon de preparation)\s*(?:n[°o]?|numero)?)[\s:#.\-]*([A-Z0-9][A-Z0-9/_.-]{2,39})\b/i;
+const command=/\b(?:(?:n[°ºo]?|numero)\s*(?:de\s*)?)?(commande|order|enregistrement)\s*(?:(?:n[°ºo]?|numero)\s*)?[\s:#.\-]*([A-Z0-9][A-Z0-9/_.-]{2,39})(?:\s*\/\s*(\d{3}))?\b/i;
+function printedIdentity(raw){
+  const text=plain(raw),m=text.match(command);if(!m)return null;
+  if(/^(?:client|numero|reference|date|commande|enregistrement)$/.test(m[2]))return null;
+  // A customer's reference and the preparation-note number are separate fields.
+  const kind=m[1]==='enregistrement'?'registration':'order',value=refKey(m[2]+(m[3]?'/'+m[3]:''));
+  let number=value;const split=value.match(/^(\d{6,})\/(\d{3})$/);
+  if(split)number=split[1];else if(kind==='registration'&&/^\d{12}$/.test(value))number=value.slice(0,9);
+  return {kind,value,number};
+}
 const cells=s=>s.trim().split(/[;\t|]|\s{2,}/).map(s=>s.trim()).filter(Boolean);
 export const pageTextKey=text=>plain(text).replace(/[^a-z0-9]/g,'');
 
@@ -39,11 +48,18 @@ function warehouseRow(row,layout){
 
 export function parseDayPage(text){
   const lines=String(text||'').split(/\r?\n/),sections=[];let current=null;
-  for(const raw of lines){
-    const m=plain(raw).match(command); // matching is accent-insensitive; codes are normalized below
-    if(m){const number=refKey(m[1]);if(!['NUMERO','REFERENCE','DATE','CLIENT','COMMANDE'].includes(number)){
-      if(current?.number!==number){current={number,text:[],lines:[],quantitySource:'unknown'};sections.push(current);}continue;
-    }}
+  for(let i=0;i<lines.length;i++){
+    const raw=lines[i];let identity=printedIdentity(raw);
+    if(!identity&&/^(?:(?:n[°ºo]?|numero)\s*)?(?:commande|order|enregistrement)\s*[:#]?\s*$/i.test(plain(raw.trim()))&&lines[i+1]){identity=printedIdentity(raw+' '+lines[i+1].trim());if(identity)i++;}
+    if(identity){
+      if(current&&orderKey(current.number)===orderKey(identity.number)){
+        current.identities||=[];current.identities.push(identity);if(identity.kind==='order')current.number=identity.number;continue;
+      }
+      if(current?.number&&current.identities?.some(a=>a.kind!==identity.kind)&&!current.text.some(row=>warehouseLayout(row)||/^(?:PAC|PAD|RES)\s*[A-Z0-9]/i.test(row.trim()))){
+        current.identityConflict=true;current.identities.push(identity);if(identity.kind==='order')current.number=identity.number;continue;
+      }
+      current={number:identity.number,identities:[identity],text:[],lines:[],quantitySource:'unknown'};sections.push(current);continue;
+    }
     if(!current){current={number:'',text:[],lines:[],quantitySource:'unknown'};sections.push(current);}
     current.text.push(raw);
   }
@@ -86,7 +102,7 @@ export function parseDayPage(text){
       for(const l of parsed)if(Number(l.quantity)>0)section.lines.push({...l,sku:refKey(l.sku),quantity:Number(l.quantity),needsReview:!headerSeen||ambiguous||layout?.source==='ordered'});
       if(!parsed.length){const simple=row.trim().match(/^([A-Z0-9][A-Z0-9._/-]{2,119})\s+(\d+)$/i);if(simple&&Number(simple[2])>0)section.lines.push({sku:refKey(simple[1]),quantity:Number(simple[2]),needsReview:true});}
     }
-    section.needsReview=!headerSeen||ambiguous||section.quantitySource==='ordered'||!section.lines.length||/(?:\d[OILSBZ]|[OILSBZ]\d)/i.test(section.number);
+    section.needsReview=!!(section.identityConflict||!headerSeen||ambiguous||section.quantitySource==='ordered'||!section.lines.length||/(?:\d[OILSBZ]|[OILSBZ]\d)/i.test(section.number));
     section.text=raw;
   }
   // Preamble (addresses, date) is kept in the photo but isn't an orphan command.
@@ -104,19 +120,19 @@ export function buildDayPlan(pages,existing,date,resolveProduct){
       const s=sections[i];let number=refKey(s.number);
       // An exact previously saved image keeps the reviewed number, including OCR corrections.
       const associated=existing.find(o=>(o.daySources||[]).some(old=>old.hash&&old.hash===page.hash&&(old.sectionIndex??0)===i));
-      if(associated)number=refKey(associated.number);
+      if(associated&&!page.reviewed)number=refKey(associated.number);
       if(!number){problems.push({id:page.id,message:'Numéro de commande à compléter.'});continue;}
       if(!s.lines.length){problems.push({id:page.id,message:'Aucune ligne exploitable pour '+number+'.'});continue;}
-      const source={hash:page.hash||'',textKey:pageTextKey(number+' '+(s.text||page.text)),photoId:page.photoId,pageNumber:s.pageNumber||null,pageCount:s.pageCount||null,sectionIndex:i};
-      const slot=number+':'+(s.pageNumber||'text-'+source.textKey);
+      const key=orderKey(number),source={hash:page.hash||'',textKey:pageTextKey(key+' '+(s.text||page.text)),photoId:page.photoId,pageNumber:s.pageNumber||null,pageCount:s.pageCount||null,sectionIndex:i,identities:s.identities||[]};
+      const slot=key+':'+(s.pageNumber||'text-'+source.textKey);
       if(seenSlots.has(slot)){
         const previous=seenSlots.get(slot);
         if(s.pageNumber&&previous.textKey===source.textKey){duplicatePages++;continue;}
         if(!page.allowDuplicate){problems.push({id:page.id,message:s.pageNumber?'Deux lectures différentes de la page '+s.pageNumber+' de '+number+'. Écartez la mauvaise photo.':'Deux pages identiques pour '+number+'. Écartez le doublon ou confirmez deux pages distinctes.'});continue;}
       }
       seenSlots.set(slot,source);
-      if(!groups.has(number))groups.set(number,{number,lines:[],sources:[],reviewPages:new Set()});
-      const g=groups.get(number);
+      if(!groups.has(key))groups.set(key,{number,lines:[],sources:[],reviewPages:new Set()});
+      const g=groups.get(key);
       if(s.needsReview&&!page.reviewed)g.reviewPages.add(page.id);
       for(const line of s.lines){
         if(!refKey(line.sku)||!Number.isInteger(Number(line.quantity))||Number(line.quantity)<1){problems.push({id:page.id,message:'Référence ou quantité invalide dans '+number+'.'});continue;}
@@ -129,18 +145,19 @@ export function buildDayPlan(pages,existing,date,resolveProduct){
   }
   const orders=[];
   for(const g of groups.values()){
-    const matches=existing.filter(o=>!o.deleted&&refKey(o.number)===g.number);
+    const matches=existing.filter(o=>!o.deleted&&orderKey(o.number)===orderKey(g.number));
+    if(matches.length===1)g.number=matches[0].number;
     g.existing=matches[0]||null;g.existingRevision=g.existing?._eventId;g.mode='new';
     if(matches.length>1)problems.push({message:'Plusieurs fiches existent pour '+g.number+'. Corrigez-les avant cet import.'});
     if(g.existing){
       const sameDate=g.existing.date===date;
       const fresh=g.sources.filter(s=>!(g.existing.daySources||[]).some(old=>old.hash&&old.hash===s.hash||old.textKey&&old.textKey===s.textKey));
       g.mode=!fresh.length?'skip':sameDate?'exists':'other-day';
-      if(sameDate&&fresh.length&&g.existing.daySources?.length){
+      if(sameDate&&fresh.length&&g.existing.daySources?.length&&!fresh.some(s=>s.pageNumber&&g.existing.daySources.some(old=>old.pageNumber===s.pageNumber))){
         const freshHashes=new Set(fresh.map(s=>s.hash));g.appendLines=g.lines.filter(l=>freshHashes.has(l.sourceHash));g.appendSources=fresh;
       }
     }
-    const counts=g.sources.map(s=>s.pageCount).filter(Boolean),expected=Math.max(0,...counts),numbers=new Set(g.sources.map(s=>s.pageNumber).filter(Boolean));
+    const counts=g.sources.map(s=>s.pageCount).filter(Boolean),numbers=new Set(g.sources.map(s=>s.pageNumber).filter(Boolean)),expected=Math.max(0,...counts,...numbers);
     if(expected&&Array.from({length:expected},(_,i)=>i+1).some(n=>!numbers.has(n)))g.incomplete=true;
     if(g.incomplete&&g.existing?.daySources?.length){const known=new Set([...numbers,...g.existing.daySources.map(s=>s.pageNumber)]);g.appendIncomplete=Array.from({length:expected},(_,i)=>i+1).some(n=>!known.has(n));}
     g.reviewPages=[...g.reviewPages];g.estimate=estimateLines(g.lines);orders.push(g);
@@ -157,4 +174,13 @@ export function dayRecord(group,date,mode='new'){
   const sources=mode==='append'?[...group.existing.daySources,...group.appendSources]:group.sources;
   const e=estimateLines(lines);
   return {...group.existing,id:group.existing?.id,number:group.number,date,lines:e.lines,total:e.total,rangeMax:e.maximum,unknownLines:e.unknown,calculationStatus:e.status,status:'completed',reviewed:true,daySources:sources,photoIds:[...new Set(sources.map(s=>s.photoId).filter(Boolean))],notes:group.existing?.notes||''};
+}
+
+export function restartDayPlan(date,orders,days,draft){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||localDate(new Date(date+'T12:00:00'))!==date)throw Error('Choisissez une journée valide.');
+  const selectedOrders=orders.filter(r=>!r.deleted&&r.date===date),corrections=days.filter(r=>!r.deleted&&r.date===date);
+  const items=[...selectedOrders.map(record=>({type:'orders',record:{...record,deleted:true}})),...corrections.map(record=>({type:'days',record:{...record,deleted:true}}))];
+  const stats=dailyStats(date,selectedOrders,corrections);
+  return {date,items,commands:stats.commands,total:stats.total,corrections:corrections.length,photos:draft?.date===date?draft.pages?.length||0:0,otherDraft:!!(draft?.pages?.length&&draft.date!==date),
+    nextSession:{date,pages:[],choices:{}},signature:JSON.stringify({date,records:items.map(x=>[x.type,x.record.id,x.record._eventId||null]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),draft:draft||null})};
 }

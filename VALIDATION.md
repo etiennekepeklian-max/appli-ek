@@ -133,3 +133,13 @@ Le nom affiché et les icônes deviennent Pikéo. Identité du manifeste, Indexe
 - Aide revue : Ma journée, vérification d’une page, caméra dans le contexte Ma journée et FAQ de la page Aide ; aucune saisie perdue en consultant ?.
 - Tests synthétiques dédiés : quantités annotées/ambiguës, tableau physique, métadonnées, collisions de références, caméra ouverte sur plusieurs photos, autorisation tardive et fermeture pendant encodage. Parcours navigateur avec caméra de test et lecture différée pour vérifier navigation/reprise, catalogue et annulation ; l’OCR réel reste exercé par ui-smoke.
 - Les photos, relevés et totaux de travail restent privés et hors dépôt. Le contrôle chiffré sur les feuilles réelles dépend d’une transcription lisible des conditionnements ; il ne doit pas être déclaré réussi sur la seule base de tests synthétiques.
+
+
+## Version 1.14.0 — identité des commandes et reprise de journée
+
+- Commande et enregistrement décrivent la même commande. Les en-têtes numériques imprimés, avec padding ou suffixe d’enregistrement séparé, sont rapprochés ; le numéro original reste affiché et les deux lectures sont conservées dans les sources. Le numéro du bon de préparation et la référence du client ne servent pas de numéro de commande. Aucune modification de la normalisation des références produits.
+- Une contradiction entre les deux en-têtes demande relecture ; des pages 1 et 3 signalent la page 2 manquante même sans total annoncé. Une nouvelle photo d’une page déjà enregistrée peut remplacer la lecture après choix explicite, jamais s’ajouter en double.
+- Ma journée propose une annulation de la date sélectionnée avec récapitulatif et confirmation. Commandes, correction manuelle et remise à zéro de la session photo sont écrites atomiquement. Le catalogue, les autres dates et les fichiers sont conservés. Une session active d’une autre date est protégée.
+- L’annulation de cette reprise restaure commandes et correction ; le brouillon précédent est restauré si aucune nouvelle photo ne l’a remplacé. Les nouvelles photos sont préservées. Les révisions restent dans l’historique et la même journée peut être photographiée à nouveau sans doubler ses anciens totaux.
+- Revue de l’aide : Ma journée, Vérifier une page, nouvelle confirmation day-restart et FAQ de la page Aide. Les données réelles et les photos restent hors dépôt ; seuls des exemples synthétiques entrent dans les tests.
+- Vérifications requises : tests métier, regroupement commande/enregistrement, vrai stockage IndexedDB avec annulation/reprise/conflit et retour OCR, contrôle des nouvelles fenêtres à 320/390 px dans les deux thèmes et parcours existants.

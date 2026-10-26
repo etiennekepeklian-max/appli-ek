@@ -1,6 +1,6 @@
 import {writeAlertAcks} from './js/alert-acks.js';
-const APP_VERSION='1.13.0';
-const SHELL='ek-shell-v1-259f663f90b7';
+const APP_VERSION='1.14.0';
+const SHELL='ek-shell-v1-a49d0ade2661';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const r=await fetch(new URL('data/offline-assets.json',root),{cache:'reload'});const files=await r.json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new Request(new URL(p,root).href,{cache:'reload'})));})());});

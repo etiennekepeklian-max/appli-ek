@@ -1,4 +1,4 @@
-export const VERSION = '1.13.0';
+export const VERSION = '1.14.0';
 export const SCHEMA = 1;
 export const TYPES = ['families','products','enfs','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
 export const LEGACY_SHEETS = {families:'Familles',products:'References',enfs:'ENF',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
@@ -9,6 +9,13 @@ export const uid = () => globalThis.crypto?.randomUUID?.() || `ek-${Date.now().t
 export const localDate = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const normalize = s => String(s??'').trim().normalize('NFKC');
 export const refKey = s => normalize(s).toLocaleUpperCase('fr-FR');
+// Printed order numbers may have padding and a separated registration suffix.
+// Product references keep using refKey: their leading zeros remain significant.
+export const orderKey = value => {
+  const printed=refKey(value).replace(/\s+/g,''),m=printed.match(/^(\d{6,})\/\d{3}$/);
+  const number=m?m[1]:printed;
+  return /^\d+$/.test(number)?number.replace(/^0+(?=\d)/,''):number;
+};
 export const escapeHTML = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function number(value,{min=0,max=1e9,integer=false,optional=false}={}) {
   if(optional && (value==='' || value==null)) return null;
@@ -50,7 +57,7 @@ export function dailyStats(date,orders,days,goal=1800){
   const correction=days.filter(d=>!d.deleted&&d.date===date).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
   const calculated=completed.reduce((a,o)=>a+Number(o.total||0),0);
   const total=correction?.manualTotal!=null?Number(correction.manualTotal):calculated;
-  return {date,total,calculated,commands:new Set(completed.map(o=>refKey(o.number)||o.id)).size,goal,remaining:Math.max(0,goal-total),percent:goal>0?total/goal*100:0,status:correction?.manualTotal!=null?'corrected':completed.some(o=>o.calculationStatus!=='verified')?'estimated':'verified',hasData:completed.length>0||correction?.manualTotal!=null,correction};
+  return {date,total,calculated,commands:new Set(completed.map(o=>orderKey(o.number)||o.id)).size,goal,remaining:Math.max(0,goal-total),percent:goal>0?total/goal*100:0,status:correction?.manualTotal!=null?'corrected':completed.some(o=>o.calculationStatus!=='verified')?'estimated':'verified',hasData:completed.length>0||correction?.manualTotal!=null,correction};
 }
 export function latestRecords(events){
   const records=new Map(),seen=new Set();

@@ -1,5 +1,6 @@
 import {protectedFiles,hashBytes} from './archive-core.js';
 import {validateEnf} from './enf-core.js';
+import {restartDayPlan} from './day-core.js';
 import * as Identity from './identity-context.js';
 import {uid,makeEvent,latestRecords,TYPES} from './core.js';
 let db,events=[],records=new Map(),listeners=new Set(),namespace='live',demoMode=false,baseRecords=new Map();
@@ -27,7 +28,7 @@ export async function save(type,record,action='Modification'){
 let mutations=Promise.resolve();
 const serial=fn=>{const task=mutations.catch(()=>{}).then(fn);mutations=task.catch(()=>{});return task;};
 const undoTypes=new Set(['families','products','enfs','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','journal']);
-async function batch(items,action,{undoable=true,resolves=[],expectedScope}={}){
+async function batch(items,action,{undoable=true,resolves=[],expectedScope,metadata=[]}={}){
   if(expectedScope&&namespace!==expectedScope)throw Error('L’espace de travail a changé.');
   let clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);const snapshots=[],seen=new Set();
   const next=items.map(({type,record})=>{
@@ -41,20 +42,22 @@ async function batch(items,action,{undoable=true,resolves=[],expectedScope}={}){
     return e;
   });
   if(!next.length)return [];
-  const undo=undoable&&snapshots.length?{action,items:snapshots,at:new Date().toISOString()}:undefined;
-  await writeEvents(next,undo);return next.map(e=>e.record);
+  const undo=undoable&&snapshots.length?{action,items:snapshots,metadata:structuredClone(metadata),at:new Date().toISOString()}:undefined;
+  await writeEvents(next,undo,metadata);return next.map(e=>e.record);
 }
 export function saveBatch(items,action='Modification groupée',options){return serial(()=>batch(items,action,options));}
 export async function undoInfo(){const info=await meta('last-undo');return info?.items?.length?info:null;}
 export function undoLast(){return serial(async()=>{
   const info=await undoInfo();if(!info)throw Error('Aucune action à annuler.');
   if(info.items.some(i=>get(i.type,i.id)?._eventId!==i.eventId))throw Error('Une fiche a changé depuis cette action, éventuellement sur un autre appareil. Annulation refusée pour préserver ces changements.');
-  await batch(info.items.map(i=>({type:i.type,record:i.before||{id:i.id,deleted:true}})),'Annulation : '+info.action,{undoable:false});
+  const metadata=[];
+  for(const item of info.metadata||[])if(JSON.stringify(await meta(item.key)??null)===JSON.stringify(item.value??null))metadata.push({key:item.key,value:item.before??null});
+  await batch(info.items.map(i=>({type:i.type,record:i.before||{id:i.id,deleted:true}})),'Annulation : '+info.action,{undoable:false,metadata});
   await setMeta('last-undo',null);return info.action;
 });}
-async function writeEvents(items,undo){
+async function writeEvents(items,undo,metadata=[]){
   const ownerDb=db,ownerScope=namespace;
-  await new Promise((resolve,reject)=>{const t=db.transaction(undo?['events','meta']:['events'],'readwrite');for(const ev of items)t.objectStore('events').put(ev);if(undo)t.objectStore('meta').put({key:'last-undo',value:undo});t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement interrompu.'));});
+  await new Promise((resolve,reject)=>{const t=db.transaction(undo||metadata.length?['events','meta']:['events'],'readwrite');for(const ev of items)t.objectStore('events').put(ev);for(const item of metadata)t.objectStore('meta').put({key:item.key,value:item.value});if(undo)t.objectStore('meta').put({key:'last-undo',value:undo});t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Enregistrement interrompu.'));});
   if(db!==ownerDb||namespace!==ownerScope)return;
   const m=new Map(events.map(e=>[e.id,e]));for(const ev of items)m.set(ev.id,ev);events=[...m.values()];records=latestRecords(events);changed();
 }
@@ -70,6 +73,15 @@ export async function readFile(id){return request(db.transaction('files').object
 export async function files(){return request(db.transaction('files').objectStore('files').getAll());}
 export async function setMeta(key,value){await request(db.transaction('meta','readwrite').objectStore('meta').put({key,value}));}
 export async function meta(key){const v=await request(db.transaction('meta').objectStore('meta').get(key));return v?.value;}
+export function restartDay(date,expectedSignature,expectedScope){return serial(async()=>{
+  if(scope()!==expectedScope)throw Error('La session a changé. Rouvrez Ma journée.');
+  const draft=await meta('day-capture'),plan=restartDayPlan(date,list('orders'),list('days'),draft);
+  if(plan.signature!==expectedSignature)throw Error('La journée ou les photos ont changé. Relisez le récapitulatif avant de recommencer.');
+  if(plan.otherDraft)throw Error('Une session de photos d’une autre journée est en cours. Terminez-la ou écartez-la avant de recommencer celle-ci.');
+  if(!plan.items.length)throw Error('Cette journée ne contient plus de commande ni de correction à annuler.');
+  await batch(plan.items,'Journée du '+date+' annulée pour refaire les photos',{expectedScope,metadata:[{key:'day-capture',before:draft??null,value:plan.nextSession}]});
+  return plan.nextSession;
+});}
 export async function drafts(){const rows=await request(db.transaction('meta').objectStore('meta').getAll());return rows.filter(r=>r.key.startsWith('draft-')&&r.value).sort((a,b)=>b.value.updatedAt.localeCompare(a.value.updatedAt));}
 export async function exportData(){
   const assets=await files();const fileData=[];

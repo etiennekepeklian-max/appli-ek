@@ -5,18 +5,18 @@ import {catalogueProposal,lineProduct,productIndex} from './day-catalogue-core.j
 import * as Identity from './identity-context.js';
 import {DocumentCamera} from './document-camera.js';
 import {cameraErrorMessage} from './camera.js';
-import {parseDayPage,buildDayPlan,dayRecord,sheetLocation,sheetQuantity} from './day-core.js';
+import {parseDayPage,buildDayPlan,dayRecord,sheetLocation,sheetQuantity,restartDayPlan} from './day-core.js';
 import {recognizePhoto} from './features.js';
 import {editDocumentPhoto} from './photo-tools.js';
 import {state,esc,field,check,modal,closeModal,toast,formError,dateLabel,fmt,onModalClose} from './ui.js';
-import {uid,localDate,refKey} from './core.js';
+import {uid,localDate,refKey,orderKey} from './core.js';
 
-let app,session,busy=false,namespace,queue=Promise.resolve(),revision=0,planStamp,capture,progressText='',activeOperation=Promise.resolve();
+let app,session,busy=false,namespace,queue=Promise.resolve(),revision=0,planStamp,capture,restartPreview,progressText='',activeOperation=Promise.resolve();
 const button=(label,action,attrs='')=>`<button type="button" class="btn ${['analyse','camera','snapshot'].includes(action)?'primary':''} ${action==='camera'?'full':''}" data-day-action="${action}" ${attrs}>${label}</button>`;
 const persist=()=>{const value=structuredClone(session),space=namespace;queue=queue.catch(()=>{}).then(()=>{if(space!==Store.scope())throw Error('L’espace de travail a changé.');return Store.setMeta('day-capture',value);});return queue;};
 const sameSpace=()=>namespace===Store.scope();
 function setBusy(value){busy=value;syncBusy();}
-function syncBusy(){for(const el of document.querySelectorAll('#dialog [data-day-action],#dialog [data-day-files],#dialog [data-day-form] input,#dialog [data-day-form] textarea,#dialog [data-day-form] [type=submit],#batch-date,#dialog [data-day-choice]')){
+function syncBusy(){for(const el of document.querySelectorAll('#dialog [data-day-action],#main [data-day-action=restart],#dialog [data-day-files],#dialog [data-day-form] input,#dialog [data-day-form] textarea,#dialog [data-day-form] [type=submit],#batch-date,#dialog [data-day-choice]')){
   el.disabled=!!((busy&&!['background','camera-stop'].includes(el.dataset.dayAction))||el.dataset.idleDisabled==='1');
 }}
 function setProgress(text){progressText=text;for(const el of document.querySelectorAll('#batch-progress,[data-day-running]'))el.textContent=text;}
@@ -31,6 +31,19 @@ async function openCapture(){
 }
 
 function guard(){if(!sameSpace())throw Error('L’espace de travail a changé. Rouvrez la session de photos.');}
+async function prepareRestart(date){
+  await queue.catch(()=>{});namespace=Store.scope();const draft=await Store.meta('day-capture');guard();
+  const p=restartDayPlan(date,Store.list('orders'),Store.list('days'),draft);
+  if(!p.items.length)throw Error('Aucune commande ni correction enregistrée pour cette journée.');
+  restartPreview={date,signature:p.signature,space:namespace};
+  modal('Recommencer la journée du '+dateLabel(date)+' ?',`<span hidden data-help-context="day-restart"></span><p><strong>${p.commands} commande(s) · ${fmt(p.total)} picking(s)${p.corrections?' · total corrigé manuellement':''}</strong></p><p>Les commandes et la correction de cette date seront retirées du bilan. Vous pourrez refaire toutes les photos et recalculer la journée.</p><p>Le catalogue, les emplacements, les autres journées et les mémos sont conservés. Les anciennes valeurs restent dans l’historique ; les fichiers photo ne sont pas supprimés.</p>${p.otherDraft?'<p class="error-message">Une session de photos d’une autre journée est en cours. Terminez-la ou écartez-la avant de recommencer celle-ci.</p>':''}<form data-day-form="restart">${check('confirmed','Je confirme l’annulation du bilan de cette journée pour refaire les photos.',false,'required')}<p class="hint">Le bouton Annuler permet de rétablir l’ancien bilan. Si de nouvelles photos ont été prises entre-temps, elles sont conservées.</p><div data-form-error class="error-message" hidden></div><div class="form-actions"><button type="button" class="btn" data-action="close-dialog">Conserver cette journée</button><button type="submit" class="btn danger" data-idle-disabled="${p.otherDraft?'1':'0'}" ${p.otherDraft?'disabled':''}>Annuler la journée et refaire les photos</button></div></form>`,true);syncBusy();
+}
+async function confirmRestart(form){
+  if(!restartPreview||!form.elements.confirmed.checked)throw Error('Confirmez la journée à recommencer.');
+  const preview=restartPreview;
+  session=await Store.restartDay(preview.date,preview.signature,preview.space);namespace=preview.space;progressText='';restartPreview=null;
+  state.date=preview.date;app.navigate('orders');showSession();toast('Journée annulée. Vous pouvez reprendre les photos.');
+}
 const plan=()=>{const index=productIndex(products());return buildDayPlan(session.pages,Store.list('orders'),session.date,(sku,line)=>lineProduct(line||{sku},index));};
 function proposedCatalogue(p){
   const groups=p.orders.filter(g=>choice(g)!=='skip'&&g.mode!=='skip').map(g=>({...g,lines:choice(g)==='append'?g.appendLines||[]:g.lines}));
@@ -50,7 +63,7 @@ export async function openDay(){
   session.choices||={};showSession();
 }
 function showSession(){
-  modal('Enregistrer ma journée',`<span hidden data-help-context="orders"></span><p class="dialog-intro">Photographiez toutes les feuilles à la suite. L’application regroupe leurs pages par numéro de commande.</p>${field('dayDate','Journée réalisée',session.date,{type:'date',id:'batch-date'})}<section class="day-upload">${button('Photographier les pages à la suite','camera')}<section data-day-camera class="document-camera"></section><details class="section-gap"><summary>Appareil photo du téléphone — secours</summary><label class="btn full" for="batch-camera">Photographier une page</label><input class="sr-only" id="batch-camera" type="file" accept="image/*" capture="environment" data-day-files></details><label class="btn full section-gap" for="batch-gallery">Ajouter des photos de la galerie</label><input class="sr-only" id="batch-gallery" type="file" accept="image/*" multiple data-day-files><p class="hint">100 photos maximum par session, 25 Mo par photo et 150 Mo au total. Vous pouvez fermer puis reprendre cette session.</p></section><p id="batch-progress" role="status" aria-live="polite">${esc(progressText)}</p><div id="batch-pages"></div><div class="actions section-gap">${button('Terminer les photos et analyser','analyse')}${button('Effacer cette session','discard')}${button('Continuer dans Ma journée','background')}</div><div id="batch-summary"></div>`,true);
+  modal('Enregistrer ma journée',`<span hidden data-help-context="orders"></span><p class="dialog-intro">Photographiez toutes les feuilles à la suite. Les numéros de commande et d’enregistrement désignent la même commande ; ils servent à regrouper ses pages.</p>${field('dayDate','Journée réalisée',session.date,{type:'date',id:'batch-date'})}<section class="day-upload">${button('Photographier les pages à la suite','camera')}<section data-day-camera class="document-camera"></section><details class="section-gap"><summary>Appareil photo du téléphone — secours</summary><label class="btn full" for="batch-camera">Photographier une page</label><input class="sr-only" id="batch-camera" type="file" accept="image/*" capture="environment" data-day-files></details><label class="btn full section-gap" for="batch-gallery">Ajouter des photos de la galerie</label><input class="sr-only" id="batch-gallery" type="file" accept="image/*" multiple data-day-files><p class="hint">100 photos maximum par session, 25 Mo par photo et 150 Mo au total. Vous pouvez fermer puis reprendre cette session.</p></section><p id="batch-progress" role="status" aria-live="polite">${esc(progressText)}</p><div id="batch-pages"></div><div class="actions section-gap">${button('Terminer les photos et analyser','analyse')}${button('Effacer cette session','discard')}${button('Continuer dans Ma journée','background')}</div><div id="batch-summary"></div>`,true);
   onModalClose(stopCapture);draw();
 }
 function draw(){
@@ -100,7 +113,7 @@ async function editPage(id){
   const p=session.pages.find(p=>p.id===id);if(!p)throw Error('Page introuvable.');
   const sections=p.sections?.length?p.sections:[{number:'',lines:[]}];
   const file=await Store.readFile(p.photoId),url=file?URL.createObjectURL(file.blob):null;
-  modal('Vérifier la page',`<span hidden data-help-context="day-page"></span>${url?`<img class="day-photo" src="${url}" alt="Feuille à vérifier">`:''}<p class="info-note">Les traits de marqueur servent de repères et ne changent pas le calcul. Comptez aussi les quantités barrées ou manquantes entourées si elles restent lisibles. Une ligne : référence ; quantité ; emplacement ; désignation ; code alpha (les trois derniers champs sont facultatifs). Gardez les zéros initiaux.</p><form data-day-form="page" data-id="${esc(id)}">${sections.map((s,i)=>`<fieldset data-day-section="${i}"><legend>Commande ${i+1}</legend>${field('number'+i,'Numéro de commande',s.number,{required:true,code:true})}${field('lines'+i,'Références et quantités préparées',s.lines.map(l=>[l.sku,l.quantity??l.rawQuantity??'',l.location||l.rawLocation||'',l.designation||'',l.alphaCode||''].join(';')).join('\n'),{textarea:true,rows:6,full:true})}</fieldset>`).join('')}${check('reviewed','J’ai vérifié les numéros, les références et les quantités de cette page.',p.reviewed,'required')}${check('allowDuplicate','Je confirme que cette photo représente une autre page malgré un texte identique.',p.allowDuplicate)}<details><summary>Texte brut lu sur la photo</summary><pre class="day-raw">${esc(p.text||p.error||'Lecture non effectuée')}</pre></details><div data-form-error class="error-message" hidden></div><div class="form-actions">${button('Retour aux photos','resume')}<button type="submit" class="btn primary">Valider cette page</button></div></form>`,true);
+  modal('Vérifier la page',`<span hidden data-help-context="day-page"></span>${url?`<img class="day-photo" src="${url}" alt="Feuille à vérifier">`:''}<p class="info-note">Les traits de marqueur servent de repères et ne changent pas le calcul. Comptez aussi les quantités barrées ou manquantes entourées si elles restent lisibles. Une ligne : référence ; quantité ; emplacement ; désignation ; code alpha (les trois derniers champs sont facultatifs). Gardez les zéros initiaux.</p><form data-day-form="page" data-id="${esc(id)}">${sections.map((s,i)=>`<fieldset data-day-section="${i}"><legend>Commande ${i+1}</legend>${s.identities?.length?'<p class="hint">Numéros lus : '+s.identities.map(a=>esc((a.kind==='registration'?'Enregistrement : ':'Commande : ')+a.value)).join(' · ')+'</p>':''}${s.identityConflict?'<p class="error-message">Les deux numéros lus ne correspondent pas. Vérifiez le numéro de la commande sur la feuille.</p>':''}${field('number'+i,'Numéro de commande ou d’enregistrement',s.number,{required:true,code:true})}${field('lines'+i,'Références et quantités préparées',s.lines.map(l=>[l.sku,l.quantity??l.rawQuantity??'',l.location||l.rawLocation||'',l.designation||'',l.alphaCode||''].join(';')).join('\n'),{textarea:true,rows:6,full:true})}</fieldset>`).join('')}${check('reviewed','J’ai vérifié les numéros, les références et les quantités de cette page.',p.reviewed,'required')}${check('allowDuplicate','Je confirme que cette photo représente une autre page malgré un texte identique.',p.allowDuplicate)}<details><summary>Texte brut lu sur la photo</summary><pre class="day-raw">${esc(p.text||p.error||'Lecture non effectuée')}</pre></details><div data-form-error class="error-message" hidden></div><div class="form-actions">${button('Retour aux photos','resume')}<button type="submit" class="btn primary">Valider cette page</button></div></form>`,true);
   if(url)onModalClose(()=>URL.revokeObjectURL(url));
 }
 async function savePage(form,d=new FormData(form)){
@@ -127,7 +140,7 @@ async function saveDay(form){
     if(g.reviewPages.length)throw Error('Vérifiez les pages signalées de la commande '+g.number+'.');
     if(g.incomplete&&!(mode==='append'&&g.appendIncomplete===false))throw Error('Pages manquantes pour '+g.number+'. Ajoutez-les ou écartez cette commande.');
     if(g.existing){if(Store.get('orders',g.existing.id)?._eventId!==g.existingRevision)throw Error('Une commande a changé. Relisez le bilan avant de valider.');}
-    else if(Store.list('orders').some(o=>refKey(o.number)===g.number))throw Error('La commande '+g.number+' vient d’être enregistrée. Relisez le bilan.');
+    else if(Store.list('orders').some(o=>orderKey(o.number)===orderKey(g.number)))throw Error('La commande '+g.number+' vient d’être enregistrée. Relisez le bilan.');
     const record=dayRecord(g,session.date,mode);if(record)items.push({type:'orders',record});
   }
   if(!items.length)throw Error('Toutes ces commandes sont déjà enregistrées ou écartées.');
@@ -148,6 +161,7 @@ async function cropPage(id){
 }
 async function act(b){
   const name=b.dataset.dayAction,id=b.dataset.id;
+  if(name==='restart')return prepareRestart(b.dataset.date);
   if(name==='resume')return openDay();
   if(name==='camera')return openCapture();
   if(name==='camera-stop'){stopCapture();return;}
@@ -163,7 +177,7 @@ async function act(b){
   if(name==='exclude'||name==='include'){const p=session.pages.find(p=>p.id===id);p.excluded=name==='exclude';await persist();draw();}
 }
 export function enhanceDay(root,route){
-  const rev=++revision,space=Store.scope();if(!['home','orders'].includes(route))return;
+  const rev=++revision,space=Store.scope();if(!['home','orders'].includes(route))return;const restart=root.querySelector('[data-day-action=restart]');if(restart)restart.disabled=busy;
   Store.meta('day-capture').then(d=>{if(!d?.pages?.length||!root.isConnected||rev!==revision||Store.scope()!==space||root.dataset.view!==route)return;root.insertAdjacentHTML('afterbegin',`<section class="card draft-banner"><strong>${d.pages.length} photo(s) de journée en cours — ${esc(dateLabel(d.date))}</strong><p data-day-running role="status">${esc(busy?progressText:'')}</p><div class="actions section-gap">${button('Reprendre mes photos','resume')}</div></section>`);});
 }
 export function installDay(callbacks){
@@ -183,7 +197,7 @@ export function installDay(callbacks){
     if(el.dataset.dayChoice){session.choices[el.dataset.dayChoice]=el.value;void persist();drawSummary();}
   });
   document.addEventListener('submit',e=>{const form=e.target.closest('[data-day-form]');if(!form)return;e.preventDefault();e.stopImmediatePropagation();if(busy)return;const data=new FormData(form);setBusy(true);
-    activeOperation=Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form,data):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{setBusy(false);});
+    activeOperation=Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form,data):form.dataset.dayForm==='restart'?confirmRestart(form):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{setBusy(false);});
   },true);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCapture();});
   document.addEventListener('keydown',e=>{const card=e.target.closest('.product-record[data-action]');if(card&&e.target===card&&['Enter',' '].includes(e.key)){e.preventDefault();card.click();}});
