@@ -191,13 +191,13 @@ async function action(button){
   else if(name==='test-feedback'){unlockFeedback();scanFeedback('success');toast('Test du son et de la vibration selon vos options enregistrées.');}
   else if(name==='identify-unknown'){const r=Store.get('unknowns',id);app.productForm({sku:r.code,barcode:r.code});}
   else if(name==='dismiss-unknown'){const r=Store.get('unknowns',id);await Store.save('unknowns',{...r,status:'resolved'},'Code inconnu classé');}
-  else if(name==='hide-undo'){hiddenUndo=button.dataset.at;void refreshUndo();}
-  else if(name==='quick-undo'){const info=await Store.undoInfo();if(!info||info.at!==button.dataset.at)throw Error('La dernière action a changé. Vérifiez son intitulé.');if(info.items.length===1){await Store.undoLast();await refreshUndo();toast('Action annulée.');}else await action({dataset:{opsAction:'undo'}});}
+  else if(name==='hide-undo'){await Store.dismissUndo(button.dataset.undoId);await refreshUndo();}
+  else if(name==='quick-undo'){const info=await Store.undoInfo();if(!info||Store.undoId(info)!==button.dataset.undoId)throw Error('La dernière action a changé. Vérifiez son intitulé.');if(info.items.length===1){await Store.undoLast(Store.undoId(info));await refreshUndo();toast('Action annulée.');}else await action({dataset:{opsAction:'undo'}});}
   else if(name==='undo'){
-    const info=await Store.undoInfo();if(!info)throw Error('Aucune action à annuler.');undoAt=info.at;
+    const info=await Store.undoInfo();if(!info)throw Error('Aucune action à annuler.');undoTarget=Store.undoId(info);
     modal('Annuler la dernière action',`<span hidden data-help-context="history"></span><p class="dialog-intro">${esc(info.action)}</p><p>${info.items.length} fiche(s) reviendront à leur état précédent. L’historique sera conservé.</p><div class="actions section-gap">${opsButton('Confirmer l’annulation','confirm-undo')}${btn('Conserver cette action','close-dialog')}</div>`);
   }
-  else if(name==='confirm-undo'){const latest=await Store.undoInfo();if(!latest||latest.at!==undoAt)throw Error('La dernière action a changé. Rouvrez son annulation.');await Store.undoLast();await refreshUndo();closeModal();toast('Action annulée. La trace reste dans l’historique.');}
+  else if(name==='confirm-undo'){const latest=await Store.undoInfo();if(!latest||Store.undoId(latest)!==undoTarget)throw Error('La dernière action a changé. Rouvrez son annulation.');await Store.undoLast(undoTarget);await refreshUndo();closeModal();toast('Action annulée. La trace reste dans l’historique.');}
   else if(name==='resume-draft')await restoreDraft(button.dataset.key);
   else if(name==='delete-draft'){await Store.setMeta(button.dataset.key,null);app.render();}
   else if(name==='weekly-pdf')await weeklyPDF();
@@ -242,10 +242,10 @@ export function installOps(callbacks){
 }
 
 
-let undoRevision=0,hiddenUndo,undoAt;
+let undoRevision=0,undoTarget;
 export async function refreshUndo(){
- const rev=++undoRevision,info=await Store.undoInfo();if(rev!==undoRevision)return;
+ const rev=++undoRevision,scope=Store.scope(),info=await Store.undoInfo();if(rev!==undoRevision||scope!==Store.scope())return;
  let bar=document.querySelector('#undo-bar');if(!bar){bar=document.createElement('aside');bar.id='undo-bar';bar.setAttribute('aria-label','Annulation de la dernière modification');document.body.append(bar);}
- bar.hidden=!info||hiddenUndo===info.at;document.body.classList.toggle('has-undo',!bar.hidden);if(bar.hidden)return;
- bar.innerHTML=`<span><small>Dernière modification</small><strong>${esc(info.action)}</strong></span>${opsButton('Annuler','quick-undo','data-at="'+esc(info.at)+'"')}<button type="button" class="icon-button" data-ops-action="hide-undo" data-at="${esc(info.at)}" aria-label="Masquer le raccourci d’annulation">×</button>`;
+ bar.hidden=!info||info.dismissed===true;document.body.classList.toggle('has-undo',!bar.hidden);if(bar.hidden)return;
+ bar.innerHTML=`<span><small>Dernière modification</small><strong>${esc(info.action)}</strong></span>${opsButton('Annuler','quick-undo','data-undo-id="'+esc(Store.undoId(info))+'"')}<button type="button" class="icon-button" data-ops-action="hide-undo" data-undo-id="${esc(Store.undoId(info))}" aria-label="Masquer le raccourci d’annulation">×</button>`;
 }

@@ -143,3 +143,12 @@ Le nom affiché et les icônes deviennent Pikéo. Identité du manifeste, Indexe
 - L’annulation de cette reprise restaure commandes et correction ; le brouillon précédent est restauré si aucune nouvelle photo ne l’a remplacé. Les nouvelles photos sont préservées. Les révisions restent dans l’historique et la même journée peut être photographiée à nouveau sans doubler ses anciens totaux.
 - Revue de l’aide : Ma journée, Vérifier une page, nouvelle confirmation day-restart et FAQ de la page Aide. Les données réelles et les photos restent hors dépôt ; seuls des exemples synthétiques entrent dans les tests.
 - Vérifications requises : tests métier, regroupement commande/enregistrement, vrai stockage IndexedDB avec annulation/reprise/conflit et retour OCR, contrôle des nouvelles fenêtres à 320/390 px dans les deux thèmes et parcours existants.
+
+
+## Version 1.14.1 — choix du bandeau d’annulation
+
+- La croix mémorise le masquage de l’action courante dans la base locale de la session. Ce choix survit à la navigation, au rechargement, à la fermeture et à la réouverture. L’action reste annulable depuis Historique ; une nouvelle action peut afficher son propre bandeau. Aucun choix de masquage n’est envoyé à Google.
+- Annuler écrit la révision inverse et efface la cible d’annulation dans la même transaction IndexedDB. Aucun observateur ne peut relire l’ancienne cible entre ces deux écritures. Une annulation échouée conserve sa cible.
+- Un identifiant propre à chaque action protège les clics devenus obsolètes, y compris si deux actions ont la même heure. Les anciennes cibles sans identifiant restent compatibles.
+- Aide revue : Historique, confirmation d’annulation dans le même contexte et FAQ de la page Aide. Le comportement du bandeau ne crée aucun formulaire supplémentaire.
+- Vérification navigateur requise : masquage persistant, nouvelle action, annulation simple et groupée après confirmation, rechargement, ancienne cible, clic obsolète et séparation des espaces. Les cas utilisent uniquement des données synthétiques.

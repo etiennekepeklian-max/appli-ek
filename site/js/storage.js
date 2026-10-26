@@ -42,18 +42,25 @@ async function batch(items,action,{undoable=true,resolves=[],expectedScope,metad
     return e;
   });
   if(!next.length)return [];
-  const undo=undoable&&snapshots.length?{action,items:snapshots,metadata:structuredClone(metadata),at:new Date().toISOString()}:undefined;
+  const undo=undoable&&snapshots.length?{id:uid(),action,items:snapshots,metadata:structuredClone(metadata),at:new Date().toISOString()}:undefined;
   await writeEvents(next,undo,metadata);return next.map(e=>e.record);
 }
 export function saveBatch(items,action='Modification groupée',options){return serial(()=>batch(items,action,options));}
 export async function undoInfo(){const info=await meta('last-undo');return info?.items?.length?info:null;}
-export function undoLast(){return serial(async()=>{
+export const undoId=info=>info?.id||info?.at;
+export function dismissUndo(expectedId){return serial(async()=>{
+  const info=await undoInfo();if(!info||undoId(info)!==expectedId)throw Error('La dernière action a changé. Vérifiez son intitulé.');
+  await setMeta('last-undo',{...info,dismissed:true});
+});}
+export function undoLast(expectedId){return serial(async()=>{
   const info=await undoInfo();if(!info)throw Error('Aucune action à annuler.');
+  if(expectedId&&undoId(info)!==expectedId)throw Error('La dernière action a changé. Vérifiez son intitulé.');
   if(info.items.some(i=>get(i.type,i.id)?._eventId!==i.eventId))throw Error('Une fiche a changé depuis cette action, éventuellement sur un autre appareil. Annulation refusée pour préserver ces changements.');
   const metadata=[];
   for(const item of info.metadata||[])if(JSON.stringify(await meta(item.key)??null)===JSON.stringify(item.value??null))metadata.push({key:item.key,value:item.before??null});
+  metadata.push({key:'last-undo',value:null});
   await batch(info.items.map(i=>({type:i.type,record:i.before||{id:i.id,deleted:true}})),'Annulation : '+info.action,{undoable:false,metadata});
-  await setMeta('last-undo',null);return info.action;
+  return info.action;
 });}
 async function writeEvents(items,undo,metadata=[]){
   const ownerDb=db,ownerScope=namespace;

@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {mkdir} from 'node:fs/promises';
+import {chromium} from 'playwright';
+import {waitForState} from './poll.mjs';
+const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe','inherit']});
+await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Serveur indisponible')),15000);server.stdout.on('data',d=>{if(String(d).includes('http://')){clearTimeout(timer);resolve();}});server.on('error',reject);});
+let browser,page;const errors=[],base='http://localhost:8765/';
+try{
+ browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
+ const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+ const ready=()=>page.waitForFunction(()=>!!document.querySelector('#main')?.dataset.view&&document.querySelector('#app-version')?.textContent==='1.14.1');
+ await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
+ const seed=async id=>{await page.evaluate(async id=>{const s=await import('./js/storage.js');await s.save('journal',{id,date:'2026-10-27',activities:'Compte rendu de test'},'Journal hebdomadaire enregistré');},id);await page.locator('#undo-bar').waitFor({state:'visible'});};
+ const hidden=()=>page.locator('#undo-bar').waitFor({state:'hidden'});
+ const dismiss=async()=>{await page.locator('#undo-bar [data-ops-action=hide-undo]').click();await hidden();};
+ const reload=async()=>{await page.reload();await ready();await page.evaluate(async()=>{await(await import('./js/ops.js')).refreshUndo();});};
+ await seed('undo-hide');await dismiss();
+ await page.locator('#mobile-nav [data-nav=pending]').click();await hidden();await reload();await hidden();
+ assert.equal(await page.evaluate(async()=>(await import('./js/storage.js')).get('journal','undo-hide').activities),'Compte rendu de test');
+ assert.equal(await page.evaluate(async()=>(await(await import('./js/storage.js')).undoInfo()).dismissed),true);
+ console.log('OK croix mémorisée après navigation et rechargement ; journal conservé');
+ await seed('undo-simple');
+ await page.evaluate(async()=>{const s=await import('./js/storage.js');window.observedUndo=[];window.stopUndoObservation=s.onChange(()=>{void s.undoInfo().then(info=>window.observedUndo.push(info));});});
+ await page.locator('#undo-bar [data-ops-action=quick-undo]').click();await hidden();
+ await waitForState(page,()=>window.observedUndo.length>0);assert.equal(await page.evaluate(()=>window.observedUndo.every(i=>i===null)),true);await page.evaluate(()=>window.stopUndoObservation());
+ await reload();await hidden();assert.equal(await page.evaluate(async()=>!!(await import('./js/storage.js')).get('journal','undo-simple').deleted),true);
+ console.log('OK nouvelle action affichée, annulation simple atomique et choix conservé après réouverture');
+ await seed('undo-history');await dismiss();await page.goto(base+'#history');await ready();await hidden();
+ await page.getByRole('button',{name:'Annuler la dernière action',exact:true}).click();await page.getByRole('button',{name:'Confirmer l’annulation',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});await hidden();
+ assert.equal(await page.evaluate(async()=>!!(await import('./js/storage.js')).get('journal','undo-history').deleted),true);
+ console.log('OK action masquée toujours annulable depuis Historique');
+ await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.saveBatch(['group-a','group-b'].map(id=>({type:'journal',record:{id,date:'2026-10-27',activities:id}})),'Groupe de test');});
+ await page.locator('#undo-bar').waitFor({state:'visible'});await page.locator('#undo-bar [data-ops-action=quick-undo]').click();await page.getByRole('button',{name:'Conserver cette action',exact:true}).click();
+ await reload();await page.locator('#undo-bar').waitFor({state:'visible'});await page.locator('#undo-bar [data-ops-action=quick-undo]').click();await page.getByRole('button',{name:'Confirmer l’annulation',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});await reload();await hidden();
+ assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return ['group-a','group-b'].every(id=>s.get('journal',id).deleted);}),true);
+ console.log('OK groupe conservé si confirmation fermée, choix d’annulation mémorisé après confirmation');
+ const checks=await page.evaluate(async()=>{
+  const s=await import('./js/storage.js');await s.save('journal',{id:'stale-first',activities:'Premier'});const first=await s.undoInfo();await s.save('journal',{id:'stale-second',activities:'Second'});const second=await s.undoInfo();await s.setMeta('last-undo',{...second,at:first.at});
+  let dismissed=false,undone=false;try{await s.dismissUndo(s.undoId(first));}catch{dismissed=true;}try{await s.undoLast(s.undoId(first));}catch{undone=true;}
+  const current=await s.undoInfo(),{id,...legacy}=current;await s.setMeta('last-undo',legacy);await(await import('./js/ops.js')).refreshUndo();
+  return {dismissed,undone,unchanged:!s.get('journal','stale-second').deleted,legacy:!legacy.id};
+ });assert.deepEqual(checks,{dismissed:true,undone:true,unchanged:true,legacy:true});
+ await dismiss();await reload();await hidden();
+ await page.evaluate(async()=>{const s=await import('./js/storage.js'),i=await import('./js/identity-context.js');i.setIdentity({id:'undo-colleague',name:'Collègue de test',role:'operator'});await s.openStore(false);await s.save('journal',{id:'colleague',activities:'Autre session'});await(await import('./js/ops.js')).refreshUndo();});
+ await page.locator('#undo-bar').waitFor({state:'visible'});await dismiss();
+ await page.evaluate(async()=>{const s=await import('./js/storage.js');(await import('./js/identity-context.js')).setIdentity(null);await s.openStore(false);await(await import('./js/ops.js')).refreshUndo();});await hidden();
+ assert.equal(await page.evaluate(async()=>(await(await import('./js/storage.js')).undoInfo()).dismissed),true);
+ assert.deepEqual(errors,[]);console.log('OK clics obsolètes refusés, format historique compatible et choix séparés entre collègues');
+}catch(error){await mkdir('test-results',{recursive:true});await page?.screenshot({path:'test-results/undo-choice-failure.png',fullPage:true}).catch(()=>{});console.error(await page?.locator('body').innerText().catch(()=>''));throw error;}finally{await browser?.close();server.kill();}
