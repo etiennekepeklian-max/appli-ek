@@ -103,8 +103,8 @@ async function editPage(id){
   modal('Vérifier la page',`<span hidden data-help-context="day-page"></span>${url?`<img class="day-photo" src="${url}" alt="Feuille à vérifier">`:''}<p class="info-note">Les traits de marqueur servent de repères et ne changent pas le calcul. Comptez aussi les quantités barrées ou manquantes entourées si elles restent lisibles. Une ligne : référence ; quantité ; emplacement ; désignation ; code alpha (les trois derniers champs sont facultatifs). Gardez les zéros initiaux.</p><form data-day-form="page" data-id="${esc(id)}">${sections.map((s,i)=>`<fieldset data-day-section="${i}"><legend>Commande ${i+1}</legend>${field('number'+i,'Numéro de commande',s.number,{required:true,code:true})}${field('lines'+i,'Références et quantités préparées',s.lines.map(l=>[l.sku,l.quantity??l.rawQuantity??'',l.location||l.rawLocation||'',l.designation||'',l.alphaCode||''].join(';')).join('\n'),{textarea:true,rows:6,full:true})}</fieldset>`).join('')}${check('reviewed','J’ai vérifié les numéros, les références et les quantités de cette page.',p.reviewed,'required')}${check('allowDuplicate','Je confirme que cette photo représente une autre page malgré un texte identique.',p.allowDuplicate)}<details><summary>Texte brut lu sur la photo</summary><pre class="day-raw">${esc(p.text||p.error||'Lecture non effectuée')}</pre></details><div data-form-error class="error-message" hidden></div><div class="form-actions">${button('Retour aux photos','resume')}<button type="submit" class="btn primary">Valider cette page</button></div></form>`,true);
   if(url)onModalClose(()=>URL.revokeObjectURL(url));
 }
-async function savePage(form){
-  const p=session.pages.find(p=>p.id===form.dataset.id),d=new FormData(form);if(!p)throw Error('Page introuvable.');
+async function savePage(form,d=new FormData(form)){
+  const p=session.pages.find(p=>p.id===form.dataset.id);if(!p)throw Error('Page introuvable.');
   const next=[];
   for(const el of form.querySelectorAll('[data-day-section]')){
     const i=Number(el.dataset.daySection),number=refKey(d.get('number'+i)),text=String(d.get('lines'+i)||''),rows=text.split(/\r?\n/).filter(s=>s.trim()).map((s,j)=>{const cells=s.split(';').map(s=>s.trim()),quantity=sheetQuantity(cells[1]),location=sheetLocation(cells[2]);
@@ -182,8 +182,8 @@ export function installDay(callbacks){
     if(el.id==='batch-date'){session.date=el.value||localDate();session.choices={};void persist();drawSummary();}
     if(el.dataset.dayChoice){session.choices[el.dataset.dayChoice]=el.value;void persist();drawSummary();}
   });
-  document.addEventListener('submit',e=>{const form=e.target.closest('[data-day-form]');if(!form)return;e.preventDefault();e.stopImmediatePropagation();if(busy)return;setBusy(true);const b=form.querySelector('[type=submit]');
-    activeOperation=Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{setBusy(false);});
+  document.addEventListener('submit',e=>{const form=e.target.closest('[data-day-form]');if(!form)return;e.preventDefault();e.stopImmediatePropagation();if(busy)return;const data=new FormData(form);setBusy(true);
+    activeOperation=Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form,data):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{setBusy(false);});
   },true);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCapture();});
   document.addEventListener('keydown',e=>{const card=e.target.closest('.product-record[data-action]');if(card&&e.target===card&&['Enter',' '].includes(e.key)){e.preventDefault();card.click();}});
