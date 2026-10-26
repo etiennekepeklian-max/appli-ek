@@ -10,7 +10,7 @@ let browser,page;const errors=[],base='http://localhost:8765/',date='2026-10-26'
 try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
- await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();
+ await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
  await page.evaluate(async date=>{
   const s=await import('./js/storage.js'),u=await import('./js/ui.js');u.state.date=date;
   const photo=await s.storeFile(new Blob(['synthetic image'],{type:'image/jpeg'}),'synthetic.jpg','day-photo');window.restartPhoto=photo;
@@ -23,7 +23,7 @@ try{
   await s.setMeta('day-capture',{date,pages:[{id:'old-draft',photoId:photo}],choices:{}});location.hash='orders';
  },date);
  await page.waitForFunction(()=>document.querySelector('#main')?.dataset.view==='orders');
- const restart=()=>page.locator('#main [data-day-action=restart]').click();
+ const restart=async()=>{await page.locator('#main [data-day-action=restart]').click();await page.locator('[data-day-form=restart]').waitFor({state:'visible'});await page.waitForFunction(()=>document.querySelector('[data-day-form=restart] [name=confirmed]')?.disabled===false);};
  const confirm=async()=>{await page.locator('[data-day-form=restart] [name=confirmed]').check();await page.locator('[data-day-form=restart] [type=submit]').click();await page.locator('[data-day-action=camera]').waitFor();};
  const close=()=>page.locator('#dialog .dialog-top [data-action=close-dialog]').click();
  const undo=async()=>{await page.locator('[data-ops-action=quick-undo]').click();await page.getByRole('button',{name:'Confirmer l’annulation',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});};
