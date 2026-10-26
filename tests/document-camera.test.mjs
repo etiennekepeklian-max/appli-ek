@@ -17,7 +17,7 @@ test('photos successives : un seul flux, fichiers distincts, caméra arrêtée e
   assert.equal(f.calls(),1);assert.notEqual(a.name,b.name);assert.equal(a.type,'image/jpeg');assert.equal(f.track.readyState,'live');assert.equal(f.video.srcObject,f.stream);f.camera.stop();assert.equal(f.track.readyState,'ended');assert.equal(f.video.srcObject,null);
 });
 test('autorisation tardive après fermeture : aucun flux ne reste ouvert',async()=>{
-  const gate=deferred(),f=fixture({mediaDevices:{getUserMedia:()=>gate.promise}});const open=f.camera.open(f.video);await Promise.resolve();f.camera.stop();gate.resolve(f.stream);
+  const gate=deferred(),started=deferred(),f=fixture({mediaDevices:{getUserMedia:()=>{started.resolve();return gate.promise;}}});const open=f.camera.open(f.video);await started.promise;f.camera.stop();gate.resolve(f.stream);
   assert.equal(await open,false);assert.equal(f.track.readyState,'ended');assert.equal(f.video.srcObject,null);
 });
 test('capture photo haute définition utilisée et bornée sans conserver le bitmap',async()=>{
