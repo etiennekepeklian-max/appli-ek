@@ -52,7 +52,7 @@ try{
  assert.match(await page.locator('.product-record').first().innerText(),/PAC0007/);
  await page.locator('.product-record').first().click();await audit('dark product detail');
  await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();
- await page.locator('[data-action=edit-product][data-id=ux-product]').click();await audit('dark product editor');
+ await page.locator('#main [data-action=edit-product][data-id=ux-product]').click();await audit('dark product editor');
  await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();
 
  // Real outstanding tasks display a walk; failures clean up without blocking the app.
@@ -88,9 +88,10 @@ try{
  }
  // An operator can choose their appearance without gaining configuration rights.
  await page.evaluate(async()=>{(await import('./js/identity-context.js')).setIdentity({id:'ux-operator',name:'Test opérateur',role:'operator'});});
- await page.locator('#mobile-nav [data-nav=more]').click();await page.locator('#tools-search').fill('mode sombre');await page.locator('[data-tool-results] [data-nav=personal]').click();await page.locator('[name=theme]').selectOption('light');await page.locator('[data-wb-form=preferences] [type=submit]').click();await page.waitForFunction(()=>document.documentElement.dataset.theme==='light');
+ await page.locator('#mobile-nav [data-nav=more]').click();await page.locator('#tools-search').fill('mode sombre');await page.locator('#main [data-tool-results] [data-nav=personal]').click();await page.locator('[name=theme]').selectOption('light');await page.locator('[data-wb-form=preferences] [type=submit]').click();await page.waitForFunction(()=>document.documentElement.dataset.theme==='light');
  assert.equal(await page.evaluate(async()=>(await import('./js/identity-context.js')).canConfigure()),false);
  await mkdir('test-results',{recursive:true});await writeFile('test-results/contrast-audit.json',JSON.stringify({report,failures},null,2));
+ if(failures.length)console.log('CONTRAST_FAILURES',JSON.stringify(failures));
  assert.deepEqual(errors,[]);assert.deepEqual(failures,[],'Contraste des textes rendus insuffisant (voir contrast-audit.json)');
  console.log(`OK ${report.length} vues contrôlées, ${report.reduce((n,r)=>n+r.checked,0)} textes/champs mesurés, modes clair/sombre, 320/390 px, préférences opérateur`);
 }finally{await browser?.close();server.kill();}
