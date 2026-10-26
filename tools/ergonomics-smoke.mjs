@@ -39,8 +39,8 @@ try{
  console.log('OK accueil compact, ENF visible, recherche globale et aide sans perte de saisie');
 
  await go('more');await page.locator('#tools-search').fill('memo vocal');assert.equal(await page.locator('[data-tool-results] [data-nav=voice]').count(),1);
- await page.locator('#tools-search').fill('ZZZINEXISTANT');assert.match(await page.locator('[data-tool-results]').innerText(),/Aucun outil trouvé/);
- await page.locator('#tools-search').fill('manquant');await page.locator('[data-tool-results] [data-action=new-pending]').click();await page.locator('[data-form=pending]').waitFor();await audit('dark missing-item dialog');
+ await page.locator('#tools-search').fill('ZZZINEXISTANT');assert.match(await page.locator('#tools-search-results').innerText(),/Aucun outil trouvé/);
+ await page.locator('#tools-search').fill('manquant');await page.locator('#tools-search-results [data-action=new-pending]').click();await page.locator('[data-form=pending]').waitFor();await audit('dark missing-item dialog');
  await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();
  // A search debounce must not repaint the next screen with the old query.
  await go('stock');await page.locator('[data-filter-search]').fill('QUICKSEARCH');await page.locator('#mobile-nav [data-nav=pending]').click();

@@ -35,7 +35,7 @@ try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'allow'});await googleRoutes(context);page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  await go('home');await page.getByRole('button',{name:'Commencer',exact:true}).click();
- assert.deepEqual(await page.locator('#mobile-nav button').allTextContents(),['Accueil','Codes','Manquants','Produits','Plus']);
+ assert.deepEqual(await page.locator('#mobile-nav button').allTextContents(),['Accueil','Codes','Manquants','Produits','Outils']);
  assert.equal(await page.locator('.chart-wrap').count(),0);
  await page.locator('[data-backup-kind=local]').waitFor();
  await read(async()=>{const s=await import('./js/storage.js');await s.saveBatch([{type:'products',record:{id:'flow-a',sku:'FLOW001',name:'Carnet test ergonomie',familyId:'papeterie-carnets-et-blocs-notes',unitsPerPick:4,location:'PAC001-A',locations:['PAC001-A','RES002-B'],preferredLocation:'RES002-B'}},{type:'products',record:{id:'flow-b',sku:'FLOW002',name:'Carte test ergonomie',familyId:'cartes',unitsPerPick:4}},{type:'locations',record:{id:'flow-loc',name:'PAD009-C',zone:'Autre',notes:'Casier témoin'}}],'Données synthétiques');});
