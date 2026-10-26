@@ -64,3 +64,11 @@ body:has(dialog[open]) .mascot-status{display:none}
 @media(max-width:359px){.topbar{gap:6px}.topbar-actions{gap:4px}.mobile-app-title .breadcrumb{max-width:92px}.quick{padding:10px 8px;gap:7px}.quick>span:last-child{font-size:13px}.quick small{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.mascot-sprite,.loader{animation:none!important;background-position:0 0}.mascot-ready .mascot-sprite{background-position:100% 0}}
 @media print{.mascot-status{display:none!important}}
+
+/* Document capture remains in place while the next sheet is photographed. */
+.document-camera{margin-top:12px;min-width:0}
+.document-camera:empty{display:none}
+.document-camera video{display:block;width:100%;max-height:44dvh;background:#111;object-fit:contain;border-radius:10px}
+.document-camera-actions{position:sticky;bottom:0;display:flex;gap:8px;flex-wrap:wrap;padding:10px 0;background:var(--paper);z-index:1}
+.document-camera-actions .btn{flex:1;min-width:0}
+.badge:not(.green):not(.amber):not(.red):not(.purple){color:var(--ink);background:var(--soft)}

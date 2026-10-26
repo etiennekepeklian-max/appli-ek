@@ -121,3 +121,15 @@ Le nom affiché et les icônes deviennent Pikéo. Identité du manifeste, Indexe
 - Aide revue : écran Accueil, Outils, Préférences, catalogue, page Aide et nouveau contexte de fenêtre `tool-finder`. Le retour de l’aide ne réinitialise pas la recherche.
 - Vérifications locales : 119 tests métier réussis et syntaxe/assets vérifiés. Contrôle visuel dans l’aperçu : recherche « mode sombre », aide et retour, accès aux préférences puis accueil sombre.
 - Les vérifications navigateur complètes et les mesures de contraste sont exigées par le job `ergonomics` avant publication ; résultats consignés dans les artifacts CI.
+
+
+### Complément 1.13.0 — photos de commandes et données des feuilles
+
+- Caméra directe conservée ouverte entre les prises de vues ; galerie et caméra native de secours. Arrêt du flux à la fermeture, au passage en arrière-plan et avant l’analyse.
+- Analyse photo locale sérialisée : reconstruction des lignes de tableaux avec les coordonnées TSV. Reprise de la session et affichage de la progression dans Ma journée et Accueil, y compris pendant le traitement.
+- Les marques de complétion ne changent pas le calcul. Une quantité lisible barrée/entourée reste comptée ; une quantité ambiguë bloque la validation et demande une relecture. Aucun modèle de vision fiable des annotations manuscrites n’est revendiqué.
+- Les pages relues conservent article, quantité, adresse PAC/PAD/RES, désignation et code alpha. Mise à jour facultative du catalogue pour les administrateurs : création de références et ajout d’adresses sans écraser nom vérifié, adresse existante, emplacement habituel ou règle de picking. Aucun conditionnement n’est déduit des quantités commandées. Le code alpha descriptif ne fusionne pas deux produits.
+- Une seule écriture groupée pour la journée et le catalogue associé ; annulation groupée. Les anciennes journées gardent leurs règles figées. Les opérations en cours sont terminées avant un changement de session ou de mode démonstration.
+- Aide revue : Ma journée, vérification d’une page, caméra dans le contexte Ma journée et FAQ de la page Aide ; aucune saisie perdue en consultant ?.
+- Tests synthétiques dédiés : quantités annotées/ambiguës, tableau physique, métadonnées, collisions de références, caméra ouverte sur plusieurs photos, autorisation tardive et fermeture pendant encodage. Parcours navigateur avec caméra de test et lecture différée pour vérifier navigation/reprise, catalogue et annulation ; l’OCR réel reste exercé par ui-smoke.
+- Les photos, relevés et totaux de travail restent privés et hors dépôt. Le contrôle chiffré sur les feuilles réelles dépend d’une transcription lisible des conditionnements ; il ne doit pas être déclaré réussi sur la seule base de tests synthétiques.

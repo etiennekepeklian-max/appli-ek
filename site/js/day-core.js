@@ -4,6 +4,39 @@ const plain=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toL
 const command=/^(?:.*?\b)?(?:n[°o]?\s*(?:de\s*)?(?:commande|order)|(?:commande|order|bon de preparation)\s*(?:n[°o]?|numero)?)[\s:#.\-]*([A-Z0-9][A-Z0-9/_.-]{2,39})\b/i;
 const cells=s=>s.trim().split(/[;\t|]|\s{2,}/).map(s=>s.trim()).filter(Boolean);
 export const pageTextKey=text=>plain(text).replace(/[^a-z0-9]/g,'');
+
+export function sheetQuantity(value){
+  let s=String(value??'').trim();if(!s||/^[+-]\s*\d/.test(s))return null;
+  s=s.replace(/[\u2460-\u2473]/g,ch=>String(ch.charCodeAt(0)-0x245f));
+  const numbers=s.match(/\d+/g);if(numbers?.length!==1)return null;
+  const rest=plain(s).replace(/\d+/g,'').replace(/\b(?:manquant(?:e|es|s)?|barre(?:e|es|s)?|entoure(?:e|es|s)?|u|unites?|pcs?|pieces?)\b/g,'').replace(/[\s()[\]{}~_*✗×x✓✔/\\—–-]/g,'');
+  const n=Number(numbers[0]);return !rest&&Number.isSafeInteger(n)&&n>=0&&n<=9999999?n:null;
+}
+export function sheetLocation(value){
+  const s=refKey(value).replace(/\s+/g,'');
+  return /^(?:PAC|PAD|RES)[A-Z0-9][A-Z0-9._/-]{0,116}$/.test(s)?s:'';
+}
+const tableCells=s=>s.trim().split(/[;\t|]|\s{2,}/).map(s=>s.trim());
+function warehouseLayout(row){
+  const head=tableCells(row).map(plain),ref=head.findIndex(s=>/^(?:reference(?: produit)?|ref\.?|sku|article|code article)$/.test(s));
+  const quantities=head.map((s,i)=>({s,i})).filter(({s})=>/^(?:quantite|qte|quantity|qty)\b/.test(s));
+  if(ref<0||!quantities.length)return null;
+  const prepared=quantities.find(({s})=>/prepar|livr|servi|realise/.test(s)),q=prepared||quantities.find(({s})=>/^(?:quantite|qte|quantity|qty)(?:\s*\(u\))?$/.test(s))||quantities[0];
+  return {ref,q:q.i,ordered:quantities.find(({s})=>/command/.test(s))?.i,source:prepared?'prepared':/command/.test(q.s)?'ordered':'generic',ambiguous:quantities.length>1&&!prepared,location:head.findIndex(s=>/^(?:adresse(?: picking)?|emplacement|casier|location)$/.test(s)),designation:head.findIndex(s=>/^(?:designation(?: article)?|libelle|description|nom)$/.test(s)),alpha:head.findIndex(s=>/^(?:code alpha|alpha)$/.test(s))};
+}
+function warehouseRow(row,layout){
+  const cs=tableCells(row),sku=cs[layout.ref];
+  if(!sku||!/^[A-Z0-9][A-Z0-9._/-]{2,119}$/i.test(sku))return null;
+  const rawQuantity=cs[layout.q]??'',marked=/manquant|barre|entour/i.test(plain(row));
+  let quantity=sheetQuantity(rawQuantity),quantitySource=layout.source;
+  if(quantity===0&&marked&&layout.ordered!==undefined&&layout.ordered!==layout.q){
+    const ordered=sheetQuantity(cs[layout.ordered]);if(ordered>0){quantity=ordered;quantitySource='missing-ordered';}
+  }
+  if(quantity===0)return {skip:true};
+  const rawLocation=layout.location>=0?cs[layout.location]||'':'',location=sheetLocation(rawLocation);
+  return {sku:refKey(sku),quantity,rawQuantity,quantitySource,location,rawLocation,designation:layout.designation>=0?(cs[layout.designation]||'').slice(0,250):'',alphaCode:layout.alpha>=0?(cs[layout.alpha]||'').slice(0,120):'',needsReview:!!(layout.ambiguous||quantitySource==='ordered'||quantitySource==='missing-ordered'||quantity===null||marked||rawQuantity.trim()!==String(quantity)||rawLocation&&!location)};
+}
+
 export function parseDayPage(text){
   const lines=String(text||'').split(/\r?\n/),sections=[];let current=null;
   for(const raw of lines){
@@ -15,10 +48,16 @@ export function parseDayPage(text){
     current.text.push(raw);
   }
   for(const section of sections){
-    const raw=section.text.join('\n'),page=raw.match(/\bpage\s*[:.]?\s*(\d+)\s*(?:\/|sur|of)\s*(\d+)/i);
-    section.pageNumber=page?Number(page[1]):null;section.pageCount=page?Number(page[2]):null;
-    let layout=null,ambiguous=false,headerSeen=false;
+    const raw=section.text.join('\n'),page=raw.match(/\bpage\s*[:._-]?\s*(\d+)(?:\s*(?:\/|sur|of)\s*(\d+))?/i);
+    section.pageNumber=page?Number(page[1]):null;section.pageCount=page?.[2]?Number(page[2]):null;
+    let layout=null,ambiguous=false,headerSeen=false,warehouse=null;
     for(const row of section.text){
+      const detected=warehouseLayout(row);
+      if(detected){warehouse=detected;headerSeen=true;ambiguous=detected.ambiguous;section.quantitySource=detected.source;continue;}
+      if(warehouse){const item=warehouseRow(row,warehouse);if(item){if(!item.skip)section.lines.push(item);continue;}}
+      // Clear address/quantity/article rows remain recoverable when the header is damaged.
+      const physical=row.trim().match(/^((?:PAC|PAD|RES)\s*[A-Z0-9][A-Z0-9._/-]*)\s+[|]?\s*(\d+|[①-⑳]|\(\d+\)|~\d+~)\s*[|]?\s+([A-Z0-9][A-Z0-9._/-]{4,119})(?:\s+(.+))?$/i);
+      if(physical){const quantity=sheetQuantity(physical[2]);if(quantity>0)section.lines.push({sku:refKey(physical[3]),quantity,rawQuantity:physical[2],location:sheetLocation(physical[1]),designation:physical[4]||'',needsReview:true,quantitySource:'generic'});continue;}
       const cs=cells(row),hs=cs.map(plain),ref=hs.findIndex(s=>/^(reference(?: produit)?|ref\.?|sku|article|code article)$/.test(s));
       // OCR often collapses a printed table's columns to single spaces.
       if(ref<0&&/^(reference|ref\.?|sku|article|code article)\s+/i.test(plain(row.trim()))){
@@ -81,7 +120,7 @@ export function buildDayPlan(pages,existing,date,resolveProduct){
       if(s.needsReview&&!page.reviewed)g.reviewPages.add(page.id);
       for(const line of s.lines){
         if(!refKey(line.sku)||!Number.isInteger(Number(line.quantity))||Number(line.quantity)<1){problems.push({id:page.id,message:'Référence ou quantité invalide dans '+number+'.'});continue;}
-        const p=resolveProduct(refKey(line.sku)),pack=p?.effectiveUnitsPerPick??p?.unitsPerPick??null;
+        const p=resolveProduct(refKey(line.sku),line),pack=p?.effectiveUnitsPerPick??p?.unitsPerPick??null;
         g.lines.push({...line,sku:refKey(line.sku),quantity:Number(line.quantity),pack,pickingOverride:null,ruleSource:p?.pickingRule?.label||'Règle à renseigner',sourceHash:source.hash});
         if((line.needsReview||!p)&&!page.reviewed)g.reviewPages.add(page.id);
       }

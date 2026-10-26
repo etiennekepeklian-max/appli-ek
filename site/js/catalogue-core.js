@@ -33,4 +33,7 @@ export function pickingRule(product,families){
   }
   return {units:null,source:'unknown',label:'Règle à renseigner',familyId:null};
 }
-export function matchProduct(code,products){const value=refKey(code);const rows=products.filter(p=>refKey(p.sku)===value||p.barcode&&refKey(p.barcode)===value);return rows.length===1?rows[0]:null;}
+export function codesForProduct(p){
+  return [...new Set([p.sku,p.barcode,p.articleCode,...(Array.isArray(p.referenceCodes)?p.referenceCodes:[])].filter(Boolean).map(refKey))];
+}
+export function matchProduct(code,products){const value=refKey(code);const rows=products.filter(p=>codesForProduct(p).includes(value));return rows.length===1?rows[0]:null;}
