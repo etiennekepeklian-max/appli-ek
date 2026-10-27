@@ -34,7 +34,7 @@ export async function connect(){
     client.requestAccessToken({prompt:''});
   });emit('Compte Google connecté.');if(!c.spreadsheetId)return {connected:true,pendingDatabase:true};return sync();
 }
-async function api(url,{method='GET',body,headers={},retry=true,signal=AbortSignal.timeout(20000)}={}){
+async function api(url,{method='GET',body,headers={},retry=true,signal}={}){
   if(!connected())throw Error('Reconnectez votre compte Google pour synchroniser.');
   const response=await fetch(url,{method,signal,headers:{Authorization:`Bearer ${accessToken}`,...(body&&!(body instanceof Blob)?{'Content-Type':'application/json'}:{}),...headers},body:body instanceof Blob?body:body?JSON.stringify(body):undefined});
   if(!response.ok){if(response.status===401)disconnect();let data;try{data=await response.json();}catch{}

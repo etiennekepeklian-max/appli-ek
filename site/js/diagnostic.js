@@ -8,6 +8,7 @@ import {state,esc,pageHeading,nav,timestampLabel} from './ui.js';
 const key='application-diagnostic-v1',reports=new Map();
 let active,loading;
 const statuses={pass:'Réussi',fail:'Échec',warn:'À vérifier',manual:'Essai manuel'};
+const resultRoutes=new Set(['storage','schedule','chat','scan','diagnostic']);
 const launch=(label,action)=>'<button type="button" class="btn primary" data-wb-action="'+action+'" '+(active?.scope===Store.scope()?'disabled':'')+'>'+label+'</button>';
 const summary=report=>{
  const count=status=>report.rows.filter(r=>r.status===status).length;
@@ -16,7 +17,7 @@ const summary=report=>{
 function results(){
  const report=reports.get(Store.scope());
  if(!report)return '<p class="hint">Aucun contrôle enregistré pour cette session. Lancez une vérification.</p>';
- return '<p><strong>'+esc(active?.scope===Store.scope()?'Contrôle en cours…':summary(report))+'</strong></p><p class="hint">Pikéo '+esc(report.version)+' · '+esc(timestampLabel(report.at))+(report.kind==='photo'?' · Test photo uniquement.':'')+(report.version!==VERSION?' · Ancienne version : relancez le contrôle.':'')+(report.complete?'':' · Contrôle incomplet, à relancer.')+'</p><div class="diagnostic-results">'+report.rows.map(r=>'<article class="wb-subcard" data-diagnostic-id="'+esc(r.id)+'" data-diagnostic-status="'+esc(r.status)+'"><h3>'+esc(r.label)+'</h3><p><strong>'+esc(statuses[r.status]||'À vérifier')+'</strong> · '+esc(r.detail)+'</p>'+(r.route?nav('Ouvrir '+r.linkLabel,r.route,'arrow'):'')+'</article>').join('')+'</div>';
+ return '<p><strong>'+esc(active?.scope===Store.scope()?'Contrôle en cours…':summary(report))+'</strong></p><p class="hint">Pikéo '+esc(report.version)+' · '+esc(timestampLabel(report.at))+(report.kind==='photo'?' · Test photo uniquement.':'')+(report.photoAt&&report.kind==='full'?' · Test photo : '+esc(timestampLabel(report.photoAt))+'.':'')+(report.version!==VERSION?' · Ancienne version : relancez le contrôle.':'')+(report.complete?'':' · Contrôle incomplet, à relancer.')+'</p><div class="diagnostic-results">'+report.rows.map(r=>'<article class="wb-subcard" data-diagnostic-id="'+esc(r.id)+'" data-diagnostic-status="'+esc(r.status)+'"><h3>'+esc(r.label)+'</h3><p><strong>'+esc(statuses[r.status]||'À vérifier')+'</strong> · '+esc(r.detail)+'</p>'+(resultRoutes.has(r.route)?nav(esc('Ouvrir '+r.linkLabel),r.route,'arrow'):'')+'</article>').join('')+'</div>';
 }
 export function view(){
  return pageHeading('Vérifier l’application','Un bilan sur cet appareil, sans modifier vos fiches.')+'<div class="actions wb-back">'+nav('Tous mes outils','more','arrowleft')+'</div><section class="card"><h2>Diagnostic de Pikéo</h2><p class="hint">Calculs, feuilles multipages, catalogue, CSV, ENF, historique, sauvegardes, codes-barres, PDF et stockage. Des exemples fictifs sont utilisés ; aucun message n’est envoyé.</p><div class="actions section-gap">'+launch('Lancer la vérification','diagnostic')+'</div><p class="hint section-gap">Pour vérifier aussi le moteur OCR, lancez le test photo après ce contrôle. Au premier essai, il peut télécharger les fichiers de lecture.</p><div class="actions section-gap">'+launch('Tester la lecture photo','diagnostic-ocr')+'</div><div class="section-gap" data-diagnostic-results role="status" aria-live="polite" aria-busy="'+(active?.scope===Store.scope())+'">'+results()+'</div></section><section class="card section-gap"><h2>Ce qui demande un essai réel</h2><p>Le contrôle automatique ne certifie pas tous les usages. La netteté de vos feuilles, le terminal de lecture, le microphone, les vibrations, les autorisations Google et la réception d’un message se vérifient en situation.</p><p class="hint">Le dernier bilan reste sur cet appareil, par session. Il ne contient ni photo, ni référence de travail, ni message, ni identifiant Google et n’est pas envoyé à un service.</p><div class="actions section-gap">'+nav('Sauvegardes','storage','shield')+'<button type="button" class="btn" data-action="cache-ocr">Préparer l’OCR hors ligne</button></div></section>';
@@ -29,7 +30,7 @@ function paint(){
 }
 export function mount(){
  const owner=Store.scope();paint();if(reports.has(owner)||loading===owner)return;
- loading=owner;void Local.meta(key).then(report=>{if(Store.scope()!==owner||reports.has(owner))return;if(report?.schema===1&&typeof report.version==='string'&&Number.isFinite(Date.parse(report.at))&&Array.isArray(report.rows)&&report.rows.length<=100&&report.rows.every(r=>r&&typeof r.id==='string'&&typeof r.label==='string'&&typeof r.detail==='string'&&statuses[r.status]))reports.set(owner,report);paint();}).catch(()=>{}).finally(()=>{if(loading===owner)loading=null;});
+ loading=owner;void Local.meta(key).then(report=>{if(Store.scope()!==owner||reports.has(owner))return;if(report?.schema===1&&typeof report.version==='string'&&Number.isFinite(Date.parse(report.at))&&(!report.photoAt||Number.isFinite(Date.parse(report.photoAt)))&&Array.isArray(report.rows)&&report.rows.length<=100&&report.rows.every(r=>r&&typeof r.id==='string'&&typeof r.label==='string'&&typeof r.detail==='string'&&Object.hasOwn(statuses,r.status)))reports.set(owner,report);paint();}).catch(()=>{}).finally(()=>{if(loading===owner)loading=null;});
 }
 function workerInfo(){
  const worker=navigator.serviceWorker?.controller;if(!worker)return Promise.resolve(null);
@@ -79,7 +80,7 @@ async function photoCheck(){
 export async function run(ocr=false){
  const owner=Store.scope();if(active?.scope===owner)return;
  const token={scope:owner},current=()=>Store.scope()===owner&&active===token;
- active=token;const previous=reports.get(owner),keep=ocr&&previous?.version===VERSION&&previous.complete&&previous.kind==='full',report={schema:1,version:VERSION,kind:ocr&&!keep?'photo':'full',at:new Date().toISOString(),complete:false,rows:keep?[...previous.rows.filter(r=>r.id!=='ocr-live')]:[]};reports.set(owner,report);paint();
+ active=token;const previous=reports.get(owner),keep=ocr&&previous?.version===VERSION&&previous.complete&&previous.kind==='full',now=new Date().toISOString(),report={schema:1,version:VERSION,kind:ocr&&!keep?'photo':'full',at:keep?previous.at:now,...(ocr?{photoAt:now}:{}),complete:false,rows:keep?[...previous.rows.filter(r=>r.id!=='ocr-live')]:[]};reports.set(owner,report);paint();
  try{
   const {businessChecks,runChecks}=await import('./diagnostic-core.js');
   const checks=ocr?[{id:'ocr-live',label:'Lecture OCR réelle d’une image de test',run:photoCheck,failure:'Lecture photo non réussie. Vérifiez le réseau, préparez l’OCR hors ligne puis réessayez.'}]:[

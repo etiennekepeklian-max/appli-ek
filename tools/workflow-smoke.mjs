@@ -12,7 +12,7 @@ const base='http://localhost:8765/',sheet='synthetic-sheet-12345678901234567890'
 let testKey;
 let browser,page,failNext=false,duringAppend,appends=0,releaseLookup;const errors=[];
 const read=(fn,arg)=>page.evaluate(fn,arg);
-const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.15.0'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
+const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.15.1'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
 const close=async()=>{await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();};
 const field=name=>page.locator('#dialog [name="'+name+'"]');
 const save=async type=>{await page.locator('[data-form="'+type+'"] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden'});};
