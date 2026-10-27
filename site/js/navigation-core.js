@@ -5,7 +5,7 @@ export const TOOL_GROUPS=[
  ['Au quotidien',[
   ['scan','Scanner un produit','Ouvrir directement la caméra','scan','photo code lecture douchette'],
   ['codes','Créer un code-barres','Référence, PAC, PAD, RES et favoris','barcode','étiquette imprimer code barre'],
-  ['new-pending','Noter un manquant','Référence, commande et emplacement','clock','réassort JC rupture manque',true],
+  ['new-pending','Noter un manquant','Référence, commande et emplacement','clock','réassort JC rupture manque dicter vocal voix',true],
   ['pending','Suivre les manquants','Réceptions, relances JC et commandes à reprendre','clock','réassort reçu attente JC'],
   ['enfs','ENF — références et quantités','Consulter le contenu ou photographier une feuille','layers','composition ensemble contenu photo'],
   ['stock','Chercher un produit ou un casier','Référence, EAN, nom et emplacement','box','catalogue adresse rechercher trouver article'],
@@ -38,6 +38,7 @@ export const TOOL_GROUPS=[
   ['personal','Mes préférences et mon apparence','Thème sombre, lecture agrandie et utilisation à une main','settings','mode sombre clair contraste taille texte main animation mascotte'],
   ['settings','Réglages et sauvegarde Google','Options, raccourcis et connexion Google','settings','son vibration sheets synchroniser sauvegarde accueil'],
   ['storage','Espace et sauvegardes','Mes copies et l’espace utilisé sur cet appareil','shield','JSON restaurer mémoire stockage'],
+  ['photo-cleanup','Supprimer des photos par date','Libérer le téléphone en conservant les bilans','trash','mémoire stockage place supprimer effacer photos journée'],
   ['archive','Archiver mes fichiers','Vérifier une copie puis retirer des fichiers choisis','download','archivage photos espace libérer restaurer'],
   ['users','Sessions et collègues','Mon nom et les habilitations de l’équipe','user','compte profil administrateur opérateur connexion'],
   ['history','Historique et annulation','Retrouver ou annuler une action enregistrée','history','annuler erreur retour correction'],

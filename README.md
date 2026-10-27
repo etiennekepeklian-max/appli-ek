@@ -1,5 +1,12 @@
 # Pikéo
 
+## Version 1.16.3 — supprimer une journée et corriger sa date
+
+- Supprimer cette journée est disponible dans Ma journée et la session photo, y compris avant l’analyse ou la validation. Après confirmation, la session repart vide et le bilan est retiré pour pouvoir recréer la journée.
+- Modifier la date puis Sauvegarder la date déplace ensemble les photos, lectures, corrections, commandes validées et le total corrigé. Une date déjà occupée est refusée pour ne rien écraser ; fermer sans sauvegarder conserve la date initiale.
+- Les autres journées, le catalogue et les mémos sont conservés. Les fichiers d’origine et les anciennes valeurs restent récupérables ; Annuler peut restaurer l’action tant que les données concernées n’ont pas changé.
+- Ouvrir la journée du reste un sélecteur de session distinct, sans déplacement des photos.
+
 ## Version 1.16.2 — journées indépendantes et lecture interrompable
 
 - Photographier aujourd’hui conserve les journées non terminées, avec leurs photos et corrections. Le choix de date ouvre une session distincte ; il ne déplace aucune photo.
@@ -214,3 +221,10 @@ Le dossier `vendor/` contient les versions épinglées de JsBarcode, ZXing Brows
 L’application n’écrit pas dans Velocity et ne constitue pas le stock officiel. Elle ne gère pas de comptes utilisateurs propres : l’accès aux sauvegardes partagées est défini par les autorisations Google du fichier.
 
 
+
+
+### Photos par date et manquant vocal (1.16.3)
+
+- Ma journée / Outils → Supprimer des photos par date : choisir les dates, vérifier le récapitulatif et confirmer. Les bilans restent conservés ; les photos des brouillons en cours sont protégées.
+- L’option de nettoyage des copies de version retire seulement les images sélectionnées des points locaux. Elles ne sont plus récupérables depuis ces points ; aucune copie Google n’est effacée.
+- Noter un manquant → Dicter commande et référence : dire les deux numéros avec leurs libellés, puis relire et enregistrer. L’adresse connue est proposée. Aucun audio n’est conservé par Pikéo ; la reconnaissance du navigateur peut utiliser Internet. Le texte et le micro du clavier restent disponibles en secours.

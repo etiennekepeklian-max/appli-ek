@@ -13,7 +13,7 @@ import {showPhotoViewer} from './photo-viewer.js';
 import {state,esc,field,check,modal,closeModal,toast,formError,dateLabel,fmt,onModalClose} from './ui.js';
 import {uid,localDate,refKey,orderKey} from './core.js';
 
-let app,session,busy=false,namespace,queue=Promise.resolve(),revision=0,planStamp,capture,restartPreview,progressText='',duplicatesOpen=false,activeOperation=Promise.resolve(),analysisController,switching=false,otherDrafts=[];
+let app,session,busy=false,namespace,queue=Promise.resolve(),revision=0,planStamp,capture,restartPreview,datePreview,progressText='',duplicatesOpen=false,activeOperation=Promise.resolve(),analysisController,switching=false,otherDrafts=[];
 const button=(label,action,attrs='')=>`<button type="button" class="btn ${['analyse','reanalyse','camera','snapshot'].includes(action)?'primary':''} ${['camera','reanalyse'].includes(action)?'full':''}" data-day-action="${action}" ${attrs}>${label}</button>`;
 const persist=()=>{const value=structuredClone(session),space=namespace;queue=queue.catch(()=>{}).then(()=>{if(space!==Store.scope())throw Error('L’espace de travail a changé.');return Store.setMeta('day-capture',value);});return queue;};
 const sameSpace=()=>namespace===Store.scope();
@@ -38,16 +38,33 @@ function guard(){if(!sameSpace())throw Error('L’espace de travail a changé. R
 async function prepareRestart(date){
   await queue.catch(()=>{});namespace=Store.scope();const draft=await Store.meta('day-capture'),backlog=await Store.meta('day-capture-backlog');guard();
   const p=restartDayPlan(date,Store.list('orders'),Store.list('days'),draft,backlog);
-  if(!p.items.length)throw Error('Aucune commande ni correction enregistrée pour cette journée.');
+  if(!p.items.length&&!p.photos)throw Error('Aucune commande, correction ou photo pour cette journée.');
   restartPreview={date,signature:p.signature,space:namespace};
-  modal('Recommencer la journée du '+dateLabel(date)+' ?',`<span hidden data-help-context="day-restart"></span><p><strong>${p.commands} commande(s) · ${fmt(p.total)} picking(s)${p.corrections?' · total corrigé manuellement':''}</strong></p><p>Les commandes et la correction de cette date seront retirées du bilan. Vous pourrez refaire toutes les photos et recalculer la journée.</p><p>Le catalogue, les emplacements, les autres journées et les mémos sont conservés. Les anciennes valeurs restent dans l’historique ; les fichiers photo ne sont pas supprimés.</p>${p.otherDraft?'<p class="info-note">Les photos de l’autre journée restent dans Journées à reprendre. Vous pourrez les compléter plus tard.</p>':''}<form data-day-form="restart">${check('confirmed','Je confirme l’annulation du bilan de cette journée pour refaire les photos.',false,'required')}<p class="hint">Le bouton Annuler permet de rétablir l’ancien bilan. Si de nouvelles photos ont été prises entre-temps, elles sont conservées.</p><div data-form-error class="error-message" hidden></div><div class="form-actions"><button type="button" class="btn" data-action="close-dialog">Conserver cette journée</button><button type="submit" class="btn danger">Annuler la journée et refaire les photos</button></div></form>`,true);syncBusy();
+  modal('Supprimer la journée du '+dateLabel(date)+' ?',`<span hidden data-help-context="day-restart"></span><p><strong>${p.commands} commande(s) · ${fmt(p.total)} picking(s) · ${p.photos} photo(s) en cours${p.corrections?' · total corrigé manuellement':''}</strong></p><p>Les commandes, la correction du bilan et la session de photos de cette date seront retirées. Vous pourrez recréer la journée depuis le début, avec de nouvelles photos.</p><p>Le catalogue, les emplacements, les autres journées et les mémos sont conservés. Les anciennes valeurs restent dans l’historique ; les fichiers photo ne sont pas supprimés.</p>${p.otherDraft?'<p class="info-note">Les photos de l’autre journée restent dans Journées à reprendre. Vous pourrez les compléter plus tard.</p>':''}<form data-day-form="restart">${check('confirmed','Je confirme la suppression de cette journée pour la recréer depuis le début.',false,'required')}<p class="hint">Le bouton Annuler permet de rétablir l’ancien bilan. Si de nouvelles photos ont été prises entre-temps, elles sont conservées.</p><div data-form-error class="error-message" hidden></div><div class="form-actions"><button type="button" class="btn" data-action="close-dialog">Conserver cette journée</button><button type="submit" class="btn danger">Supprimer et recommencer</button></div></form>`,true);syncBusy();
+}
+async function prepareDateChange(date){
+  const photoSession=!!document.querySelector('#dialog[open] #batch-date');
+  await queue.catch(()=>{});namespace=Store.scope();
+  const p=restartDayPlan(date,Store.list('orders'),Store.list('days'),await Store.meta('day-capture'),await Store.meta('day-capture-backlog'));guard();
+  if(!p.items.length&&!p.photos)throw Error('Aucune commande, correction ou photo pour cette journée.');
+  datePreview={date,signature:p.signature,space:namespace,photoSession};
+  modal('Modifier la date de la journée',`<span hidden data-help-context="day-date"></span><p>Journée du <strong>${dateLabel(date)}</strong> : ${p.commands} commande(s), ${p.photos} photo(s) en cours${p.corrections?' et un total corrigé':''}.</p><p>Les commandes, les photos et leurs corrections seront déplacées ensemble. Une date déjà occupée ne sera pas écrasée.</p><form data-day-form="date">${field('newDate','Nouvelle date',date,{type:'date',id:'day-new-date',required:true})}<p class="hint">La date change uniquement après Sauvegarder la date.</p><div data-form-error class="error-message" hidden></div><div class="form-actions">${photoSession?button('Conserver la date','resume'):'<button type="button" class="btn" data-action="close-dialog">Conserver la date</button>'}<button type="submit" class="btn primary">Sauvegarder la date</button></div></form>`,true);syncBusy();
+}
+async function saveDate(form,data){
+  if(!datePreview)throw Error('Rouvrez la modification de date.');
+  const preview=datePreview,newDate=String(data.get('newDate')||'');
+  await Store.moveDay(preview.date,newDate,preview.signature,preview.space);guard();
+  session=await Store.meta('day-capture');if(preview.photoSession&&session?.date!==newDate)session=await Store.switchDayDraft(newDate,preview.space);
+  otherDrafts=await Store.dayDrafts();datePreview=null;progressText='';duplicatesOpen=false;
+  state.date=newDate;app.navigate('orders');if(preview.photoSession)showSession();
+  toast('Date sauvegardée. Photos, corrections et commandes conservées.');
 }
 async function confirmRestart(form){
   if(!restartPreview||!form.elements.confirmed.checked)throw Error('Confirmez la journée à recommencer.');
   const preview=restartPreview;
   session=await Store.restartDay(preview.date,preview.signature,preview.space);namespace=preview.space;progressText='';restartPreview=null;
   otherDrafts=await Store.dayDrafts();
-  state.date=preview.date;app.navigate('orders');showSession();toast('Journée annulée. Vous pouvez reprendre les photos.');
+  state.date=preview.date;app.navigate('orders');showSession();toast('Journée supprimée. Vous pouvez la recréer avec de nouvelles photos.');
 }
 const plan=()=>{const index=productIndex(products());return buildDayPlan(session.pages,Store.list('orders'),session.date,(sku,line)=>lineProduct(line||{sku},index));};
 function proposedCatalogue(p){
@@ -82,7 +99,7 @@ function dayPicker(){
   return `<section class="info-note section-gap" data-help-context="day-drafts"><p>Chaque journée est indépendante. Gardez vos photos maintenant, analysez et validez plus tard.</p>${session.date!==localDate()?button('Photographier aujourd’hui','today'):''}${waiting.length?`<details class="section-gap"><summary>Journées à reprendre (${waiting.length})</summary><div class="actions section-gap">${waiting.map(d=>button(dateLabel(d.date)+' · '+d.pages.length+' photo(s)','switch-day',`data-date="${esc(d.date)}"`)).join('')}</div></details>`:''}</section>`;
 }
 function showSession(){
-  modal('Enregistrer ma journée',`<span hidden data-help-context="orders"></span><p class="dialog-intro">Photographiez toutes les feuilles à la suite. Les numéros de commande et d’enregistrement désignent la même commande ; ils servent à regrouper ses pages.</p>${field('dayDate','Journée réalisée',session.date,{type:'date',id:'batch-date'})}${dayPicker()}<div id="batch-retry"></div><section class="day-upload">${button('Photographier les pages à la suite','camera')}<section data-day-camera class="document-camera"></section><details class="section-gap"><summary>Appareil photo du téléphone — secours</summary><label class="btn full" for="batch-camera">Photographier une page</label><input class="sr-only" id="batch-camera" type="file" accept="image/*" capture="environment" data-day-files></details><label class="btn full section-gap" for="batch-gallery">Ajouter des photos de la galerie</label><input class="sr-only" id="batch-gallery" type="file" accept="image/*" multiple data-day-files><p class="hint">100 photos maximum par session, 25 Mo par photo et 150 Mo au total. Vous pouvez fermer puis reprendre cette session.</p></section><p id="batch-progress" role="status" aria-live="polite">${esc(progressText)}</p><div class="section-gap">${button('Vérifier les doublons','duplicates')}</div><div id="batch-duplicates"></div><div id="batch-pages"></div><div class="actions section-gap">${button('Terminer les photos et analyser','analyse')}${button('Mettre l’analyse en pause','pause-analysis','hidden')}${button('Effacer cette session','discard')}${button('Continuer dans Ma journée','background')}</div><div id="batch-summary"></div>`,true);
+  modal('Enregistrer ma journée',`<span hidden data-help-context="orders"></span><p class="dialog-intro">Photographiez toutes les feuilles à la suite. Les numéros de commande et d’enregistrement désignent la même commande ; ils servent à regrouper ses pages.</p>${field('dayDate','Ouvrir la journée du',session.date,{type:'date',id:'batch-date'})}<div class="actions section-gap">${button('Modifier la date','change-date',`data-date="${esc(session.date)}"`)}${button('Supprimer cette journée','restart',`data-date="${esc(session.date)}"`)}</div>${dayPicker()}<div id="batch-retry"></div><section class="day-upload">${button('Photographier les pages à la suite','camera')}<section data-day-camera class="document-camera"></section><details class="section-gap"><summary>Appareil photo du téléphone — secours</summary><label class="btn full" for="batch-camera">Photographier une page</label><input class="sr-only" id="batch-camera" type="file" accept="image/*" capture="environment" data-day-files></details><label class="btn full section-gap" for="batch-gallery">Ajouter des photos de la galerie</label><input class="sr-only" id="batch-gallery" type="file" accept="image/*" multiple data-day-files><p class="hint">100 photos maximum par session, 25 Mo par photo et 150 Mo au total. Vous pouvez fermer puis reprendre cette session.</p></section><p id="batch-progress" role="status" aria-live="polite">${esc(progressText)}</p><div class="section-gap">${button('Vérifier les doublons','duplicates')}</div><div id="batch-duplicates"></div><div id="batch-pages"></div><div class="actions section-gap">${button('Terminer les photos et analyser','analyse')}${button('Mettre l’analyse en pause','pause-analysis','hidden')}${button('Effacer cette session','discard')}${button('Continuer dans Ma journée','background')}</div><div id="batch-summary"></div>`,true);
   onModalClose(stopCapture);draw();
 }
 function draw(){
@@ -131,7 +148,7 @@ async function addFiles(files){
     const bytes=await file.arrayBuffer(),digest=await crypto.subtle.digest('SHA-256',bytes),hash=Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');guard();
     if(session.pages.some(p=>p.hash===hash)){toast('Cette photo est déjà dans la session. Elle n’a pas été ajoutée deux fois.');continue;}
     const photoId=await Store.storeFile(new Blob([bytes],{type:file.type}),file.name||'feuille.jpg','day-photo');guard();
-    await Store.save('documents',{id:photoId,name:file.name||'feuille.jpg',kind:'day-photo',createdAt:new Date().toISOString(),sourceHash:hash},'Photo de journée conservée',{undoable:false});
+    await Store.save('documents',{id:photoId,name:file.name||'feuille.jpg',kind:'day-photo',dayDate:session.date,createdAt:new Date().toISOString(),sourceHash:hash},'Photo de journée conservée',{undoable:false});
     session.pages.push({id:uid(),photoId,hash,size:file.size,text:'',sections:null,reviewed:false,excluded:false});await persist();draw();
   }
   setProgress('Photos conservées. Ajoutez la suivante ou lancez l’analyse.');
@@ -203,12 +220,13 @@ async function saveDay(form){
 async function cropPage(id){
   const p=session.pages.find(p=>p.id===id),f=await Store.readFile(p.photoId);if(!f)throw Error('Photo indisponible.');
   const file=new File([f.blob],f.name,{type:f.blob.type}),out=await editDocumentPhoto(file);guard();
-  if(out&&out!==file){const photoId=await Store.storeFile(out,out.name,'day-photo');await Store.save('documents',{id:photoId,name:out.name,kind:'day-photo',createdAt:new Date().toISOString(),sourceHash:p.hash},'Photo redressée');p.photoId=photoId;p.text='';p.sections=null;p.reviewed=false;p.error=null;await persist();}
+  if(out&&out!==file){const photoId=await Store.storeFile(out,out.name,'day-photo');await Store.save('documents',{id:photoId,name:out.name,kind:'day-photo',dayDate:session.date,createdAt:new Date().toISOString(),sourceHash:p.hash},'Photo redressée');p.photoId=photoId;p.text='';p.sections=null;p.reviewed=false;p.error=null;await persist();}
   showSession();
 }
 async function act(b){
   const name=b.dataset.dayAction,id=b.dataset.id;
   if(name==='restart')return prepareRestart(b.dataset.date);
+  if(name==='change-date')return prepareDateChange(b.dataset.date);
   if(name==='resume')return openDay();
   if(name==='camera')return openCapture();
   if(name==='camera-stop'){stopCapture();return;}
@@ -229,7 +247,7 @@ async function act(b){
   if(name==='exclude'||name==='include'){const p=session.pages.find(p=>p.id===id);p.excluded=name==='exclude';await persist();draw();}
 }
 export function enhanceDay(root,route){
-  const rev=++revision,space=Store.scope();if(!['home','orders'].includes(route))return;const restart=root.querySelector('[data-day-action=restart]');if(restart)restart.disabled=busy;
+  const rev=++revision,space=Store.scope();if(!['home','orders'].includes(route))return;if(route==='orders')root.insertAdjacentHTML('afterbegin','<div class="actions section-gap"><button type="button" class="btn" data-nav="photo-cleanup">Supprimer des photos par date</button></div>');for(const control of root.querySelectorAll('[data-day-action=restart],[data-day-action=change-date]'))control.disabled=busy;
   Store.dayDrafts().then(days=>{if(!days.length||!root.isConnected||rev!==revision||Store.scope()!==space||root.dataset.view!==route)return;root.insertAdjacentHTML('afterbegin',`<section class="card draft-banner"><strong>${days.length} journée(s) de photos à reprendre</strong><p class="hint">Photographiez aujourd’hui et complétez les journées précédentes quand vous le souhaitez.</p><p data-day-running role="status">${esc(busy?progressText:'')}</p><div class="actions section-gap">${button('Photographier aujourd’hui','today')}${button('Reprendre mes photos','resume')}${days.map(d=>button(dateLabel(d.date)+' · '+d.pages.length+' photo(s)','switch-day',`data-date="${esc(d.date)}"`)).join('')}${button('Mettre l’analyse en pause','pause-analysis','hidden')}</div></section>`);syncBusy();});
 }
 export function installDay(callbacks){
@@ -251,7 +269,7 @@ export function installDay(callbacks){
     if(el.dataset.dayChoice){session.choices[el.dataset.dayChoice]=el.value;void persist();drawSummary();}
   });
   document.addEventListener('submit',e=>{const form=e.target.closest('[data-day-form]');if(!form)return;e.preventDefault();e.stopImmediatePropagation();if(busy)return;const data=new FormData(form);setBusy(true);
-    activeOperation=Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form,data):form.dataset.dayForm==='restart'?confirmRestart(form):form.dataset.dayForm==='distinct'?saveDistinct(form,data):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{setBusy(false);});
+    activeOperation=Promise.resolve().then(()=>form.dataset.dayForm==='page'?savePage(form,data):form.dataset.dayForm==='restart'?confirmRestart(form):form.dataset.dayForm==='date'?saveDate(form,data):form.dataset.dayForm==='distinct'?saveDistinct(form,data):saveDay(form)).catch(e=>{if(form.isConnected)formError(form,e);else toast(e.message,true);}).finally(()=>{setBusy(false);});
   },true);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCapture();});
   document.addEventListener('keydown',e=>{const card=e.target.closest('.product-record[data-action]');if(card&&e.target===card&&['Enter',' '].includes(e.key)){e.preventDefault();card.click();}});

@@ -1,7 +1,8 @@
 import {protectedFiles,hashBytes} from './archive-core.js';
 import {validateEnf} from './enf-core.js';
 import {restartDayPlan} from './day-core.js';
-import {pendingDayDrafts,switchDayDraftState} from './day-drafts-core.js';
+import {dayPhotoIndex} from './photo-cleanup-core.js';
+import {pendingDayDrafts,switchDayDraftState,moveDayPlan} from './day-drafts-core.js';
 import * as Identity from './identity-context.js';
 import {uid,makeEvent,latestRecords,TYPES} from './core.js';
 let db,events=[],records=new Map(),listeners=new Set(),namespace='live',demoMode=false,baseRecords=new Map();
@@ -42,12 +43,12 @@ async function batch(items,action,{undoable=true,resolves=[],expectedScope,metad
     if(undoTypes.has(type))snapshots.push({type,id:r.id,before:before?structuredClone(before):null,eventId:e.id});
     return e;
   });
-  if(!next.length)return [];
-  const undo=undoable&&snapshots.length?{id:uid(),action,items:snapshots,metadata:structuredClone(metadata),at:new Date().toISOString()}:undefined;
+  if(!next.length&&!metadata.length)return [];
+  const undo=undoable&&(snapshots.length||metadata.length)?{id:uid(),action,items:snapshots,metadata:structuredClone(metadata),at:new Date().toISOString()}:undefined;
   await writeEvents(next,undo,metadata);return next.map(e=>e.record);
 }
 export function saveBatch(items,action='Modification groupée',options){return serial(()=>batch(items,action,options));}
-export async function undoInfo(){const info=await meta('last-undo');return info?.items?.length?info:null;}
+export async function undoInfo(){const info=await meta('last-undo');return info&&(info.items?.length||info.metadata?.length)?info:null;}
 export const undoId=info=>info?.id||info?.at;
 export function dismissUndo(expectedId){return serial(async()=>{
   const info=await undoInfo();if(!info||undoId(info)!==expectedId)throw Error('La dernière action a changé. Vérifiez son intitulé.');
@@ -60,6 +61,7 @@ export function undoLast(expectedId){return serial(async()=>{
   const metadata=[];
   const dayKeys=new Set(['day-capture','day-capture-backlog']),dayMetadata=(info.metadata||[]).filter(item=>dayKeys.has(item.key));
   let daysUnchanged=true;for(const item of dayMetadata)if(JSON.stringify(await meta(item.key)??null)!==JSON.stringify(item.value??null))daysUnchanged=false;
+  if(!daysUnchanged&&(!info.items.length||dayMetadata.some(item=>item.requireUnchanged)))throw Error('Les photos ont changé depuis cette action. Annulation refusée pour conserver vos nouvelles saisies.');
   for(const item of info.metadata||[])if((!dayKeys.has(item.key)||daysUnchanged)&&JSON.stringify(await meta(item.key)??null)===JSON.stringify(item.value??null))metadata.push({key:item.key,value:item.before??null});
   metadata.push({key:'last-undo',value:null});
   await batch(info.items.map(i=>({type:i.type,record:i.before||{id:i.id,deleted:true}})),'Annulation : '+info.action,{undoable:false,metadata});
@@ -81,6 +83,22 @@ export const pendingEvents=()=>events.filter(e=>!e.synced);
 export async function storeFile(blob,name,kind='photo'){const id=uid();await request(db.transaction('files','readwrite').objectStore('files').put({id,blob,name,kind,createdAt:new Date().toISOString()}));return id;}
 export async function readFile(id){return request(db.transaction('files').objectStore('files').get(id));}
 export async function files(){return request(db.transaction('files').objectStore('files').getAll());}
+export function removeDayPhotos(manifest,dates,expectedScope){return serial(async()=>{
+ if(namespace!==expectedScope||!manifest?.length||new Set(manifest.map(f=>f.id)).size!==manifest.length)throw Error('La session ou la sélection a changé.');
+ return new Promise((resolve,reject)=>{
+  const t=db.transaction(['events','files','meta'],'readwrite'),fs=t.objectStore('files'),ms=t.objectStore('meta'),values=[];let left=3,failure,count=0;
+  [t.objectStore('events').getAll(),fs.getAll(),ms.getAll()].forEach((q,i)=>{q.onsuccess=()=>{values[i]=q.result;if(--left)return;try{
+   const [events,files,metadata]=values,index=new Map(dayPhotoIndex({events,files,metadata}).map(r=>[r.id,r])),selected=new Set(dates);
+   for(const proof of manifest){
+    const row=index.get(proof.id),file=files.find(f=>f.id===proof.id);
+    if(!file){if(proof.local)throw Error('La sélection a changé. Actualisez les dates.');continue;}
+    if(!row||row.protected||(row.currentDated?row.dates:proof.dates).some(d=>!selected.has(d))||file.blob.size!==proof.size||(file.name||'')!==proof.name||(file.createdAt||'')!==proof.createdAt)throw Error('Une photo est utilisée, a changé de date ou a été modifiée. Aucune suppression effectuée.');
+   }
+   for(const proof of manifest)if(files.some(f=>f.id===proof.id)){fs.delete(proof.id);count++;}
+  }catch(error){failure=error;t.abort();}};});
+  t.oncomplete=()=>{changed();resolve(count);};t.onerror=()=>reject(failure||t.error);t.onabort=()=>reject(failure||t.error||Error('Suppression interrompue.'));
+ });
+});}
 export async function setMeta(key,value){await request(db.transaction('meta','readwrite').objectStore('meta').put({key,value}));}
 export async function meta(key){const v=await request(db.transaction('meta').objectStore('meta').get(key));return v?.value;}
 export async function dayDrafts(){return pendingDayDrafts(await meta('day-capture'),await meta('day-capture-backlog'));}
@@ -98,10 +116,19 @@ export function restartDay(date,expectedSignature,expectedScope){return serial(a
   if(scope()!==expectedScope)throw Error('La session a changé. Rouvrez Ma journée.');
   const draft=await meta('day-capture'),backlog=await meta('day-capture-backlog'),plan=restartDayPlan(date,list('orders'),list('days'),draft,backlog);
   if(plan.signature!==expectedSignature)throw Error('La journée ou les photos ont changé. Relisez le récapitulatif avant de recommencer.');
-  if(!plan.items.length)throw Error('Cette journée ne contient plus de commande ni de correction à annuler.');
+  if(!plan.items.length&&!plan.photos)throw Error('Cette journée ne contient plus de commande, de correction ni de photo à supprimer.');
   const next=switchDayDraftState(date,draft,backlog);
   await batch(plan.items,'Journée du '+date+' annulée pour refaire les photos',{expectedScope,metadata:[{key:'day-capture',before:draft??null,value:plan.nextSession},{key:'day-capture-backlog',before:backlog??null,value:next.backlog}]});
   return plan.nextSession;
+});}
+export function moveDay(date,newDate,expectedSignature,expectedScope){return serial(async()=>{
+  if(scope()!==expectedScope)throw Error('La session a changé. Rouvrez Ma journée.');
+  const draft=await meta('day-capture'),backlog=await meta('day-capture-backlog'),plan=moveDayPlan(date,newDate,list('orders'),list('days'),draft,backlog);
+  if(plan.signature!==expectedSignature)throw Error('La journée ou les photos ont changé. Rouvrez la modification de date avant de sauvegarder.');
+  const photoDates=await meta('day-photo-dates'),source=draft?.date===date?draft:backlog?.[date],ids=new Set([...(source?.pages||[]).map(p=>p.photoId),...plan.items.filter(i=>i.type==='orders').flatMap(i=>[...(i.record.photoIds||[]),...(i.record.daySources||[]).map(s=>s.photoId)])].filter(Boolean));
+  const nextPhotoDates={...photoDates,...Object.fromEntries([...ids].map(id=>[id,newDate]))};
+  await batch(plan.items,'Journée déplacée du '+date+' au '+newDate,{expectedScope,metadata:[{key:'day-capture',before:draft??null,value:plan.draft,requireUnchanged:true},{key:'day-capture-backlog',before:backlog??null,value:plan.backlog,requireUnchanged:true},{key:'day-photo-dates',before:photoDates??null,value:nextPhotoDates}]});
+  return plan;
 });}
 export async function drafts(){const rows=await request(db.transaction('meta').objectStore('meta').getAll());return rows.filter(r=>r.key.startsWith('draft-')&&r.value).sort((a,b)=>b.value.updatedAt.localeCompare(a.value.updatedAt));}
 export async function exportData(){
@@ -148,7 +175,7 @@ export async function snapshotData(){
  return {app:'EK Logistique',schema:1,events:structuredClone(events),files:await files(),metadata:metadata.filter(r=>r.key!=='last-undo')};
 }
 export async function restoreFilesAndDrafts(snapshot){
- const rows=Array.isArray(snapshot.files)?snapshot.files:[],metadata=(snapshot.metadata||[]).filter(r=>r.key?.startsWith('draft-')||['day-capture','day-capture-backlog'].includes(r.key));
+ const rows=Array.isArray(snapshot.files)?snapshot.files:[],metadata=(snapshot.metadata||[]).filter(r=>r.key?.startsWith('draft-')||['day-capture','day-capture-backlog','day-photo-dates'].includes(r.key));
  await new Promise((resolve,reject)=>{const t=db.transaction(['files','meta'],'readwrite');for(const row of rows)t.objectStore('files').put(row);for(const row of metadata)t.objectStore('meta').put(row);t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});
  changed();
 }

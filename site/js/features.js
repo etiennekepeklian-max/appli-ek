@@ -27,7 +27,7 @@ export function dictate(button){
   if(!Recognition){toast('La dictée n’est pas disponible dans ce navigateur. Utilisez le micro du clavier de votre téléphone ou saisissez le texte.',true);return;}
   const input=document.getElementById(button.dataset.target);if(!input)return;
   if(recognition){recognition.stop();recognition=null;return;}
-  recognition=new Recognition();recognition.lang='fr-FR';recognition.continuous=false;recognition.interimResults=false;
+  window.dispatchEvent(new Event('pikeo-stop-pending-voice'));recognition=new Recognition();recognition.lang='fr-FR';recognition.continuous=false;recognition.interimResults=false;
   button.classList.add('listening');button.setAttribute('aria-label','Arrêter la dictée');
   recognition.onresult=e=>{try{const text=e.results[0][0].transcript;input.value=input.type==='number'?spokenInteger(text):button.dataset.code==='1'?voiceCode(text).value:text;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));input.focus();toast('Dictée insérée. Vérifiez le texte avant de confirmer.');}catch(error){toast(error.message,true);}};
   recognition.onerror=e=>{toast(e.error==='not-allowed'?'Autorisez le microphone dans les réglages du navigateur.':'La dictée n’a pas abouti. Vous pouvez réessayer ou saisir le texte.',true);};

@@ -11,6 +11,8 @@ import {handoffText,personalPreferences,dayFeedback,resumeQueue} from './workben
 import {createFileArchive,parseFileArchive,protectedFiles} from './archive-core.js';
 import {generateRecoveryKey,importRecoveryKey,sealJSON,openJSON,fromBase64} from './secure-core.js';
 import {createDeviceKeys,publicJWK,encryptMessage,decryptMessage,localSeal,localOpen,signedRequest} from './session-crypto.js';
+import {parsePendingVoice} from './pending-voice-core.js';
+import {photoCleanupPlan} from './photo-cleanup-core.js';
 import {HELP,jcMessage} from './help-core.js';
 import {TOOLS,searchTools} from './navigation-core.js';
 import {checkAddress,checkContents} from './training-core.js';
@@ -62,6 +64,7 @@ export function businessChecks(){return [
   same(parseDelimited(toCSV(['Référence','Casier'],[['001234','PAC001-A']]))[1],['001234','PAC001-A']);
  }),
  check('pending','Manquants, réassorts et message pour JC',()=>{
+  const voice=parsePendingVoice('commande 0000123 référence zéro zéro un deux trois quatre');same(voice.orderNumber,'0000123');same(voice.sku,'001234');
   const rows=[{id:'p',orderNumber:'TEST',sku:'001234',status:'waiting',location:'PAC001-A',createdAt:'2026-01-05T08:00:00Z'}];
   same(pendingDuplicates(rows,{orderNumber:'TEST',sku:'001234'}).length,1);assert(isOverdue(rows[0],Date.parse('2026-01-05T08:31:00Z')));
   assert(jcMessage(rows[0]).includes('PAC001-A'));same(preferredLocation(product),'PAC001-A');same(preferredLocation({...product,locations:['RES002']}),'');
@@ -77,6 +80,7 @@ export function businessChecks(){return [
   same(backupPresentation({configured:true,connected:true,pending:1}).kind,'pending');
  }),
  check('archive','Archives : intégrité et fichiers protégés',async()=>{
+  const purge=photoCleanupPlan({files:[{id:'cleanup-test',kind:'day-photo',createdAt:'2026-01-05T12:00:00Z',blob:new Blob(['x'],{type:'image/png'})}],events:[],metadata:[]},[],[date]);same(purge.count,1);
   const file={id:'synthetic',name:'test.txt',kind:'document',blob:new Blob(['Pikeo test'],{type:'text/plain'})};
   const archive=await createFileArchive([file]);const parsed=await parseFileArchive(archive);same(await parsed.rows[0].blob.text(),'Pikeo test');
   same(protectedFiles([{...file,kind:'voice'}],[]).size,1);

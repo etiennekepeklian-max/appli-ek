@@ -22,6 +22,14 @@ export async function claim(key,value){const db=await database();return new Prom
 export const listSnapshots=async()=> (await transaction('snapshots','readonly',s=>s.getAll())).map(({id,version,createdAt,eventCount,fileCount,reason})=>({id,version,createdAt,eventCount,fileCount,reason})).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
 export const readSnapshot=id=>transaction('snapshots','readonly',s=>s.get(id));
 export async function saveSnapshot(row){return transaction('snapshots','readwrite',s=>s.add(row));}
+export async function removePhotoCopies(ids,expectedScope){
+ if(namespace!==expectedScope)throw Error('La session a changé.');const wanted=new Set(ids),db=await database();if(namespace!==expectedScope)throw Error('La session a changé.');
+ return new Promise((resolve,reject)=>{const t=db.transaction('snapshots','readwrite'),store=t.objectStore('snapshots'),q=store.openCursor();let count=0;
+  q.onsuccess=()=>{const cursor=q.result;if(!cursor)return;const row=cursor.value,before=row.data?.files||[],kept=before.filter(f=>!wanted.has(f.id));
+   if(kept.length!==before.length){count+=before.length-kept.length;row.data.files=kept;row.fileCount=kept.length;cursor.update(row);}cursor.continue();};
+  t.oncomplete=()=>resolve(count);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Nettoyage des copies interrompu.'));
+ });
+}
 export const localData=()=>({preferences:preferences(),records:structuredClone(rows)});
 export function validateLocal(data){if(!Array.isArray(data?.records)||data.records.length>10000)throw Error('Repères personnels invalides.');for(const r of data.records){if(typeof r.id!=='string'||!r.id||!Number.isFinite(Date.parse(r.updatedAt)))throw Error('Repère personnel invalide.');cleanRecord(r.kind,r);}return data;}
 export async function restoreLocal(data,{replace=false}={}){
