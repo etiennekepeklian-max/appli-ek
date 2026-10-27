@@ -39,9 +39,18 @@ try{
  await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await page.locator('#dialog [name=sku]').fill('0000888');
  await page.locator('#check-update').evaluate(e=>e.click());await page.locator('#pikeo-update').getByRole('button',{name:'Appliquer la mise à jour'}).evaluate(e=>e.click());
  await page.getByText('Terminez ou fermez la saisie en cours, puis appliquez la mise à jour. Elle ne sera pas interrompue.').waitFor();assert.equal(await page.locator('#dialog [name=sku]').inputValue(),'0000888');assert.equal(await page.locator('#app-version').textContent(),VERSION);
+ // The daily dashboard stays open after saving: only its unsaved edits block an update.
+ await page.locator('#dialog [data-action=close-dialog]').first().evaluate(e=>e.click());await page.locator('#dialog').waitFor({state:'hidden'});
+ await page.evaluate(()=>location.hash='#orders');await page.locator('[data-form=picking-day]').waitFor();await page.locator('#picking-total').fill('1030');
+ await page.locator('#pikeo-update').getByRole('button',{name:'Appliquer la mise à jour'}).evaluate(e=>e.click());
+ await page.getByText('Terminez ou fermez la saisie en cours, puis appliquez la mise à jour. Elle ne sera pas interrompue.').waitFor();assert.equal(await page.locator('#picking-total').inputValue(),'1030');assert.equal(await page.locator('[data-form=picking-day]').getAttribute('data-editing'),'1');
+ const date=await page.locator('#day-select').inputValue();await page.locator('[data-form=picking-day] [type=submit]').click();
+ await page.waitForFunction(async date=>{const s=await import('./js/storage.js');return s.list('days').some(d=>d.date===date&&d.manualTotal===1030)&&document.querySelector('[data-form=picking-day]')?.dataset.editing!=='1';},date);
+ advertised=VERSION;await Promise.all([page.waitForNavigation(),page.locator('#pikeo-update').getByRole('button',{name:'Appliquer la mise à jour'}).evaluate(e=>e.click())]);await current(page,VERSION);
+ assert.equal(new URL(page.url()).searchParams.get('pikeo-v'),VERSION);assert.equal(new URL(page.url()).hash,'#orders');assert.equal(await page.locator('#picking-total').inputValue(),'1030');assert.equal(await page.evaluate(async date=>{const s=await import('./js/storage.js');return s.list('days').find(d=>d.date===date)?.manualTotal;},date),1030);
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/update-'+old+'.png'});await context.close();
  }
  published=true;advertised=VERSION;
  const previews=await browser.newContext({viewport:{width:320,height:800}}),preview=await previews.newPage();preview.on('pageerror',e=>errors.push(e.message));await preview.goto(base+'propositions-mascotte.html');assert.equal(await preview.locator('[data-choice]').count(),5);for(const card of await preview.locator('[data-choice]').all()){await card.getByRole('button',{name:'Rejouer'}).click();await card.locator('svg').waitFor();}assert.ok(await preview.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await preview.emulateMedia({reducedMotion:'reduce'});await preview.locator('[data-choice="1"] button').click();assert.equal(await preview.locator('[data-choice="1"] .arm').evaluate(e=>getComputedStyle(e).animationName),'none');await preview.screenshot({path:'test-results/mascotte-propositions.png',fullPage:true});await previews.close();
- assert.deepEqual(errors,[]);console.log('Mises à jour OK : anciennes copies 1.5/1.7, réparation, données/photos/mémos/brouillons conservés, hors ligne et formulaire protégé.');
+ assert.deepEqual(errors,[]);console.log('Mises à jour OK : anciennes copies 1.5/1.7, réparation, données/photos/mémos/brouillons conservés, hors ligne, saisies protégées et tableau picking sauvegardé actualisable.');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

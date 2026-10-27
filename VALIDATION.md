@@ -8,11 +8,13 @@ Le parcours picking-smoke vérifie les véritables formulaires : création/sauve
 
 Aide de Ma journée, de la saisie, de la suppression, du changement de date et page Aide révisées. PDF du jour, CSV et journal hebdomadaire utilisent les chiffres retenus ; les notes facultatives restent exclues du CSV sans sélection explicite. Le cache et les identifiants de stockage existants sont conservés ; aucun schéma serveur n’est modifié.
 
-Validation locale : 216 tests métier réussis ; 127 modules, 692 dépendances, 28 empreintes fournisseur et 109 ressources hors ligne vérifiés. Les suites picking, diagnostic, ui, day-restart, order-ocr, document-day, day-management et day-independent réussissent sous Chromium 141. Les contrôles de compatibilité ouvrent les anciens parcours explicitement, sans réintroduire leurs boutons dans le tableau quotidien. Les raccourcis de secours et l’aide des anciennes commandes orientent aussi vers la saisie des chiffres managers.
+Validation locale : 216 tests métier réussis ; 127 modules, 694 dépendances, 28 empreintes fournisseur et 109 ressources hors ligne vérifiés. Les suites picking, diagnostic, ui, day-restart, order-ocr, document-day, day-management et day-independent réussissent sous Chromium 141. Les contrôles de compatibilité ouvrent les anciens parcours explicitement, sans réintroduire leurs boutons dans le tableau quotidien. Les raccourcis de secours et l’aide des anciennes commandes orientent aussi vers la saisie des chiffres managers.
 
 Les axes du graphique utilisent des bornes arrondies et les dates des extrémités restent lisibles sur le petit écran. Un graphique renseigné en mode sombre a été inspecté, avec jours absents et journée à zéro. Le diagnostic intégré teste la saisie manager et la moyenne des jours renseignés sur un exemple fictif.
 
 Sauvegarde du code précédent : backup/v1.16.3-before-manual-picking-2026-10-27. Les sept contrôles GitHub restent obligatoires avant mise en ligne.
+
+Le tableau de saisie reste visible après sauvegarde : il autorise alors les mises à jour de l’application. Une saisie modifiée non sauvegardée continue de les bloquer, comme les fenêtres ouvertes. L’aide Actualiser précise ce comportement. update-smoke vérifie les deux états avec conservation des chiffres après le véritable rechargement, depuis les copies 1.5 et 1.7 simulées.
 
 # Validation — version 1.12.0
 

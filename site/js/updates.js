@@ -41,7 +41,8 @@ async function check(manual=false){
 }
 async function applyUpdate(){
  if(applying)return;
- if(document.querySelector('dialog[open],main form:not([data-form="search-workspace"])')){banner('Terminez ou fermez la saisie en cours, puis appliquez la mise à jour. Elle ne sera pas interrompue.',true);return;}
+ const activeForm=[...document.querySelectorAll('main form:not([data-form="search-workspace"])')].some(form=>form.dataset.form!=='picking-day'||form.dataset.editing==='1');
+ if(document.querySelector('dialog[open]')||activeForm){banner('Terminez ou fermez la saisie en cours, puis appliquez la mise à jour. Elle ne sera pas interrompue.',true);return;}
  applying=true;banner('Sauvegarde locale et préparation de la mise à jour…');
  try{
   if(appModule?.prepareUpdate)await appModule.prepareUpdate();
