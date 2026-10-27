@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
+import {VERSION} from '../site/js/core.js';
 import {auditContrast} from './contrast-audit.mjs';
 import {waitForState} from './poll.mjs';
 
@@ -19,7 +20,7 @@ try{
  await page.locator('#mascot-status').waitFor({state:'visible'});
  assert.equal(await page.locator('.mascot-deposit').evaluate(el=>getComputedStyle(el).animationName),'mascot-deposit');
  assert.equal(await page.locator('#mascot-status').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
- release();await page.locator('#app-version').filter({hasText:'1.16.1'}).waitFor();await page.unroute('**/data/catalogue.json');
+ release();await page.locator('#app-version').filter({hasText:VERSION}).waitFor();await page.unroute('**/data/catalogue.json');
  await page.getByRole('button',{name:'Commencer',exact:true}).click();
  const go=async route=>{await page.goto(base+'#'+route);await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
  const audit=async(label)=>{const result=await page.evaluate(auditContrast);report.push({label,checked:result.checked,min:result.min});failures.push(...result.failures.map(f=>({label,...f})));};

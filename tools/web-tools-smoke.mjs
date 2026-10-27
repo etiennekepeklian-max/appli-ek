@@ -1,7 +1,8 @@
+import {VERSION} from '../site/js/core.js';
 import assert from 'node:assert/strict';import {spawn} from 'node:child_process';import{readFile,mkdir}from'node:fs/promises';import{chromium}from'playwright';
 const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe','inherit']});await new Promise((r,j)=>{const t=setTimeout(()=>j(Error('Serveur indisponible')),15000);server.stdout.on('data',d=>{if(String(d).includes('http://')){clearTimeout(t);r();}});});
 let browser;const errors=[],base='http://localhost:8765/';
-async function go(p,route){await p.goto(base+'#'+route);await p.waitForFunction(()=>document.querySelector('#app-version')?.textContent==='1.16.1');}
+async function go(p,route){await p.goto(base+'#'+route);await p.waitForFunction(version=>document.querySelector('#app-version')?.textContent===version,VERSION);}
 async function downloadArchive(p){const download=p.waitForEvent('download');await p.getByRole('button',{name:'Créer et télécharger l’archive',exact:true}).click();const d=await download;const data=JSON.parse(await readFile(await d.path(),'utf8'));await p.locator('#dialog [data-action=close-dialog]').first().click();return data;}
 async function upload(p,selector,data,name='archive.json'){await p.locator(selector).setInputFiles({name,mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});}
 try{

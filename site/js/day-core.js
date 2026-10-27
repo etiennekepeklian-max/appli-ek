@@ -238,11 +238,11 @@ export function dayRecord(group,date,mode='new'){
   return {...group.existing,id:group.existing?.id,number:group.number,date,lines:e.lines,total:e.total,rangeMax:e.maximum,unknownLines:e.unknown,calculationStatus:e.status,status:'completed',reviewed:true,daySources:sources,photoIds:[...new Set(sources.map(s=>s.photoId).filter(Boolean))],notes:group.existing?.notes||''};
 }
 
-export function restartDayPlan(date,orders,days,draft){
+export function restartDayPlan(date,orders,days,draft,backlog={}){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||localDate(new Date(date+'T12:00:00'))!==date)throw Error('Choisissez une journée valide.');
   const selectedOrders=orders.filter(r=>!r.deleted&&r.date===date),corrections=days.filter(r=>!r.deleted&&r.date===date);
   const items=[...selectedOrders.map(record=>({type:'orders',record:{...record,deleted:true}})),...corrections.map(record=>({type:'days',record:{...record,deleted:true}}))];
   const stats=dailyStats(date,selectedOrders,corrections);
-  return {date,items,commands:stats.commands,total:stats.total,corrections:corrections.length,photos:draft?.date===date?draft.pages?.length||0:0,otherDraft:!!(draft?.pages?.length&&draft.date!==date),
-    nextSession:{date,pages:[],choices:{}},signature:JSON.stringify({date,records:items.map(x=>[x.type,x.record.id,x.record._eventId||null]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),draft:draft||null})};
+  return {date,items,commands:stats.commands,total:stats.total,corrections:corrections.length,photos:(draft?.date===date?draft:backlog?.[date])?.pages?.length||0,otherDraft:!!(draft?.pages?.length&&draft.date!==date),
+    nextSession:{date,pages:[],choices:{}},signature:JSON.stringify({date,records:items.map(x=>[x.type,x.record.id,x.record._eventId||null]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),draft:draft||null,backlog:backlog||{}})};
 }

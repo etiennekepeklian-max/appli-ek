@@ -44,7 +44,7 @@ try{
  await page.locator('[name=confirmed]').check();await page.locator('[data-day-form=restart] [type=submit]').click();await page.getByText('La journée ou les photos ont changé. Relisez le récapitulatif avant de recommencer.',{exact:true}).waitFor();await close();
  assert.equal(await page.evaluate(async()=>(await import('./js/storage.js')).get('orders','restart-a').deleted),undefined);
  await page.evaluate(async()=>{await(await import('./js/storage.js')).setMeta('day-capture',{date:'2026-10-25',pages:[{id:'other-day-photo'}],choices:{}});});
- await restart();assert.equal(await page.locator('[data-day-form=restart] [type=submit]').isDisabled(),true);await close();
+ await restart();assert.equal(await page.locator('[data-day-form=restart] [type=submit]').isDisabled(),false);await confirm();await close();assert.equal(await page.evaluate(async()=>(await(await import('./js/storage.js')).meta('day-capture-backlog'))['2026-10-25'].pages[0].id),'other-day-photo');await undo();
  console.log('OK nouvelles photos préservées pendant annulation inverse, modification concurrente refusée et autre brouillon protégé');
  await page.evaluate(async date=>{await(await import('./js/storage.js')).setMeta('day-capture',{date,pages:[],choices:{}});},date);
  for(const theme of ['light','dark'])for(const width of [320,390]){
@@ -57,5 +57,13 @@ try{
  await waitForState(page,async date=>{const s=await import('./js/storage.js');return s.list('orders').filter(o=>o.date===date).length===1;},date);
  const final=await page.evaluate(async date=>{const s=await import('./js/storage.js'),c=await import('./js/core.js');const stats=c.dailyStats(date,s.list('orders'),s.list('days'));return {total:stats.total,commands:stats.commands,correction:!!stats.correction,old:s.get('orders','restart-a').deleted,history:s.getEvents('orders','restart-a').length};},date);
  assert.deepEqual({...final,history:undefined},{total:2,commands:1,correction:false,old:true,history:undefined});assert.ok(final.history>1);
+ const recovery=await page.evaluate(async date=>{
+  const s=await import('./js/storage.js'),{restartDayPlan}=await import('./js/day-core.js'),active={date:'2026-10-27',pages:[{id:'today-to-keep',photoId:window.restartPhoto}],choices:{}};
+  await s.setMeta('day-capture',active);const backlog=await s.meta('day-capture-backlog'),p=restartDayPlan(date,s.list('orders'),s.list('days'),active,backlog);
+  await s.restartDay(date,p.signature,s.scope());const undo=await s.undoInfo();await s.setMeta('day-capture',{date,pages:[{id:'fresh-target-photo'}],choices:{}});await s.undoLast(undo.id);
+  const snapshot=await s.snapshotData();await s.setMeta('day-capture-backlog',{});await s.restoreFilesAndDrafts(snapshot);
+  return {current:(await s.meta('day-capture')).pages[0].id,other:(await s.meta('day-capture-backlog'))['2026-10-27'].pages[0].id};
+ },date);assert.deepEqual(recovery,{current:'fresh-target-photo',other:'today-to-keep'});
+ console.log('OK annulation après nouvelles photos : les deux journées restent conservées ; points de restauration multijournées compatibles');
  assert.deepEqual(errors,[]);console.log('OK photos refaites : ancien total non compté deux fois, historique conservé, clair/sombre 320/390 px');
 }catch(error){await mkdir('test-results',{recursive:true});await page?.screenshot({path:'test-results/day-restart-failure.png',fullPage:true}).catch(()=>{});console.error(await page?.locator('body').innerText().catch(()=>''));throw error;}finally{await browser?.close();server.kill();}

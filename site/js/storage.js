@@ -1,6 +1,7 @@
 import {protectedFiles,hashBytes} from './archive-core.js';
 import {validateEnf} from './enf-core.js';
 import {restartDayPlan} from './day-core.js';
+import {pendingDayDrafts,switchDayDraftState} from './day-drafts-core.js';
 import * as Identity from './identity-context.js';
 import {uid,makeEvent,latestRecords,TYPES} from './core.js';
 let db,events=[],records=new Map(),listeners=new Set(),namespace='live',demoMode=false,baseRecords=new Map();
@@ -57,7 +58,9 @@ export function undoLast(expectedId){return serial(async()=>{
   if(expectedId&&undoId(info)!==expectedId)throw Error('La dernière action a changé. Vérifiez son intitulé.');
   if(info.items.some(i=>get(i.type,i.id)?._eventId!==i.eventId))throw Error('Une fiche a changé depuis cette action, éventuellement sur un autre appareil. Annulation refusée pour préserver ces changements.');
   const metadata=[];
-  for(const item of info.metadata||[])if(JSON.stringify(await meta(item.key)??null)===JSON.stringify(item.value??null))metadata.push({key:item.key,value:item.before??null});
+  const dayKeys=new Set(['day-capture','day-capture-backlog']),dayMetadata=(info.metadata||[]).filter(item=>dayKeys.has(item.key));
+  let daysUnchanged=true;for(const item of dayMetadata)if(JSON.stringify(await meta(item.key)??null)!==JSON.stringify(item.value??null))daysUnchanged=false;
+  for(const item of info.metadata||[])if((!dayKeys.has(item.key)||daysUnchanged)&&JSON.stringify(await meta(item.key)??null)===JSON.stringify(item.value??null))metadata.push({key:item.key,value:item.before??null});
   metadata.push({key:'last-undo',value:null});
   await batch(info.items.map(i=>({type:i.type,record:i.before||{id:i.id,deleted:true}})),'Annulation : '+info.action,{undoable:false,metadata});
   return info.action;
@@ -80,13 +83,24 @@ export async function readFile(id){return request(db.transaction('files').object
 export async function files(){return request(db.transaction('files').objectStore('files').getAll());}
 export async function setMeta(key,value){await request(db.transaction('meta','readwrite').objectStore('meta').put({key,value}));}
 export async function meta(key){const v=await request(db.transaction('meta').objectStore('meta').get(key));return v?.value;}
+export async function dayDrafts(){return pendingDayDrafts(await meta('day-capture'),await meta('day-capture-backlog'));}
+export function switchDayDraft(date,expectedScope){return serial(async()=>{
+  if(scope()!==expectedScope)throw Error('L’espace de travail a changé. Rouvrez vos photos.');
+  const next=switchDayDraftState(date,await meta('day-capture'),await meta('day-capture-backlog'));
+  await new Promise((resolve,reject)=>{
+    const t=db.transaction('meta','readwrite'),store=t.objectStore('meta');
+    store.put({key:'day-capture',value:next.draft});store.put({key:'day-capture-backlog',value:next.backlog});
+    t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Changement de journée interrompu.'));
+  });
+  return next.draft;
+});}
 export function restartDay(date,expectedSignature,expectedScope){return serial(async()=>{
   if(scope()!==expectedScope)throw Error('La session a changé. Rouvrez Ma journée.');
-  const draft=await meta('day-capture'),plan=restartDayPlan(date,list('orders'),list('days'),draft);
+  const draft=await meta('day-capture'),backlog=await meta('day-capture-backlog'),plan=restartDayPlan(date,list('orders'),list('days'),draft,backlog);
   if(plan.signature!==expectedSignature)throw Error('La journée ou les photos ont changé. Relisez le récapitulatif avant de recommencer.');
-  if(plan.otherDraft)throw Error('Une session de photos d’une autre journée est en cours. Terminez-la ou écartez-la avant de recommencer celle-ci.');
   if(!plan.items.length)throw Error('Cette journée ne contient plus de commande ni de correction à annuler.');
-  await batch(plan.items,'Journée du '+date+' annulée pour refaire les photos',{expectedScope,metadata:[{key:'day-capture',before:draft??null,value:plan.nextSession}]});
+  const next=switchDayDraftState(date,draft,backlog);
+  await batch(plan.items,'Journée du '+date+' annulée pour refaire les photos',{expectedScope,metadata:[{key:'day-capture',before:draft??null,value:plan.nextSession},{key:'day-capture-backlog',before:backlog??null,value:next.backlog}]});
   return plan.nextSession;
 });}
 export async function drafts(){const rows=await request(db.transaction('meta').objectStore('meta').getAll());return rows.filter(r=>r.key.startsWith('draft-')&&r.value).sort((a,b)=>b.value.updatedAt.localeCompare(a.value.updatedAt));}
@@ -134,7 +148,7 @@ export async function snapshotData(){
  return {app:'EK Logistique',schema:1,events:structuredClone(events),files:await files(),metadata:metadata.filter(r=>r.key!=='last-undo')};
 }
 export async function restoreFilesAndDrafts(snapshot){
- const rows=Array.isArray(snapshot.files)?snapshot.files:[],metadata=(snapshot.metadata||[]).filter(r=>r.key?.startsWith('draft-')||r.key==='day-capture');
+ const rows=Array.isArray(snapshot.files)?snapshot.files:[],metadata=(snapshot.metadata||[]).filter(r=>r.key?.startsWith('draft-')||['day-capture','day-capture-backlog'].includes(r.key));
  await new Promise((resolve,reject)=>{const t=db.transaction(['files','meta'],'readwrite');for(const row of rows)t.objectStore('files').put(row);for(const row of metadata)t.objectStore('meta').put(row);t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});
  changed();
 }

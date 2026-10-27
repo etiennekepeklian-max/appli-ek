@@ -2,7 +2,7 @@ import {selectOrderText,identityText} from './order-ocr-core.js';
 
 function canvasFor(bitmap,angle,header=false){
  const turned=angle===90||angle===270,width=turned?bitmap.height:bitmap.width,height=turned?bitmap.width:bitmap.height;
- const scale=Math.min(3400,Math.max(3000,Math.max(width,height)))/Math.max(width,height),canvas=document.createElement('canvas');
+ const scale=Math.min(1,3000/Math.max(width,height)),canvas=document.createElement('canvas');
  canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);const ctx=canvas.getContext('2d',{willReadFrequently:true});
  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(angle*Math.PI/180);ctx.drawImage(bitmap,-bitmap.width*scale/2,-bitmap.height*scale/2,bitmap.width*scale,bitmap.height*scale);ctx.resetTransform();
  // Grayscale and bounded contrast improve small print without thresholding away
@@ -20,15 +20,15 @@ async function imageSource(file){
  const url=URL.createObjectURL(file),image=new Image();
  try{await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('Photo illisible sur cet appareil.'));image.src=url;});image.close=()=>URL.revokeObjectURL(url);return image;}catch(error){URL.revokeObjectURL(url);throw error;}
 }
-export async function readOrderPhoto(file,recognize,onProgress=()=>{}){
+export async function readOrderPhoto(file,recognize,onProgress=()=>{},{signal}={}){
  const bitmap=await imageSource(file);let best,lastError;
  // Wide photos of these portrait forms are usually sideways. Other orientations
  // are tried only when the number or its article lines cannot be recovered.
  const angles=bitmap.width>bitmap.height?[270,90,0,180]:[0,180,90,270];
  try{
   for(const angle of angles){
-   onProgress('Lecture de la feuille — orientation '+angle+'°…');const canvas=canvasFor(bitmap,angle);
-   try{const {data}=await recognize(canvas,{rotateAuto:true},{text:true,tsv:true}),candidate={...selectOrderText(data),angle};if(!best||candidate.score>best.score)best=candidate;if(candidate.confident)break;}catch(error){lastError=error;}finally{canvas.width=canvas.height=1;}
+   signal?.throwIfAborted();onProgress('Lecture de la feuille — orientation '+angle+'° (essai '+(angles.indexOf(angle)+1)+'/4)…');const canvas=canvasFor(bitmap,angle);
+   try{const {data}=await recognize(canvas,{rotateAuto:true},{text:true,tsv:true}),candidate={...selectOrderText(data),angle};if(!best||candidate.score>best.score)best=candidate;if(candidate.confident)break;}catch(error){if(signal?.aborted)throw signal.reason;lastError=error;}finally{canvas.width=canvas.height=1;}
   }
   if(!best)throw lastError||Error('Aucun texte exploitable sur cette photo.');
   if(!best.identified){

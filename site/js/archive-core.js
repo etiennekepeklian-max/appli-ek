@@ -7,7 +7,7 @@ export function protectedFiles(files,events,metadata=[]){
  const mark=(value,reason)=>{if(typeof value==='string'&&ids.has(value))out.set(value,reason);else if(Array.isArray(value))for(const v of value)mark(v,reason);else if(value&&typeof value==='object'&&!(value instanceof Blob))for(const v of Object.values(value))mark(v,reason);};
  for(const f of files)if(f.kind==='voice'||f.blob?.type?.startsWith('audio/'))out.set(f.id,'Mémo : utiliser Mémos vocaux');else if(f.kind==='font'||f.blob?.type?.startsWith('font/'))out.set(f.id,'Police de codes-barres conservée');
  for(const [key,row] of latestRecords(events))if(!row.deleted&&(key.startsWith('products:')||key.startsWith('preferences:')))mark(row,'Fichier utilisé par une fiche produit ou les réglages');
- for(const r of metadata)if(r.key?.startsWith('draft-')||['day-capture','enf-draft','last-undo'].includes(r.key))mark(r.value,'Brouillon ou action encore récupérable');
+ for(const r of metadata)if(r.key?.startsWith('draft-')||['day-capture','day-capture-backlog','enf-draft','last-undo'].includes(r.key))mark(r.value,'Brouillon ou action encore récupérable');
  return out;
 }
 function info(f){return {id:f.id,name:f.name,kind:f.kind,mime:f.mime,createdAt:f.createdAt,size:f.size,sha256:f.sha256};}

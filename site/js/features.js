@@ -9,9 +9,18 @@ import {scanFeedback,unlockFeedback} from './feedback.js';
 import {recordUnknown,resolveUnknowns,hydratePhotos} from './ops.js';
 import {productLocations} from './ops-core.js';
 import {OCR_ASSETS} from './offline-core.js';
+import {boundedOCR,abortableOCR,ocrAbortError} from './ocr-task.js';
 
 const scripts=new Map();
-export function loadScript(path){if(scripts.has(path))return scripts.get(path);const p=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=path;s.onload=resolve;s.onerror=()=>{scripts.delete(path);reject(Error('Ce module est indisponible. Préparez-le hors ligne dans Réglages ou vérifiez votre connexion.'));};document.head.append(s);});scripts.set(path,p);return p;}
+export function loadScript(path){
+  if(scripts.has(path))return scripts.get(path);
+  const p=new Promise((resolve,reject)=>{
+    const s=document.createElement('script'),finish=error=>{clearTimeout(timer);s.onload=s.onerror=null;if(error){scripts.delete(path);s.remove();reject(error);}else resolve();};
+    const unavailable=()=>finish(Error('Ce module est indisponible. Préparez-le hors ligne dans Réglages ou vérifiez votre connexion.'));
+    const timer=setTimeout(unavailable,25000);s.src=path;s.onload=()=>finish();s.onerror=unavailable;document.head.append(s);
+  });
+  scripts.set(path,p);return p;
+}
 let recognition;
 export function dictate(button){
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -181,18 +190,31 @@ export async function lookupProduct(raw){const code=String(raw).trim();if(!code)
   if(state.scanResult?.code!==code||!el.isConnected)return;
   el.innerHTML=`<p class="hint">Code lu : <strong class="mono">${esc(code)}</strong></p>${found.length?`<h3 class="section-gap">Pistes trouvées sur le site officiel</h3><p class="hint">Vérifiez la référence avant de retenir une dénomination.</p>${found.map(p=>`<p class="section-gap"><a href="${esc(new URL(p.url,'https://fr.checkout.draegerparis.com').href)}" target="_blank" rel="noopener noreferrer">${esc(p.title)} ↗</a></p>`).join('')}`:'<p class="info-note">Code conservé dans Outils → Codes inconnus.</p><h3 class="section-gap">Aucune correspondance certaine</h3><p class="small muted section-gap">Ce code peut être une référence interne ou un produit absent du catalogue public. Vous pouvez rechercher sa dénomination sur Internet ou créer sa fiche.</p>'}<div class="actions section-gap"><a class="btn" href="${searchURL}" target="_blank" rel="noopener noreferrer">${icon('search')}Rechercher sur Internet</a>${btn('Ajouter ce produit','new-product-from-scan','plus','primary',`data-code="${esc(code)}"`)}</div>`;
 }
-let ocrWorker,ocrQueue=Promise.resolve(),ocrProgress=()=>{};
+let ocrWorker,ocrGeneration=0,ocrQueue=Promise.resolve(),ocrProgress=()=>{};
+function terminateOCR(worker){try{Promise.resolve(worker?.terminate()).catch(()=>{});}catch{}}
+function resetOCR(){const worker=ocrWorker;ocrWorker=null;ocrGeneration++;ocrProgress=()=>{};terminateOCR(worker);}
 export function recognizePhoto(file,onProgress=()=>{},options={}){
   const task=ocrQueue.catch(()=>{}).then(()=>Mascot.during(async()=>{
-    ocrProgress=onProgress;try{return await readPhoto(file,onProgress,options);}finally{ocrProgress=()=>{};}
+    ocrProgress=onProgress;
+    try{return await boundedOCR(signal=>readPhoto(file,onProgress,{...options,signal}),{signal:options.signal,timeoutMs:options.timeoutMs,onInterrupt:resetOCR});}
+    catch(error){if(error.name!=='AbortError'&&error.name!=='OCRTimeoutError')resetOCR();throw error;}
+    finally{ocrProgress=()=>{};}
   },'Lecture de votre document…'));ocrQueue=task.catch(()=>{});return task;
 }
 async function readPhoto(file,onProgress,options){
-  await loadScript('vendor/ocr/tesseract.min.js');const absolute=path=>new URL(path,document.baseURI).href;
-  if(!ocrWorker){onProgress('Préparation du moteur de lecture…');ocrWorker=await Tesseract.createWorker(['fra','eng'],1,{workerPath:absolute('vendor/ocr/worker.min.js'),corePath:absolute('vendor/ocr/core'),langPath:absolute('vendor/ocr/lang'),workerBlobURL:false,gzip:true,logger:m=>{if(m.status==='recognizing text')ocrProgress('Lecture du document : '+Math.round((m.progress||0)*100)+' %');else if(m.status==='loading language traineddata')ocrProgress('Préparation des langues de reconnaissance…');}});}
-  if(options.order){const {readOrderPhoto}=await import('./order-ocr.js');return readOrderPhoto(file,(image,settings,output)=>ocrWorker.recognize(image,settings,output),onProgress);}
+  const signal=options.signal;
+  await abortableOCR(loadScript('vendor/ocr/tesseract.min.js'),signal);const absolute=path=>new URL(path,document.baseURI).href;
+  if(!ocrWorker){
+    onProgress('Préparation du moteur de lecture…');const generation=ocrGeneration;
+    const pending=Tesseract.createWorker(['fra','eng'],1,{workerPath:absolute('vendor/ocr/worker.min.js'),corePath:absolute('vendor/ocr/core'),langPath:absolute('vendor/ocr/lang'),workerBlobURL:false,gzip:true,logger:m=>{if(generation!==ocrGeneration)return;if(m.status==='recognizing text')ocrProgress('Lecture du document : '+Math.round((m.progress||0)*100)+' %');else if(m.status==='loading language traineddata')ocrProgress('Préparation des langues de reconnaissance…');}}).then(worker=>{
+      if(signal.aborted||generation!==ocrGeneration){terminateOCR(worker);throw signal.reason||ocrAbortError();}return worker;
+    });
+    ocrWorker=await abortableOCR(pending,signal);
+  }
+  const worker=ocrWorker,recognize=(image,settings,output)=>abortableOCR(worker.recognize(image,settings,output),signal);
+  if(options.order){const {readOrderPhoto}=await import('./order-ocr.js');return readOrderPhoto(file,recognize,onProgress,{signal});}
   let source=file;try{const bitmap=await createImageBitmap(file);try{const factor=Math.min(1,(options.table?3400:2600)/Math.max(bitmap.width,bitmap.height));if(factor<1){const canvas=document.createElement('canvas');canvas.width=Math.round(bitmap.width*factor);canvas.height=Math.round(bitmap.height*factor);canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);source=canvas;}}finally{bitmap.close();}}catch{}
-  const {data}=await ocrWorker.recognize(source,{},options.table?{text:true,tsv:true}:{text:true});
+  const {data}=await recognize(source,{},options.table?{text:true,tsv:true}:{text:true});
   onProgress('Texte lu. Vérifiez les références et les quantités.');return options.table?layoutText(data.tsv,data.text):data.text;
 }
 export async function cacheOCR(){

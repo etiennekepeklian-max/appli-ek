@@ -1,3 +1,4 @@
+import {VERSION} from '../site/js/core.js';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
@@ -9,7 +10,7 @@ let browser,page;const errors=[],base='http://localhost:8765/';
 try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
- const ready=()=>page.waitForFunction(()=>!!document.querySelector('#main')?.dataset.view&&document.querySelector('#app-version')?.textContent==='1.16.1');
+ const ready=()=>page.waitForFunction(version=>!!document.querySelector('#main')?.dataset.view&&document.querySelector('#app-version')?.textContent===version,VERSION);
  await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
  const seed=async id=>{await page.evaluate(async id=>{const s=await import('./js/storage.js');await s.save('journal',{id,date:'2026-10-27',activities:'Compte rendu de test'},'Journal hebdomadaire enregistré');},id);await page.locator('#undo-bar').waitFor({state:'visible'});};
  const hidden=()=>page.locator('#undo-bar').waitFor({state:'hidden'});

@@ -1,5 +1,13 @@
 # Pikéo
 
+## Version 1.16.2 — journées indépendantes et lecture interrompable
+
+- Photographier aujourd’hui conserve les journées non terminées, avec leurs photos et corrections. Le choix de date ouvre une session distincte ; il ne déplace aucune photo.
+- Journées à reprendre et le bandeau de Ma journée permettent de rattraper chaque date séparément. Ces brouillons restent locaux, inclus dans les points de restauration et protégés du retrait de fichiers.
+- Mettre l’analyse en pause interrompt le moteur et conserve les lectures terminées. Changer de journée pendant la lecture la met en pause automatiquement. Une limite de 60 secondes par photo évite une attente sans fin ; le moteur est recréé après interruption.
+- Les images ne sont plus agrandies artificiellement avant lecture ; les grandes images sont limitées à 3 000 pixels sur leur plus grand côté. Les quatre orientations restent disponibles en secours.
+
+
 ## Version 1.10.0 — sessions par nom, habilitations et données lisibles
 
 - Aucune saisie de mot de passe ou PIN. Étienne active son accès administrateur avec son fichier privé, puis attribue les habilitations aux appareils.

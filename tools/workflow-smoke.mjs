@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
+import {VERSION} from '../site/js/core.js';
 import {SHEETS} from '../site/js/core.js';
 
 // Isolated browser, synthetic records and a simulated Google server only.
@@ -12,7 +13,7 @@ const base='http://localhost:8765/',sheet='synthetic-sheet-12345678901234567890'
 let testKey;
 let browser,page,failNext=false,duringAppend,appends=0,releaseLookup;const errors=[];
 const read=(fn,arg)=>page.evaluate(fn,arg);
-const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.16.1'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
+const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:VERSION}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
 const close=async()=>{await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();};
 const field=name=>page.locator('#dialog [name="'+name+'"]');
 const save=async type=>{await page.locator('[data-form="'+type+'"] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden'});};
