@@ -174,3 +174,8 @@ Aide revue : contexte Diagnostic, page Aide et FAQ, répertoire Outils, Réglage
 ### Ajustement 1.15.1
 
 Le délai de six secondes reste limité au GET de diagnostic Google et n’interrompt pas les gros envois sur réseau lent. Le test photo conserve la date du contrôle général et affiche séparément sa propre date. Les liens d’un bilan conservé sont limités aux écrans internes prévus et leurs libellés sont échappés ; un bilan mal formé n’empêche pas de relancer le diagnostic. Les mêmes suites restent requises pour la publication.
+
+
+### Ajustement 1.15.2 — catalogue séparé à chaque changement d’espace
+
+Un test de non-régression reproduit d’abord un ancien défaut de cache : après passage du catalogue personnel à une démonstration déjà créée, une référence pouvait encore être trouvée dans le catalogue mémorisé précédent. Le catalogue et l’index vérifient désormais aussi le périmètre actif avant chaque réutilisation. Le même test réussit ensuite dans les deux sens, avec les références et leurs alias séparés, sans aucune modification des bases. Le total est de 166 tests métier. Les identifiants et le stockage de démonstration restent ceux existants. La séparation de l’index entre deux profils est aussi contrôlée dans le navigateur sur de vraies bases IndexedDB. Aide revue : aucun geste ni conseil supplémentaire ne change pour cette correction.
