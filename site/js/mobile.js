@@ -30,6 +30,7 @@ function actionLabel(button){
 // Replace read-only tables with semantic cards. Original controls and event
 // delegation are retained; no record is truncated or hidden on small screens.
 export function enhanceMobileTables(root,route=''){
+  if(document.body.classList.contains('desktop'))return;
   for(const table of root.querySelectorAll('table.data-table:not(.editor-lines)')){
     const labels=[...table.querySelectorAll('thead th')].map(el=>el.textContent.trim());
     const list=document.createElement('div');list.className='record-list';
@@ -68,6 +69,7 @@ export function enhanceMobileTables(root,route=''){
 
 export function enhanceMobileView(root,route,customShortcuts){
   root.dataset.view=route;
+  if(document.body.classList.contains('desktop'))return;
   if(route==='more')return;
   const tabs=root.querySelector('.tabs');
   if(tabs){

@@ -14,3 +14,6 @@
 - Les repères privés de workbench-store (ressenti, entraide, préférences, photos de reprise) ne rejoignent pas la synchronisation métier. Les comptes et autorisations doivent être imposés par un service authentifié ; ne pas présenter un masque de boutons comme une protection.
 
 - Décision d’Étienne du 27 octobre : le suivi picking utilise les chiffres journaliers saisis à partir des managers, modifiables après sauvegarde et visibles en graphiques. Retirer les invitations à photographier/analyser les commandes de ce parcours. Préserver les anciens bilans et photos, leur nettoyage explicite et la compatibilité des sauvegardes.
+
+- Version bureau : conserver `bureau.html` et `index.html` sur la même origine et avec les mêmes identifiants de stockage. La version mobile reste disponible. Ne pas promettre de copie automatique des données entre appareils sans synchronisation Google. Les clés et mémos ne se synchronisent pas.
+- Permissions : conserver le modèle identique dans `site/js/permissions-core.js` et `backend/pikeo-api/permissions-core.js`. L’accès propriétaire nécessite le fichier privé, jamais le nom seul ; aucun rôle élevé automatique pour un nouvel appareil. Tester les parcours d’administration avec le relais simulé de `tools/desktop-smoke.mjs`, sans créer de clé propriétaire temporaire sur le serveur réel.

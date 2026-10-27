@@ -1,5 +1,15 @@
 # Pikéo
 
+## Version 1.18.0 — espace bureau et administration
+
+- `bureau.html` ouvre une interface large avec navigation latérale, tableaux de produits, saisie des chiffres managers, graphiques et toutes les fonctions de la version mobile. `index.html` conserve l’interface téléphone ; les deux entrées partagent les mêmes bases dans un même navigateur.
+- Entre deux appareils, les données métier passent par la synchronisation existante du même compte et de la même feuille Google. Les paramètres produits partagés passent par le serveur de sessions. Les photos locales, repères privés, mémos et clés ne sont pas automatiquement recopiés.
+- **Utilisateurs et droits** : le propriétaire Étienne peut créer un compte, le suspendre/réactiver et ajuster chaque appareil. Profils administrateur, opérateur et consultation, avec cases de droits personnalisés. Une confirmation précède les changements d’accès ; une version obsolète est refusée.
+- Étienne importe son fichier privé existant une fois par navigateur. Choisir son nom ne confère aucun privilège. Les accès propriétaire activés sont protégés ; les autres administrateurs ne gèrent pas les habilitations. Les suspensions bloquent le serveur sans effacer les copies hors ligne.
+- Le serveur contrôle l’accès à l’administration, aux paramètres partagés et aux envois. Les permissions d’écriture métier sont aussi contrôlées dans le stockage local. Les données métier historiques et les quatre onglets Google restent conservés.
+- Installation neuve du serveur : exécuter `backend/schema.sql`, puis `backend/admin-schema.sql` avant de déployer les trois fichiers de `backend/pikeo-api/`. Mise à jour d’une base existante : uniquement `backend/admin-schema.sql`.
+
+
 ## Version 1.17.0 — suivi picking manuel
 
 - Ma journée propose la saisie par date des chiffres communiqués par les managers : pickings, et facultativement commandes, colis, palettes, poids, source et note. Sauvegarder applique les modifications, y compris pour un jour passé.

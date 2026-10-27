@@ -12,6 +12,9 @@ export const TOOL_GROUPS=[
   ['orders','Ma journée — suivi picking','Saisir les chiffres reçus et voir les graphiques','chart','objectif picking fin journée bilan quantité manager statistiques graphique'],
   ['voice','Mémos vocaux','Enregistrer, écouter et exporter sur ce téléphone','mic','mémo vocal note audio son dictaphone']
  ]],
+ ['Administration et bureau',[
+  ['administration','Utilisateurs et droits','Comptes, appareils et autorisations — propriétaire Étienne','user','admin habilitation rôle consultation accès suspendre créer utilisateur']
+ ]],
  ['Mon poste et mon équipe',[
   ['post','Mon poste','Matériel et repères de travail','box','équipement checklist'],
   ['resume','Préparations à reprendre','Mes repères pour retrouver une commande','clock','pause reprise attente photo'],
