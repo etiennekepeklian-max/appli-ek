@@ -50,6 +50,7 @@
   "js/order-ocr-core.js",
   "js/order-ocr.js",
   "js/photo-tools.js",
+  "js/photo-viewer.js",
   "js/recovery.js",
   "js/schedule-core.js",
   "js/schedule.js",

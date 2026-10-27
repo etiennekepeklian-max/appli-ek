@@ -133,18 +133,52 @@ export function parseDayPage(text){
   return sections.filter(s=>s.number||s.lines.length||sections.length===1);
 }
 
-export function buildDayPlan(pages,existing,date,resolveProduct){
-  const groups=new Map(),problems=[],seenHashes=new Set(),seenSlots=new Map();let duplicatePages=0;
+function dayPageReadings(pages){
   const parsed=pages.filter(p=>!p.excluded).map(page=>({page,sections:page.sections||parseDayPage(page.text)})),registrationAliases=new Map();
   const printedOrders=new Map();for(const {page,sections} of parsed)if(!page.error)for(const s of sections)for(const identity of s.identities||[])if(identity.kind==='order'&&/^\d{6,9}$/.test(identity.number)&&(!page.reviewed||orderKey(s.number)===orderKey(identity.number)))printedOrders.set(orderKey(identity.number),identity.number);
   for(const {page,sections} of parsed)if(!page.error)for(const identity of sIdentities(sections,page)){const confirmed=printedOrders.get(orderKey(identity.value.slice(0,-3)));if(confirmed||identity.value.length===12)registrationAliases.set(orderKey(identity.value),confirmed||identity.number);}
+  return parsed.map(({page,sections})=>({page,sections:sections.map(s=>!page.reviewed&&registrationAliases.has(orderKey(s.number))?{...s,number:registrationAliases.get(orderKey(s.number))}:s)}));
+}
+const duplicateSignature=page=>JSON.stringify([page.photoId||'',page.hash||'',page.text||'',page.sections||null]);
+export const distinctPageProof=(page,other)=>({id:other.id,own:duplicateSignature(page),other:duplicateSignature(other)});
+function pagesConfirmedDistinct(a,b){
+  return !!b.allowDuplicate||[[a,b],[b,a]].some(([page,other])=>(page.distinctPages||[]).some(p=>p.id===other.id&&p.own===duplicateSignature(page)&&p.other===duplicateSignature(other)));
+}
+const rowKeys=s=>(s.lines||[]).map(l=>JSON.stringify([refKey(l.sku),Number(l.quantity),sheetLocation(l.location||l.rawLocation)])).sort();
+const sameRows=(a,b)=>JSON.stringify(rowKeys(a))===JSON.stringify(rowKeys(b));
+function commonRows(a,b){const remaining=[...b];let count=0;for(const row of a){const at=remaining.indexOf(row);if(at>=0){count++;remaining.splice(at,1);}}return count;}
+export function findDayDuplicates(pages){
+  const readings=dayPageReadings(pages),pairs=[];
+  for(let i=0;i<readings.length;i++)for(let j=i+1;j<readings.length;j++){
+    const a=readings[i],b=readings[j];let match;
+    if(a.page.hash&&a.page.hash===b.page.hash)match={kind:'file',reason:'Même fichier photo',automatic:true};
+    else if(!a.page.error&&!b.page.error)outer:for(const x of a.sections)for(const y of b.sections){
+      if(!x.number||!y.number||x.identityConflict||y.identityConflict||orderKey(x.number)!==orderKey(y.number))continue;
+      // Different printed page numbers are legitimate parts of the same order.
+      if(x.pageNumber&&y.pageNumber&&x.pageNumber!==y.pageNumber)continue;
+      const sameText=!!(x.text||a.page.text)&&pageTextKey(orderKey(x.number)+' '+(x.text||a.page.text))===pageTextKey(orderKey(y.number)+' '+(y.text||b.page.text));
+      if(x.pageNumber&&x.pageNumber===y.pageNumber)match={kind:'number',reason:'Même commande et même page imprimée ('+x.pageNumber+')',automatic:sameText&&sameRows(x,y)};
+      else if(sameText)match={kind:'text',reason:'Même commande et texte reconnu identique',automatic:false};
+      else{
+        const left=rowKeys(x),right=rowKeys(y),common=commonRows(left,right),valid=[...x.lines||[],...y.lines||[]].every(l=>refKey(l.sku)&&Number.isInteger(Number(l.quantity))&&Number(l.quantity)>0);
+        if(valid&&common>=2&&(common===left.length&&common===right.length||common>=3&&common/Math.max(left.length,right.length)>=.8))match={kind:'rows',reason:'Même commande et lignes d’articles identiques ou très proches',automatic:false};
+      }
+      if(match)break outer;
+    }
+    if(match)pairs.push({...match,firstId:a.page.id,secondId:b.page.id,distinct:!match.automatic&&pagesConfirmedDistinct(a.page,b.page)});
+  }
+  return {pairs,checked:readings.length,unread:readings.filter(({page,sections})=>page.error||!sections.length||sections.some(s=>!s.number||s.identityConflict||s.unreadRows?.length||!s.lines?.length||s.lines.some(l=>!Number.isInteger(Number(l.quantity))||Number(l.quantity)<1))).length};
+}
+
+export function buildDayPlan(pages,existing,date,resolveProduct){
+  const groups=new Map(),problems=[],seenHashes=new Set(),seenSlots=new Map();let duplicatePages=0;
+  const parsed=dayPageReadings(pages);
   for(const {page,sections} of parsed){
     if(page.hash&&seenHashes.has(page.hash)){duplicatePages++;continue;}if(page.hash)seenHashes.add(page.hash);
     if(page.error){problems.push({id:page.id,message:page.error});continue;}
     if(!sections.length){problems.push({id:page.id,message:'Aucune commande reconnue sur cette page.'});continue;}
     for(let i=0;i<sections.length;i++){
       const s=sections[i];let number=refKey(s.number);
-      if(!page.reviewed&&registrationAliases.has(orderKey(number)))number=registrationAliases.get(orderKey(number));
       // An exact previously saved image keeps the reviewed number, including OCR corrections.
       const associated=existing.find(o=>(o.daySources||[]).some(old=>old.hash&&old.hash===page.hash&&(old.sectionIndex??0)===i));
       if(associated&&!page.reviewed)number=refKey(associated.number);
@@ -154,10 +188,10 @@ export function buildDayPlan(pages,existing,date,resolveProduct){
       const slot=key+':'+(s.pageNumber||'text-'+source.textKey);
       if(seenSlots.has(slot)){
         const previous=seenSlots.get(slot);
-        if(s.pageNumber&&previous.textKey===source.textKey){duplicatePages++;continue;}
-        if(!page.allowDuplicate){problems.push({id:page.id,message:s.pageNumber?'Deux lectures différentes de la page '+s.pageNumber+' de '+number+'. Écartez la mauvaise photo.':'Deux pages identiques pour '+number+'. Écartez le doublon ou confirmez deux pages distinctes.'});continue;}
+        if(s.pageNumber&&previous.source.textKey===source.textKey&&sameRows(previous.section,s)){duplicatePages++;continue;}
+        if(!pagesConfirmedDistinct(previous.page,page)){problems.push({id:page.id,message:s.pageNumber?'Deux lectures différentes de la page '+s.pageNumber+' de '+number+'. Écartez la mauvaise photo.':'Deux pages identiques pour '+number+'. Écartez le doublon ou confirmez deux pages distinctes.'});continue;}
       }
-      seenSlots.set(slot,source);
+      seenSlots.set(slot,{source,page,section:s});
       if(!groups.has(key))groups.set(key,{number,lines:[],sources:[],reviewPages:new Set()});
       const g=groups.get(key);
       if(s.needsReview&&!page.reviewed)g.reviewPages.add(page.id);

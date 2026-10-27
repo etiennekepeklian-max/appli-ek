@@ -26,7 +26,7 @@ try{
  await page.reload();await page.locator('[data-diagnostic-id=pages]').waitFor();assert.equal(await page.locator('[data-diagnostic-status=fail]').count(),0);
  await page.evaluate(async()=>{const l=await import('./js/workbench-store.js'),r=await l.meta('application-diagnostic-v1');r.rows[0].route='scan';r.rows[0].linkLabel='<img src=x onerror="window.diagnosticInjected=true">';await l.setMeta('application-diagnostic-v1',r);});
  await page.reload();await page.locator('[data-diagnostic-id=storage]').waitFor();assert.equal(await page.locator('[data-diagnostic-results] img').count(),0);assert.equal(await page.evaluate(()=>window.diagnosticInjected),undefined);
- await page.evaluate(async()=>{const l=await import('./js/workbench-store.js');await l.setMeta('application-diagnostic-v1',{schema:1,version:'1.16.0',at:'invalid',rows:[]});});await page.reload();await page.getByText('Aucun contrôle enregistré pour cette session. Lancez une vérification.',{exact:true}).waitFor();await run();assert.equal(await page.locator('[data-diagnostic-status=fail]').count(),0);
+ await page.evaluate(async()=>{const l=await import('./js/workbench-store.js');await l.setMeta('application-diagnostic-v1',{schema:1,version:'1.16.1',at:'invalid',rows:[]});});await page.reload();await page.getByText('Aucun contrôle enregistré pour cette session. Lancez une vérification.',{exact:true}).waitFor();await run();assert.equal(await page.locator('[data-diagnostic-status=fail]').count(),0);
  console.log('OK diagnostic accessible, tests réels de formats, rapport relu, brouillon/annulation/données préservés et aucune écriture réseau');
 
  // Exact lookup cache must follow edits, aliases, ambiguity and logical deletion.

@@ -41,6 +41,12 @@ test('relecture : erreurs/numéros ou lignes absents repris ; corrections manuel
  assert.equal(needsOrderRetry(good),false);assert.equal(needsOrderRetry({sections:[{number:'',lines:[]}]}),true);assert.equal(needsOrderRetry({...good,error:'Ancienne erreur'}),true);assert.equal(needsOrderRetry({sections:[]}),true);
  assert.equal(needsOrderRetry({error:'Erreur',reviewed:true}),false);assert.equal(needsOrderRetry({excluded:true}),false);assert.equal(needsOrderRetry({sections:[{...good.sections[0],unreadRows:['À relire']}]}),true);
 });
+test('relance explicite : une page reconnue peut être relue, les validations et exclusions restent protégées',()=>{
+ const good={text:'Commande TEST001\nReference;Quantite\n001234;4',sections:[{number:'TEST001',lines:[{sku:'001234',quantity:4}]}]};
+ assert.equal(needsOrderRetry(good),false);assert.equal(needsOrderRetry(good,{force:true}),true);
+ for(const page of [{...good,reviewed:true},{...good,excluded:true},{...good,reviewed:true,error:'Ancienne erreur'}])assert.equal(needsOrderRetry(page,{force:true}),false);
+ assert.equal(needsOrderRetry({text:'',sections:null},{force:true}),true);
+});
 test('texte brut et mise en lignes comparés ; aucun regroupement de références entre deux lectures',()=>{
  const raw='Enregistrement : 000009123001\nRéférence;Quantité\nTEST001;12',best=selectOrderText({text:raw,tsv:''});assert.equal(best.identified,1);assert.equal(best.valid,1);
  assert.equal(identityText('N° Enreglstrement :\n000009123001\nRéf Commande client : CLIENT999'),'Enregistrement : 000009123001');

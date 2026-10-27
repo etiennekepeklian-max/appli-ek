@@ -17,7 +17,8 @@ export function identityText(text){
  for(let i=0;i<lines.length;i++){const identity=printedIdentity(lines[i])||printedIdentity(lines[i]+' '+(lines[i+1]||''));if(identity&&!identities.some(a=>a.kind===identity.kind&&a.value===identity.value))identities.push(identity);}
  return identities.map(a=>(a.kind==='registration'?'Enregistrement : ':'Commande : ')+a.value).join('\n');
 }
-export function needsOrderRetry(page){
+export function needsOrderRetry(page,{force=false}={}){
  if(page.excluded||page.reviewed)return false;
+ if(force)return true;
  return !!page.error||!page.sections?.length||page.sections.some(s=>!s.number||!s.lines?.length||s.unreadRows?.length||s.identityConflict||s.lines.some(l=>!Number.isInteger(Number(l.quantity))||Number(l.quantity)<1));
 }
