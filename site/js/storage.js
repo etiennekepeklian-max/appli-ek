@@ -35,7 +35,7 @@ async function batch(items,action,{undoable=true,resolves=[],expectedScope,metad
   if(expectedScope&&namespace!==expectedScope)throw Error('L’espace de travail a changé.');
   let clock=events.reduce((max,e)=>Math.max(max,Date.parse(e.updatedAt)),0);const snapshots=[],seen=new Set();
   const next=items.map(({type,record})=>{
-    if(!isDemo()&&['products','enfs','families','packagings','locations','replenishments'].includes(type))Identity.assertConfigure();
+    if(!isDemo())Identity.assertWrite(type);
     const r={...record,id:record.id||uid()};if(type==='enfs'&&!r.deleted)Object.assign(r,validateEnf(r));delete r._eventId;delete r.updatedAt;
     const key=type+':'+r.id;if(seen.has(key))throw Error('Deux écritures concernent la même fiche.');seen.add(key);
     const before=get(type,r.id)||baseRecords.get(type+':'+r.id),e=makeEvent(type,r,action,settings().name,localStorage.getItem('ek-device-id'),clock);clock=Date.parse(e.updatedAt);
@@ -140,6 +140,7 @@ export function moveDay(date,newDate,expectedSignature,expectedScope){return ser
 });}
 export async function drafts(){const rows=await request(db.transaction('meta').objectStore('meta').getAll());return rows.filter(r=>r.key.startsWith('draft-')&&r.value).sort((a,b)=>b.value.updatedAt.localeCompare(a.value.updatedAt));}
 export async function exportData(){
+  if(!isDemo())Identity.assertPermission('exports');
   const assets=await files();const fileData=[];
   for(const f of assets){const base64=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(f.blob);});fileData.push({...f,blob:undefined,data:base64});}
   return {app:'EK Logistique',schema:1,exportedAt:new Date().toISOString(),events,files:fileData};

@@ -7,7 +7,7 @@ const status=s=>s.status==='manual'?'Chiffres saisis':s.status==='corrected'?'To
 const display=n=>n==null?'—':fmt(Math.round(n*100)/100);
 function chart(series,metric){
   const definition=PICKING_METRICS.find(m=>m.key===metric),peak=Math.max(1,...series.filter(s=>s.hasData&&s[metric]!=null).map(s=>s[metric]))*1.15,unit=10**Math.floor(Math.log10(peak)),max=[1,2,5,10].find(n=>n>=peak/unit)*unit;
-  const w=300,h=215,left=Math.max(45,Math.min(105,display(max).length*7+15)),right=15,top=20,bottom=35,base=h-bottom;
+  const desktop=typeof document!=='undefined'&&document.body.classList.contains('desktop'),w=desktop?700:300,h=desktop?280:215,left=Math.max(45,Math.min(105,display(max).length*7+15)),right=15,top=20,bottom=35,base=h-bottom;
   const x=i=>left+i*(w-left-right)/(series.length-1),y=v=>base-v/max*(base-top);
   let path='';series.forEach((s,i)=>{if(s.hasData&&s[metric]!=null)path+=(i&&series[i-1].hasData&&series[i-1][metric]!=null?' L':' M')+x(i).toFixed(1)+' '+y(s[metric]).toFixed(1);});
   const hasData=series.some(s=>s.hasData&&s[metric]!=null);
