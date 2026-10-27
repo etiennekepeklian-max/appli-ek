@@ -7,12 +7,12 @@ const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const json=async path=>JSON.parse(await readFile(join(root,path),'utf8'));
 const conf=await json('capacitor.config.json');
 assert.equal(conf.appName,'Pikéo');
-assert.match(conf.appId,/^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*){2,}$/i);
+assert.match(conf.appId,/^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){2,}$/i);
 assert.equal(conf.webDir,'site');
 assert.ok(!conf.server?.url,'Une URL distante ne doit pas remplacer le contenu de l’APK');
 const html=await readFile(join(root,conf.webDir,'index.html'),'utf8');
-assert.match(html,/<head(?:\\s|>)/i);
-assert.match(html,/assets\\/mascot-default\\.svg/);
+assert.match(html,/<head(?:\s|>)/i);
+assert.match(html,/assets\/mascot-default\.svg/);
 for(const file of ['index.html','js/app.js','js/android-shortcuts-core.js','assets/mascot-default.svg','manifest.webmanifest','data/offline-assets.json']){
  assert.ok((await stat(join(root,conf.webDir,file))).isFile(),file+' manquant');
 }

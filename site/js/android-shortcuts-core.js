@@ -11,7 +11,7 @@ export function readShortcut(rawUrl){
   try{url=new URL(rawUrl,'https://pikeo.invalid/');}catch{return null;}
   let id='';
   if(url.protocol==='pikeo:'&&url.hostname==='shortcut'){
-    id=url.pathname.replace(/^\\/+|\\/+$/g,'');
+    id=url.pathname.replace(/^\/+|\/+$/g,'');
   }else if(['https:','http:'].includes(url.protocol)){
     id=url.searchParams.get('pikeo-shortcut')||'';
   }else return null;
