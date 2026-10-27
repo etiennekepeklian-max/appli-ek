@@ -295,3 +295,5 @@ Aide revue et mise à jour : nouveau parcours Photos par journée, Manquants et 
 - Synchronisation : même stockage dans un navigateur ; Google et la même feuille sont nécessaires entre appareils pour les données métier. Les paramètres produits partagés restent distincts des chiffres privés. Mémos, repères privés et clés ne sont pas copiés automatiquement.
 
 - Publication de l’interface : le déplacement de `main` a été refusé par le contrôle automatique, qui exige un accord explicite pour déclencher la sortie publique GitHub Pages. La préparation continue sur `codex/desktop-v1.18.0`, sans déploiement de Pages. Le serveur est mis à jour ; l’interface publique reste 1.17.0 tant que l’accord de publication n’est pas donné.
+
+- Reprise des habilitations : vérification au retour de visibilité, au retour réseau et toutes les 45 secondes lorsque l’application est visible et connectée. Les droits retirés désactivent aussi les boutons d’un formulaire déjà ouvert. Les essais de consultation rechargent la session avant de vérifier l’interdiction d’écriture.

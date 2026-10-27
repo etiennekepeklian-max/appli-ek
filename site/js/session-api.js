@@ -3,6 +3,8 @@ import * as Context from './identity-context.js';
 import {createDeviceKeys,signedRequest,publicJWK} from './session-crypto.js';
 export const ENDPOINT='https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api';
 let active;
+const accessStamp=user=>JSON.stringify([user?.role,user?.owner,user?.active,user?.permissions]);
+const changedAccess=(before,user)=>{if(before!==accessStamp(user))window.dispatchEvent(new CustomEvent('pikeo-access'));};
 export const current=()=>active;
 const normalize=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');
 export async function init(){const id=localStorage.getItem('pikeo-active-identity');if(id)active=await Local.getIdentity(id);Context.setIdentity(active);return active;}
@@ -12,4 +14,4 @@ export async function login(name,{ownerSecret}={}){name=String(name||'').trim().
 export async function activate(id){const row=await Local.getIdentity(id);if(!row)throw Error('Session introuvable.');if(navigator.onLine){if(!row.registered)await register(row);else{const r=await call(row,'session');Object.assign(row,r.session);await Local.saveIdentity(row);}}active=row;localStorage.setItem('pikeo-active-identity',row.id);Context.setIdentity(row);return row;}
 export function personal(){active=null;localStorage.removeItem('pikeo-active-identity');Context.setIdentity(null);}
 export async function request(action,values){if(!active)throw Error('Choisissez votre nom dans Sessions et collègues.');const row=active;if(!row.registered)await register(row);if(active?.id!==row.id)throw Error('La session a changé.');return call(row,action,values);}
-export async function refresh(){if(!active||!navigator.onLine)return;const user=active;let r;try{r=await call(user,'session');}catch(e){if(active?.id===user.id&&[401,403].includes(e.status)){user.role='viewer';user.owner=false;user.active=false;user.permissions=[];Context.setIdentity(user);await Local.saveIdentity(user);}throw e;}if(active?.id!==user.id)return;Object.assign(user,r.session);Context.setIdentity(user);await Local.saveIdentity(user);return user;}
+export async function refresh(){if(!active||!navigator.onLine)return;const user=active,before=accessStamp(user);let r;try{r=await call(user,'session');}catch(e){if(active?.id===user.id&&[401,403].includes(e.status)){user.role='viewer';user.owner=false;user.active=false;user.permissions=[];Context.setIdentity(user);await Local.saveIdentity(user);changedAccess(before,user);}throw e;}if(active?.id!==user.id)return;Object.assign(user,r.session);Context.setIdentity(user);await Local.saveIdentity(user);changedAccess(before,user);return user;}

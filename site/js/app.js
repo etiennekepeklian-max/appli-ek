@@ -258,6 +258,7 @@ let searchTimer;document.addEventListener('input',event=>{const el=event.target;
 document.querySelector('#dialog').addEventListener('cancel',()=>{Features.stopDictation();closeModal();});
 window.addEventListener('online',()=>{updateNetwork();if(Sync.connected()&&!Store.isDemo())wrapAction(()=>Sync.sync());});window.addEventListener('offline',updateNetwork);
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'home'));
+window.addEventListener('pikeo-access',()=>{AccessUI.guard();queueRender();});
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;});
 window.addEventListener('ek-sync',event=>{updateNetwork();const d=event.detail;if(d.error)toast(d.message,true);else if(d.success)toast(d.message);});
 document.addEventListener('visibilitychange',()=>{const container=document.querySelector('#camera-container');if(document.hidden){if(container?.querySelector('#scan-video'))container.dataset.resumeCamera='1';Features.stopCamera();Features.stopDictation();}else if(state.route==='scan'&&container?.dataset.resumeCamera==='1'){delete container.dataset.resumeCamera;void autoStartCamera();}});
