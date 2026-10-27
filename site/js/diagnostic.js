@@ -1,7 +1,7 @@
 import * as Store from './storage.js';
 import * as Local from './workbench-store.js';
 import * as Sync from './sync.js';
-import {VERSION,uid} from './core.js';
+import {VERSION,uid,orderKey} from './core.js';
 import {OCR_ASSETS} from './offline-core.js';
 import {state,esc,pageHeading,nav,timestampLabel} from './ui.js';
 
@@ -71,11 +71,11 @@ async function barcodeAndPDF(){
  return {detail:'Code 39 et Code 128 générés puis décodés avec leurs zéros ; PDF créé en mémoire.'};
 }
 async function photoCheck(){
- const canvas=document.createElement('canvas');canvas.width=1300;canvas.height=300;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#000';ctx.font='bold 60px Arial';ctx.fillText('REFERENCE 001234 QUANTITE 12',40,100);ctx.fillText('PAC001-A',40,210);
+ const canvas=document.createElement('canvas');canvas.width=1000;canvas.height=1300;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#000';ctx.font='bold 42px Arial';ctx.fillText('Enregistrement : 000009123001',40,130);ctx.font='36px Arial';ctx.fillText('Adresse',40,240);ctx.fillText('Quantité',400,240);ctx.fillText('Article',650,240);ctx.fillText('PAC001-A',40,330);ctx.fillText('12',400,330);ctx.fillText('001234',650,330);
  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Image de test indisponible');
- const {recognizePhoto}=await import('./features.js'),text=await recognizePhoto(blob,()=>{},{table:true});
- if(!text.includes('001234')||!text.includes('12'))throw Error('Lecture différente');
- return {detail:'Une image fictive a été créée et lue localement. La qualité de vos propres photos reste à vérifier.'};
+ const {recognizePhoto}=await import('./features.js'),{parseDayPage}=await import('./day-core.js'),text=await recognizePhoto(blob,()=>{},{table:true,order:true});
+ if(!parseDayPage(text).some(s=>orderKey(s.number)==='9123'&&s.lines.some(l=>l.sku==='001234'&&l.quantity===12)))throw Error('Lecture différente');
+ return {detail:'Une feuille fictive a été lue localement : enregistrement reconnu comme commande, référence et quantité relues. Vos propres photos restent à vérifier.'};
 }
 export async function run(ocr=false){
  const owner=Store.scope();if(active?.scope===owner)return;

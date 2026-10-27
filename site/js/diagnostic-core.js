@@ -39,7 +39,7 @@ export function businessChecks(){return [
   same(sheetQuantity('~6~'),6);same(sheetQuantity('(12) manquant'),12);same(sheetQuantity('1O'),null);
  }),
  check('pages','Commandes multipages, numéros et doublons',()=>{
-  const sections=[parseDayPage(sheet(1)),parseDayPage(sheet(2,'N° Enregistrement 009876543001'))];
+  const sections=[parseDayPage(sheet(1)),parseDayPage(sheet(2,'N° Enreglstrement 009876543001'))];
   const pages=sections.map((s,i)=>({id:'page-'+i,hash:'image-'+i,reviewed:true,sections:s}));
   const plan=buildDayPlan([...pages,{...pages[0],id:'duplicate'}],[],date,()=>product);
   same(plan.orders.length,1);same(plan.orders[0].estimate.total,6);same(plan.duplicatePages,1);

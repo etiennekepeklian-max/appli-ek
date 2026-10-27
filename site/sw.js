@@ -1,7 +1,7 @@
 import {writeAlertAcks} from './js/alert-acks.js';
 import {redundantOCRAsset} from './js/offline-core.js';
-const APP_VERSION='1.15.2';
-const SHELL='ek-shell-v1-ff7ef83229fa';
+const APP_VERSION='1.16.0';
+const SHELL='ek-shell-v1-e1a04ca76c8f';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const url=new URL('data/offline-assets.json',root);const r=await fetch(url,{cache:'reload'});if(!r.ok)throw Error('Manifest hors ligne indisponible');const files=await r.clone().json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new Request(new URL(p,root).href,{cache:'reload'})));await cache.put(url,r);})());});

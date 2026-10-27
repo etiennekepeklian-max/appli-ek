@@ -47,6 +47,8 @@
   "js/offline-core.js",
   "js/ops-core.js",
   "js/ops.js",
+  "js/order-ocr-core.js",
+  "js/order-ocr.js",
   "js/photo-tools.js",
   "js/recovery.js",
   "js/schedule-core.js",

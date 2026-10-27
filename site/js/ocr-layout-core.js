@@ -9,13 +9,17 @@ export function layoutText(tsv,fallback=''){
     if(text&&[left,top,width,height,confidence].every(Number.isFinite)&&height>0&&confidence>=0)words.push({left,top,width,height,text,center:top+height/2});
   }
   if(!words.length)return fallback;
+  const median=values=>{const sorted=[...values].sort((a,b)=>a-b);return sorted[Math.floor(sorted.length/2)];};
   words.sort((a,b)=>a.center-b.center||a.left-b.left);const rows=[];
   for(const w of words){
-    let row=rows.at(-1);
-    if(!row||Math.abs(w.center-row.center)>Math.max(3,Math.min(row.height,w.height)*.48)){row={center:w.center,height:w.height,words:[]};rows.push(row);}
-    row.words.push(w);row.center=row.words.reduce((n,a)=>n+a.center,0)/row.words.length;row.height=Math.min(row.height,w.height);
+    const bottom=w.top+w.height;
+    // Printed letters and digits have different heights on the same baseline.
+    // Tiny punctuation and marker fragments must not split a physical line.
+    let row=rows.slice(-4).filter(r=>Math.abs(bottom-r.bottom)<=Math.max(4,Math.max(r.height,w.height)*.45)&&Math.abs(w.center-r.center)<Math.max(r.height,w.height)*.85).sort((a,b)=>Math.abs(bottom-a.bottom)-Math.abs(bottom-b.bottom))[0];
+    if(!row){row={center:w.center,bottom,height:w.height,words:[]};rows.push(row);}
+    row.words.push(w);row.center=median(row.words.map(a=>a.center));row.bottom=median(row.words.map(a=>a.top+a.height));row.height=median(row.words.map(a=>a.height));
   }
-  return rows.map(row=>{row.words.sort((a,b)=>a.left-b.left);let out='',end=0;
+  return rows.sort((a,b)=>a.center-b.center).map(row=>{row.words.sort((a,b)=>a.left-b.left);let out='',end=0;
     for(const w of row.words){const gap=w.left-end;out+=(out?(gap>Math.max(12,row.height*.85)?'  ':' '):'')+w.text;end=w.left+w.width;}return out;
   }).join('\n');
 }
