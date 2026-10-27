@@ -59,7 +59,7 @@ L'application ne doit pas solliciter de connexion à `release.json` pour remplac
 - Les fichiers `android-widget-template/` contiennent l'implémentation de départ : `PikeoWidgetProvider.kt`, le layout 4 boutons, les métadonnées et le fragment de manifest Android.
 - À importer dans le projet Android **après** `npx cap add android`, en conservant l'identifiant de package.
 - Ajouter une dépendance `@capacitor/app` correctement synchronisée et vérifier sur appareil physique la livraison des événements `appUrlOpen` et `getLaunchUrl`. Une application froide et une application déjà ouverte doivent ouvrir la même section.
-- Les icônes du widget devront reprendre celles validées dans Pikéo. Le layout natif fourni est une ossature de test et ne doit pas être considéré comme rendu graphique final.
+- Les quatre pictogrammes du widget sont repris de `site/js/icons.js` via des ressources vectorielles Android. Leur intégration native et l'apparence exacte sont encore à tester sur appareil avant publication.
 - Ne jamais incorporer le nom d'utilisateur, les numéros de téléphone ou des données d'entrepôt dans un widget public.
 
 ## Liste de vérification avant premier test

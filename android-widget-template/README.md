@@ -5,9 +5,10 @@
 1. `npx cap add android` crée `android/`.
 2. Copier `PikeoWidgetProvider.kt` dans `android/app/src/main/java/io/github/etiennekepeklianmax/pikeo/`.
 3. Copier `pikeo_widget.xml` dans `android/app/src/main/res/layout/`.
-4. Copier `pikeo_widget_info.xml` dans `android/app/src/main/res/xml/`.
-5. Intégrer le fragment `AndroidManifest-fragment.xml` aux éléments existants. Il ne doit pas remplacer le manifeste complet.
-6. Installer `@capacitor/app`, synchroniser les plugins et tester les liens `pikeo://shortcut/{barcode,missing,products,enf}` avec l'application fermée et déjà ouverte.
+4. Copier aussi les quatre fichiers `pikeo_widget_barcode.xml`, `pikeo_widget_plus.xml`, `pikeo_widget_box.xml` et `pikeo_widget_layers.xml` vers `android/app/src/main/res/drawable/` (icônes reproduites de `site/js/icons.js`).
+5. Copier `pikeo_widget_info.xml` dans `android/app/src/main/res/xml/`.
+6. Intégrer le fragment `AndroidManifest-fragment.xml` aux éléments existants. Il ne doit pas remplacer le manifeste complet.
+7. Installer `@capacitor/app`, synchroniser les plugins et tester les liens `pikeo://shortcut/{barcode,missing,products,enf}` avec l'application fermée et déjà ouverte.
 7. Remplacer les icônes système de ce modèle par les quatre icônes approuvées avant publication.
 
 **Statut** : code source préparatoire, **pas encore compilé**, pas installé ni vérifié sur appareil physique. Les quatre destinations sont définies dans `site/js/android-shortcuts-core.js`.
