@@ -17,3 +17,5 @@
 
 - Version bureau : conserver `bureau.html` et `index.html` sur la même origine et avec les mêmes identifiants de stockage. La version mobile reste disponible. Ne pas promettre de copie automatique des données entre appareils sans synchronisation Google. Les clés et mémos ne se synchronisent pas.
 - Permissions : conserver le modèle identique dans `site/js/permissions-core.js` et `backend/pikeo-api/permissions-core.js`. L’accès propriétaire nécessite le fichier privé, jamais le nom seul ; aucun rôle élevé automatique pour un nouvel appareil. Tester les parcours d’administration avec le relais simulé de `tools/desktop-smoke.mjs`, sans créer de clé propriétaire temporaire sur le serveur réel.
+
+- Décision du 27 octobre (préparation Capacitor autorisée, migration/publication non lancée) : conserver la mascotte **originale** `site/assets/mascot-default.svg` et le rendu privé éventuel du module `site/js/mascot.js`. Ne pas inventer de nouveau personnage. Widget Android validé 1 ligne × 4 : Code-barres, Ajouter un manquant, Produits, ENF. Les scripts, routes et modèles peuvent être préparés sur branche isolée ; APK et déploiement uniquement après nouveau GO.

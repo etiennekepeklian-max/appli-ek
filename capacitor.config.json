@@ -1,0 +1,9 @@
+{
+  "appId": "io.github.etiennekepeklianmax.pikeo",
+  "appName": "Pikéo",
+  "webDir": "site",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false
+  }
+}

@@ -20,6 +20,7 @@
   "js/administration.js",
   "js/alert-acks.js",
   "js/app.js",
+  "js/android-shortcuts-core.js",
   "js/archive-core.js",
   "js/archive.js",
   "js/camera.js",
