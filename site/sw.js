@@ -1,11 +1,12 @@
 import {writeAlertAcks} from './js/alert-acks.js';
-const APP_VERSION='1.14.1';
-const SHELL='ek-shell-v1-fbceec623393';
+import {redundantOCRAsset} from './js/offline-core.js';
+const APP_VERSION='1.15.0';
+const SHELL='ek-shell-v1-79104a119a1e';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
-self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const r=await fetch(new URL('data/offline-assets.json',root),{cache:'reload'});const files=await r.json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new Request(new URL(p,root).href,{cache:'reload'})));})());});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('ek-shell-')&&key!==SHELL)await caches.delete(key);await self.clients.claim();})());});
-self.addEventListener('message',event=>{if(event.data==='SKIP_WAITING')self.skipWaiting();if(event.data?.type==='PIKEO_VERSION')event.ports?.[0]?.postMessage({type:'PIKEO_VERSION',version:APP_VERSION});});
+self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const url=new URL('data/offline-assets.json',root);const r=await fetch(url,{cache:'reload'});if(!r.ok)throw Error('Manifest hors ligne indisponible');const files=await r.clone().json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new Request(new URL(p,root).href,{cache:'reload'})));await cache.put(url,r);})());});
+self.addEventListener('activate',event=>{event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('ek-shell-')&&key!==SHELL)await caches.delete(key);const cache=await caches.open(LARGE);for(const request of await cache.keys())if(request.url.startsWith(root)&&redundantOCRAsset(new URL(request.url).pathname.slice(new URL(root).pathname.length)))await cache.delete(request);await self.clients.claim();})());});
+self.addEventListener('message',event=>{if(event.data==='SKIP_WAITING')self.skipWaiting();if(event.data?.type==='PIKEO_VERSION')event.ports?.[0]?.postMessage({type:'PIKEO_VERSION',version:APP_VERSION});if(event.data?.type==='PIKEO_DIAGNOSTIC')event.ports?.[0]?.postMessage({version:APP_VERSION,shellCache:SHELL,largeCache:LARGE});});
 self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const work=event.notification.data?.kind==='work-alert';if(work&&event.action==='stop-work-alert'){await acknowledgeNotification(event.notification);return;}const target=new URL(work?'./#schedule':'./#pending',root).href,windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows)if(client.url.startsWith(root)){await client.navigate(target);return client.focus();}return self.clients.openWindow(target);})());});
 self.addEventListener('notificationclose',event=>{if(event.notification.data?.kind==='work-alert')event.waitUntil(acknowledgeNotification(event.notification));});
 async function acknowledgeNotification(notification){const keys=notification.data?.keys||[];await writeAlertAcks(keys);for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))if(client.url.startsWith(root))client.postMessage({type:'STOP_WORK_ALERT',keys});}

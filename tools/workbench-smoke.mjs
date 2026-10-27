@@ -65,7 +65,7 @@ try{
   await page.locator('.topbar [data-action=quickhelp]').click();assert.notEqual(await page.locator('#context-help-title').innerText(),'Pikéo');await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
  }
  }}
- await go('diagnostic');await action('diagnostic').click();await page.getByText('lecture et écriture réussies',{exact:false}).waitFor();
+ await go('diagnostic');await action('diagnostic').click();await page.getByText('Lecture et écriture réussies',{exact:false}).waitFor();
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/workbench-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);console.log('Mon poste : repères, confidentialité, reprise, clé, import atomique, restauration, aide et affichage mobile OK.');
 } catch(e){if(page){console.error('Dernier message',await page.locator('#toast').textContent().catch(()=>''));console.error(await page.locator('body').innerText().catch(()=>''));await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/workbench-failure.png',fullPage:true}).catch(()=>{});}throw e;}finally{await browser?.close();server.kill();}

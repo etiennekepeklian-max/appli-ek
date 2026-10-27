@@ -34,13 +34,22 @@ export async function connect(){
     client.requestAccessToken({prompt:''});
   });emit('Compte Google connecté.');if(!c.spreadsheetId)return {connected:true,pendingDatabase:true};return sync();
 }
-async function api(url,{method='GET',body,headers={},retry=true}={}){
+async function api(url,{method='GET',body,headers={},retry=true,signal=AbortSignal.timeout(20000)}={}){
   if(!connected())throw Error('Reconnectez votre compte Google pour synchroniser.');
-  const response=await fetch(url,{method,headers:{Authorization:`Bearer ${accessToken}`,...(body&&!(body instanceof Blob)?{'Content-Type':'application/json'}:{}),...headers},body:body instanceof Blob?body:body?JSON.stringify(body):undefined});
+  const response=await fetch(url,{method,signal,headers:{Authorization:`Bearer ${accessToken}`,...(body&&!(body instanceof Blob)?{'Content-Type':'application/json'}:{}),...headers},body:body instanceof Blob?body:body?JSON.stringify(body):undefined});
   if(!response.ok){if(response.status===401)disconnect();let data;try{data=await response.json();}catch{}
     if((response.status===429||response.status>=500)&&retry&&method==='GET'){await new Promise(r=>setTimeout(r,700));return api(url,{method,body,headers,retry:false});}
     throw Error(data?.error?.message||`Google ne peut pas terminer l’action (${response.status}).`);
   }if(response.status===204)return {};return response.json();
+}
+export async function checkConnection(){
+ if(Store.isDemo())return {status:'manual',detail:'La démonstration reste séparée de Google.'};
+ if(!navigator.onLine)return {status:'warn',detail:'Hors connexion : accès Google à vérifier avec Internet.',route:'storage',linkLabel:'les sauvegardes'};
+ const c=connection();if(!connected()||!c.spreadsheetId)return {status:'manual',detail:'Connectez votre sauvegarde puis relancez pour tester son accès en lecture.',route:'storage',linkLabel:'les sauvegardes'};
+ const data=await api('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(c.spreadsheetId)+'?fields=sheets(properties(title))',{retry:false,signal:AbortSignal.timeout(6000)});
+ const titles=new Set(data.sheets?.map(s=>s.properties.title));
+ if(!SHEET_TABS.every(t=>titles.has(t)))throw Error('Onglet Google absent');
+ return {detail:'Accès en lecture aux quatre onglets confirmé. L’envoi réel se vérifie depuis Sauvegardes.',route:'storage',linkLabel:'les sauvegardes'};
 }
 async function pull(id,key,capture=[]){
   legacyCount=0;

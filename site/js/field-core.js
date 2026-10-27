@@ -1,4 +1,5 @@
 import {refKey} from './core.js';
+import {codesForProduct} from './catalogue-core.js';
 
 export const LOCATION_TYPES=['PAC','PAD','RES'];
 export function splitLocation(value){
@@ -11,11 +12,12 @@ export function locationValue(address,type=''){
   if(!body)return '';
   return (type||parts.type)+body;
 }
-export function referenceMatches(value,products){
+export function referenceMatches(value,products,indexedMatches){
   const q=refKey(value);if(!q)return {status:'empty',exact:[],suggestions:[]};
-  const exact=products.filter(p=>refKey(p.sku)===q||p.barcode&&refKey(p.barcode)===q);
+  const exact=indexedMatches??products.filter(p=>codesForProduct(p).includes(q));
   const unique=[...new Map(exact.map(p=>[JSON.stringify([p.sku,p.name]),p])).values()];
-  return {status:unique.length===1?'found':unique.length>1?'ambiguous':'unknown',exact:unique,suggestions:unique.length?[]:products.filter(p=>refKey(p.sku).startsWith(q)||p.barcode&&refKey(p.barcode).startsWith(q)).slice(0,5)};
+  const suggestions=[];if(!unique.length)for(const p of products){if(codesForProduct(p).some(code=>code.startsWith(q)))suggestions.push(p);if(suggestions.length===5)break;}
+  return {status:unique.length===1?'found':unique.length>1?'ambiguous':'unknown',exact:unique,suggestions};
 }
 export function googleConnectionInput(clientId,sheet){
   const client=String(clientId||'').trim(),raw=String(sheet||'').trim();

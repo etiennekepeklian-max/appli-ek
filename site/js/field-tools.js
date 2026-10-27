@@ -1,5 +1,5 @@
 import * as Store from './storage.js';
-import {products} from './model.js';
+import {products,findProducts} from './model.js';
 import {productLocations} from './ops-core.js';
 import {LOCATION_TYPES,splitLocation,locationValue,referenceMatches,googleConnectionInput} from './field-core.js';
 import {state,esc,field,toast} from './ui.js';
@@ -18,7 +18,7 @@ function setLocation(form,value,sku){
 function refreshLocation(form){const p=form.querySelector('[data-location-preview]');if(p)p.textContent=locationValue(form.elements.location.value,form.elements.locationType.value)||'Le type sélectionné sera ajouté devant l’adresse.';}
 function renderReference(form){
   if(!form?.isConnected)return;const input=form.elements.sku,box=form.querySelector('#pending-reference-result');if(!input||!box)return;
-  const result=referenceMatches(input.value,products()),address=form.elements.location;renderDuplicates(form);
+  const result=referenceMatches(input.value,products(),findProducts(input.value)),address=form.elements.location;renderDuplicates(form);
   const selected=result.exact.find(p=>p.id===form.dataset.selectedProductId);
   if(selected){result.exact=[selected];result.status='found';}
   if(address.dataset.autoSku&&address.dataset.autoSku!==input.value.trim().toUpperCase()){setLocation(form,'','');}
@@ -39,14 +39,14 @@ function renderReference(form){
 }
 function renderDuplicates(form){
   const box=form.querySelector('[data-pending-duplicates]');if(!box)return;
-  const found=referenceMatches(form.elements.sku.value,products()),selected=found.exact.find(p=>p.id===form.dataset.selectedProductId),sku=selected?.sku||(found.status==='found'?found.exact[0].sku:form.elements.sku.value);
+  const found=referenceMatches(form.elements.sku.value,products(),findProducts(form.elements.sku.value)),selected=found.exact.find(p=>p.id===form.dataset.selectedProductId),sku=selected?.sku||(found.status==='found'?found.exact[0].sku:form.elements.sku.value);
   const rows=pendingDuplicates(Store.list('pending'),{id:form.dataset.id,orderNumber:form.elements.orderNumber.value,sku}),key=JSON.stringify(rows.map(r=>[r.id,r.updatedAt]));
   if(box.dataset.matches===key)return;box.dataset.matches=key;box.hidden=!rows.length;
   box.innerHTML=rows.length?`<p><strong>Cette référence est déjà signalée sur cette commande.</strong></p>${rows.map(r=>`<p>${esc(r.location||'Casier non indiqué')} · ${r.status==='received'?'Réassort reçu':'En attente'}</p><button type="button" class="btn small section-gap" data-action="edit-pending" data-id="${esc(r.id)}">Ouvrir l’attente existante</button>`).join('')}<label class="check-label section-gap"><input type="checkbox" name="allowDuplicate">Créer une autre attente pour un autre casier, avec une précision</label>`:'';
 }
 export function refreshPendingReference(){const form=document.querySelector('[data-form=pending]');if(form)renderReference(form);}
 export function confirmPendingReference(form){
-  renderReference(form);const found=referenceMatches(form.elements.sku.value,products());
+  renderReference(form);const found=referenceMatches(form.elements.sku.value,products(),findProducts(form.elements.sku.value));
   const selected=found.exact.find(p=>p.id===form.dataset.selectedProductId);if(selected)return selected.sku;
   if(found.status==='ambiguous')throw Error('Choisissez la bonne référence parmi les produits proposés.');
   return found.status==='found'?found.exact[0].sku:form.elements.sku.value;

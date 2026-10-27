@@ -14,7 +14,7 @@ try{
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage();
   qaPage=page;
   page.on('pageerror',e=>errors.push(e.message));
-  const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.14.1'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
+  const go=async route=>{await page.goto(base+'#'+route);await page.locator('#app-version').filter({hasText:'1.15.0'}).waitFor();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
   const state=(fn,arg)=>page.evaluate(fn,arg);
   await go('home');await page.getByRole('button',{name:'Commencer',exact:true}).click();
   await go('settings');await page.locator('[name=scanSound]').uncheck();await page.locator('[name=scanVibration]').uncheck();await page.getByRole('button',{name:'Enregistrer les options'}).click();await waitForState(page,async()=>{const s=await import('./js/storage.js');return s.settings().scanSound===false;});

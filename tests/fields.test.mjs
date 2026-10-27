@@ -22,6 +22,12 @@ test('connexion Google : URL et identifiant seuls, client OAuth et domaine véri
   assert.equal(googleConnectionInput('',id).spreadsheetId,id);assert.equal(googleConnectionInput(client,'').spreadsheetId,'');
   assert.throws(()=>googleConnectionInput('mauvais',id));assert.throws(()=>googleConnectionInput(client,'https://example.com/spreadsheets/d/'+id));assert.throws(()=>googleConnectionInput(client,'123'));
 });
+test('référence : codes article et alternatives reconnus sans choix arbitraire ; index équivalent',()=>{
+ const rows=[{id:'a',sku:'001234',name:'Article A',articleCode:'007777',referenceCodes:['ALT-001']},{id:'b',sku:'001235',name:'Article B',articleCode:'007777'}];
+ assert.equal(referenceMatches('ALT-001',rows).exact[0].id,'a');assert.equal(referenceMatches('007777',rows).status,'ambiguous');assert.equal(referenceMatches('7777',rows).status,'unknown');
+ for(const value of ['ALT-001','007777','001234','NOT-FOUND']){const exact=rows.filter(p=>[p.sku,p.articleCode,...(p.referenceCodes||[])].includes(value));assert.deepEqual(referenceMatches(value,rows,exact),referenceMatches(value,rows));}
+ assert.equal(referenceMatches('00',Array.from({length:100},(_,i)=>({sku:'001'+i,name:'Test'}))).suggestions.length,5);
+});
 test('familles détaillées restaurées, anciennes cartes masquées et rattachées au groupe Cartes',()=>{
   const data=JSON.parse(fs.readFileSync(new URL('../site/data/families.json',import.meta.url),'utf8'));
   assert.equal(data.families.find(f=>f.id==='accessoires-gourdes').parentId,'accessoires');assert.equal(data.families.find(f=>f.id==='cadeaux-emballages-cadeaux').parentId,'cadeaux');

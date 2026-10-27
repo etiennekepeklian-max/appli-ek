@@ -8,6 +8,7 @@ import {CameraSession,cameraErrorMessage} from './camera.js';
 import {scanFeedback,unlockFeedback} from './feedback.js';
 import {recordUnknown,resolveUnknowns,hydratePhotos} from './ops.js';
 import {productLocations} from './ops-core.js';
+import {OCR_ASSETS} from './offline-core.js';
 
 const scripts=new Map();
 export function loadScript(path){if(scripts.has(path))return scripts.get(path);const p=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=path;s.onload=resolve;s.onerror=()=>{scripts.delete(path);reject(Error('Ce module est indisponible. Préparez-le hors ligne dans Réglages ou vérifiez votre connexion.'));};document.head.append(s);});scripts.set(path,p);return p;}
@@ -194,13 +195,8 @@ async function readPhoto(file,onProgress,options){
   onProgress('Texte lu. Vérifiez les références et les quantités.');return options.table?layoutText(data.tsv,data.text):data.text;
 }
 export async function cacheOCR(){
-  const response=await fetch('vendor/manifest.json');const manifest=await response.json();const paths=[];
-  function walk(o){if(typeof o==='string'&&/ocr\//.test(o)&&!o.startsWith('http'))paths.push(o.startsWith('vendor/')?o:'vendor/'+o);else if(o&&typeof o==='object')for(const v of Object.values(o))walk(v);}
-  walk(manifest);
-  // Fixed list is independent from vendor manifest shape and caches all fallbacks.
-  const filelist=await fetch('data/offline-assets.json').then(r=>r.json());const unique=[...new Set([...paths,...filelist.filter(p=>p.includes('vendor/ocr/'))])];
   if(!('caches' in window))throw Error('Le cache hors ligne n’est pas disponible dans ce navigateur.');
-  const cache=await caches.open('ek-large-assets-v1');let count=0;for(const path of unique){const url=new URL(path,document.baseURI).href;const present=await cache.match(url);if(!present){const r=await fetch(url);if(!r.ok)throw Error('Un fichier OCR est indisponible : '+path);await cache.put(url,r);}count++;toast(`Préparation hors ligne : ${count} / ${unique.length}`);}toast('La lecture des photos est prête hors ligne.');
+  const cache=await caches.open('ek-large-assets-v1');let count=0;for(const path of OCR_ASSETS){const url=new URL(path,document.baseURI).href;const present=await cache.match(url);if(!present){const r=await fetch(url,{signal:AbortSignal.timeout(60000)});if(!r.ok)throw Error('Un fichier OCR est indisponible : '+path);await cache.put(url,r);}count++;toast(`Préparation hors ligne : ${count} / ${OCR_ASSETS.length}`);}toast('La lecture des photos est prête hors ligne.');
 }
 export async function viewPhoto(id){const f=await Store.readFile(id);if(f){const url=URL.createObjectURL(f.blob);modal('Document enregistré',`<img class="photo-preview" src="${url}" alt="${esc(f.name)}"><p class="hint">${esc(f.name)}</p>`);onModalClose(()=>URL.revokeObjectURL(url));}else{const d=Store.get('documents',id);if(d?.driveUrl)modal('Document sauvegardé sur Drive',`<p class="dialog-intro">Cette photo est disponible dans votre sauvegarde Google.</p><a class="btn primary" href="https://drive.google.com/file/d/${encodeURIComponent(d.driveId)}/view" target="_blank" rel="noopener noreferrer">Ouvrir le document dans Drive</a>`);else throw Error('Ce document n’est pas disponible sur cet appareil.');}}
 

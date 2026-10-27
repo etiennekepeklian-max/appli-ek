@@ -1,3 +1,5 @@
+> État actualisé en 1.15 : navigation et recherche globales, contraste sombre, caméra continue, retour pendant OCR, regroupement commande/enregistrement, reprise d’une journée, annulation persistante et diagnostic sont intégrés. Une mascotte générique est animée à l’ouverture et pendant les opérations ; la mascotte personnelle s’importe localement. Les essais matériels et la calibration des règles privées restent à finaliser. Les lignes historiques ci-dessous décrivent aussi les états antérieurs. Android et jeu restent reportés.
+
 # Complément de l’audit — 1.12
 
 Les éléments web 33 et 36 sont complétés ; le 47 dispose d’un guide et de liens officiels actuels. Voir [WEB_FINISH.md](WEB_FINISH.md). Les tableaux suivants conservent le détail du contrôle initial, avec les statuts actualisés. Android et jeu restent reportés ; portrait, choix d’animation, matériel réel et police restent à fournir/valider.

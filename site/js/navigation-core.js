@@ -42,7 +42,7 @@ export const TOOL_GROUPS=[
   ['users','Sessions et collègues','Mon nom et les habilitations de l’équipe','user','compte profil administrateur opérateur connexion'],
   ['history','Historique et annulation','Retrouver ou annuler une action enregistrée','history','annuler erreur retour correction'],
   ['conflicts','Modifications à comparer','Relire les versions concurrentes','list','conflit historique'],
-  ['diagnostic','Diagnostic hors ligne','Vérifier la disponibilité de l’application','sync','connexion panne test'],
+  ['diagnostic','Vérifier l’application','Calculs, fichiers, stockage et tests de fonctionnement','sync','diagnostic connexion panne test contrôle santé vérifier hors ligne'],
   ['training','Prise en main','Trois exercices dans la démonstration','help','formation débutant apprendre essai'],
   ['help','Aide et prise en main','Comprendre l’écran ou le geste à réaliser','help','notice tutoriel']
  ]],
