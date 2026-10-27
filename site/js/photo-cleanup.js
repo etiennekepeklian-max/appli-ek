@@ -1,7 +1,7 @@
 import * as Store from './storage.js';
 import * as Personal from './workbench-store.js';
 import {dayPhotoIndex,photoCleanupPlan} from './photo-cleanup-core.js';
-import {state,esc,pageHeading,nav,modal,closeModal,check,toast,dateLabel,formError} from './ui.js';
+import {state,esc,pageHeading,nav,modal,closeModal,check,toast,dateLabel,formError,onModalClose} from './ui.js';
 
 export const ROUTES={'photo-cleanup':'Photos par journée'};
 let app,scope='',data,snapshots=[],selected=new Set(),copies=true,busy=false,loading=false,preview;
@@ -11,7 +11,7 @@ async function read(){
  for(const row of await Personal.listSnapshots()){if(Store.scope()!==space)throw Error('La session a changé.');snapshots.push(await Personal.readSnapshot(row.id));}
  if(Store.scope()!==space)throw Error('La session a changé.');return {space,data,snapshots};
 }
-export function invalidate(){data=null;}
+export function invalidate(){data=null;snapshots=[];preview=null;}
 export function render(){
  if(scope!==Store.scope()){scope=Store.scope();data=null;snapshots=[];selected.clear();preview=null;}
  const photos=data?dayPhotoIndex(data,snapshots):[],dates=[...new Set(photos.flatMap(r=>r.dates))].sort().reverse(),plan=selected.size&&data?photoCleanupPlan(data,snapshots,[...selected],{copies}):null;
@@ -27,14 +27,14 @@ export async function mount(){
 async function prepare(){
  const fresh=await read();if(fresh.space!==scope)throw Error('La session a changé.');const plan=photoCleanupPlan(fresh.data,fresh.snapshots,[...selected],{copies});if(!plan.count)throw Error('Aucune photo disponible pour cette sélection.');
  data=fresh.data;snapshots=fresh.snapshots;preview={...plan,scope,copies};
- modal('Supprimer définitivement ces photos ?',`<span hidden data-help-context="photo-cleanup"></span><p><strong>${plan.count} photo(s)${copies?' et '+plan.copyCount+' copie(s) dans les points de restauration':''} · ${size(plan.bytes)}</strong></p><p>Dates : ${plan.dates.map(d=>esc(dateLabel(d,{day:'numeric',month:'long',year:'numeric'}))).join(' · ')}.</p><p>Les commandes, quantités, calculs de picking et leur historique restent conservés. Les photos des brouillons en cours sont protégées. Les copies Google et les fichiers exportés ne sont pas supprimés.</p><p class="error-message">Cette suppression des images ne peut pas être annulée dans Pikéo.${copies?' Ces photos seront également retirées des points de restauration locaux.':' Les points de restauration locaux garderont leurs copies.'}</p><form data-photo-cleanup-form>${check('confirmed','Je confirme la suppression des photos pour les dates indiquées.',false,'required')}<div data-form-error class="error-message" hidden></div><div class="form-actions"><button type="button" class="btn" data-action="close-dialog">Conserver mes photos</button><button class="btn danger" type="submit">Confirmer la suppression des photos</button></div></form>`,true);
+ modal('Supprimer définitivement ces photos ?',`<span hidden data-help-context="photo-cleanup"></span><p><strong>${plan.count} photo(s)${copies?' et '+plan.copyCount+' copie(s) dans les points de restauration':''} · ${size(plan.bytes)}</strong></p><p>Dates : ${plan.dates.map(d=>esc(dateLabel(d,{day:'numeric',month:'long',year:'numeric'}))).join(' · ')}.</p><p>Les commandes, quantités, calculs de picking et leur historique restent conservés. Les photos des brouillons en cours sont protégées. Les copies Google et les fichiers exportés ne sont pas supprimés.</p><p class="error-message">Cette suppression des images ne peut pas être annulée dans Pikéo.${copies?' Ces photos seront également retirées des points de restauration locaux.':' Les points de restauration locaux garderont leurs copies.'}</p><form data-photo-cleanup-form>${check('confirmed','Je confirme la suppression des photos pour les dates indiquées.',false,'required')}<div data-form-error class="error-message" hidden></div><div class="form-actions"><button type="button" class="btn" data-action="close-dialog">Conserver mes photos</button><button class="btn danger" type="submit">Confirmer la suppression des photos</button></div></form>`,true);onModalClose(()=>{preview=null;});
 }
 async function remove(form){
- if(!preview||preview.scope!==Store.scope()||!form.elements.confirmed.checked)throw Error('Confirmez la suppression pour les dates indiquées.');
- const fresh=await read(),plan=photoCleanupPlan(fresh.data,fresh.snapshots,preview.dates,{copies:preview.copies});if(fresh.space!==preview.scope||plan.signature!==preview.signature)throw Error('Les photos ou leur utilisation ont changé. Fermez et vérifiez la sélection de nouveau.');
- const removed=await Store.removeDayPhotos(plan.manifest,plan.dates,preview.scope);let copyCount=0;
- if(preview.copies)try{copyCount=await Personal.removePhotoCopies(plan.manifest.map(r=>r.id),preview.scope);}catch(error){data=null;closeModal();app.render();throw Error(removed+' photo(s) retirée(s), mais les copies de version n’ont pas toutes pu être nettoyées. Rouvrez les dates pour réessayer.');}
- preview=null;data=null;selected.clear();closeModal();app.render();toast(removed+' photo(s) et '+copyCount+' copie(s) locale(s) supprimée(s). Bilans conservés.');
+ const target=preview;if(!target||target.scope!==Store.scope()||!form.elements.confirmed.checked)throw Error('Confirmez la suppression pour les dates indiquées.');
+ const fresh=await read(),plan=photoCleanupPlan(fresh.data,fresh.snapshots,target.dates,{copies:target.copies});if(fresh.space!==target.scope||plan.signature!==target.signature)throw Error('Les photos ou leur utilisation ont changé. Fermez et vérifiez la sélection de nouveau.');
+ const removed=await Store.removeDayPhotos(plan.manifest,plan.dates,target.scope);let copyCount=0;
+ if(target.copies)try{copyCount=await Personal.removePhotoCopies(plan.manifest.map(r=>r.id),target.scope);}catch(error){data=null;snapshots=[];if(form.isConnected)closeModal();app.render();throw Error(removed+' photo(s) retirée(s), mais les copies de version n’ont pas toutes pu être nettoyées. Rouvrez les dates pour réessayer.');}
+ preview=null;data=null;snapshots=[];selected.clear();if(form.isConnected)closeModal();app.render();toast(removed+' photo(s) et '+copyCount+' copie(s) locale(s) supprimée(s). Bilans conservés.');
 }
 export function install(callbacks){app=callbacks;
  document.addEventListener('click',e=>{const b=e.target.closest('[data-photo-cleanup]');if(!b||busy)return;e.preventDefault();if(b.dataset.photoCleanup==='refresh'){data=null;app.render();return;}busy=true;void prepare().catch(err=>toast(err.message,true)).finally(()=>{busy=false;});});
