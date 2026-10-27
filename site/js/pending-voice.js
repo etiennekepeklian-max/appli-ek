@@ -14,7 +14,7 @@ function apply(form,text,before){
  if(!form.isConnected)return;const result=parsePendingVoice(text),warnings=[...result.warnings];
  for(const name of ['orderNumber','sku'])if(result[name]){
   const field=form.elements[name];if(before&&field.value!==before[name]){warnings.push('Le champ '+(name==='sku'?'référence':'commande')+' modifié pendant la dictée a été conservé.');continue;}
-  field.value=result[name];field.dispatchEvent(new Event('input',{bubbles:true}));field.dispatchEvent(new Event('change',{bubbles:true}));
+  field.value=result[name];if(before)before[name]=result[name];field.dispatchEvent(new Event('input',{bubbles:true}));field.dispatchEvent(new Event('change',{bubbles:true}));
  }
  form.querySelector('[data-pending-voice-status]').textContent=(result.orderNumber||result.sku?'Champs proposés. Relisez la commande, la référence et l’emplacement. ':'Aucun champ rempli. ')+warnings.join(' ');
  void persistDraft();
