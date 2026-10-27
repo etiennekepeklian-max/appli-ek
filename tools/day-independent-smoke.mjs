@@ -59,10 +59,10 @@ try{
   await page.locator('[data-day-form=save] [name=confirmed]').check();await page.getByRole('button',{name:'Enregistrer toutes les commandes retenues',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
   const saved=await page.evaluate(async()=>{const s=await import('./js/storage.js');return {draft:await s.meta('day-capture'),waiting:await s.dayDrafts(),orders:s.list('orders'),files:(await s.files()).length};});
   assert.equal(saved.draft,null);assert.deepEqual(saved.waiting,[initial.draft]);assert.equal(saved.orders.length,1);assert.equal(saved.orders[0].date,initial.today);assert.equal(saved.orders[0].total,3);assert.equal(saved.files,2);
-  await page.reload();await page.locator('.draft-banner').waitFor();await page.locator('.draft-banner [data-day-action=resume]').click();
+  await page.reload();await page.locator('#main[data-view]').waitFor();assert.equal(await page.locator('[data-day-action=resume]').count(),0);await page.evaluate(async()=>{await(await import('./js/day-capture.js')).openDay();});
   await page.locator('#batch-date').fill(initial.yesterday);await page.locator('#batch-date').dispatchEvent('change');await activeDate(initial.yesterday);
   assert.deepEqual(await page.evaluate(async()=>(await(await import('./js/storage.js')).meta('day-capture'))),initial.draft);
-  await page.getByRole('button',{name:'Aide pour cette action',exact:true}).click();assert.match(await page.locator('#help-dialog').innerText(),/Chaque date conserve ses photos/);await page.getByRole('button',{name:'Reprendre',exact:true}).click();
+  await page.getByRole('button',{name:'Aide pour cette action',exact:true}).click();assert.match(await page.locator('#help-dialog').innerText(),/Journées indépendantes/);await page.getByRole('button',{name:'Reprendre',exact:true}).click();
   console.log('OK journées indépendantes, changement de date pendant OCR, pause/reprise, validation d’aujourd’hui avant hier, rechargement et aide sans perte de photos ni corrections');
   // Use a shortened deadline to exercise the production timeout and worker reset.
   await page.evaluate(()=>{window.hangReads=true;});

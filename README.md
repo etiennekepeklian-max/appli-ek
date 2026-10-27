@@ -1,5 +1,13 @@
 # Pikéo
 
+## Version 1.17.0 — suivi picking manuel
+
+- Ma journée propose la saisie par date des chiffres communiqués par les managers : pickings, et facultativement commandes, colis, palettes, poids, source et note. Sauvegarder applique les modifications, y compris pour un jour passé.
+- Graphiques visibles sur 7, 14, 30 ou 90 jours, avec choix de l’indicateur, total, moyenne et meilleure journée. Les jours vides restent inconnus ; les zéros saisis sont pris en compte.
+- Historique des journées avec accès Modifier, versions conservées et annulation. Changement de date vers une date libre et suppression confirmée toujours disponibles. PDF du jour et export CSV des chiffres journaliers.
+- Le parcours photo/OCR des commandes est retiré du suivi picking. Les anciennes données sont conservées, et le nettoyage des photos par dates reste accessible. Les anciens modules de lecture restent disponibles uniquement pour compatibilité et tests ; ENF et scanner conservent leur fonctionnement.
+- Stockage local et synchronisation existante dans objectif picking, sans nouvelle table ni migration destructive.
+
 ## Version 1.16.3 — supprimer une journée et corriger sa date
 
 - Supprimer cette journée est disponible dans Ma journée et la session photo, y compris avant l’analyse ou la validation. Après confirmation, la session repart vide et le bilan est retiré pour pouvoir recréer la journée.

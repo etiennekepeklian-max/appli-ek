@@ -12,3 +12,5 @@
 
 - Décision d’Étienne du 25 octobre au soir : produits, commandes et historique Google en clair, sans clé obligatoire. Conserver la lecture des anciennes copies chiffrées et une conversion explicite avec sauvegarde. Sessions par nom sans mot de passe/PIN ; droits administrateur imposés côté serveur et activés par un accès privé, jamais par le prénom seul.
 - Les repères privés de workbench-store (ressenti, entraide, préférences, photos de reprise) ne rejoignent pas la synchronisation métier. Les comptes et autorisations doivent être imposés par un service authentifié ; ne pas présenter un masque de boutons comme une protection.
+
+- Décision d’Étienne du 27 octobre : le suivi picking utilise les chiffres journaliers saisis à partir des managers, modifiables après sauvegarde et visibles en graphiques. Retirer les invitations à photographier/analyser les commandes de ce parcours. Préserver les anciens bilans et photos, leur nettoyage explicite et la compatibilité des sauvegardes.

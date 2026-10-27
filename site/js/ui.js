@@ -2,7 +2,7 @@ import {escapeHTML as esc,localDate} from './core.js';
 import {icon} from './icons.js';
 import {enhanceMobileTables} from './mobile.js';
 export {esc,icon};
-export const state={route:'home',date:localDate(),query:'',filter:'all',page:0,stockTab:'products',chartDays:7,catalogue:null,baseFamilies:[],baseProducts:[],codeValue:'',codeStars:false,codeFormat:'CODE128',generated:null,scanResult:null,orderLines:[],orderPhotos:[],selectedOrder:null,orderText:'',formRole:'preparer'};
+export const state={route:'home',date:localDate(),query:'',filter:'all',page:0,stockTab:'products',chartDays:7,pickingMetric:'total',catalogue:null,baseFamilies:[],baseProducts:[],codeValue:'',codeStars:false,codeFormat:'CODE128',generated:null,scanResult:null,orderLines:[],orderPhotos:[],selectedOrder:null,orderText:'',formRole:'preparer'};
 export const fmt=n=>Number(n??0).toLocaleString('fr-FR');
 export const dateLabel=(date,options={day:'numeric',month:'long'})=>new Intl.DateTimeFormat('fr-FR',options).format(new Date(date+'T12:00:00'));
 export const timestampLabel=s=>new Intl.DateTimeFormat('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(s));

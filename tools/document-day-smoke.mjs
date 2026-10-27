@@ -25,7 +25,7 @@ try{
  await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.save('families',{id:'doc-family',name:'Famille test',unitsPerPick:4});await s.save('products',{id:'doc-known',sku:'DOC-KNOWN',name:'Nom confirmé',familyId:'doc-family',location:'PAD0001',locations:['PAD0001']});});
  const go=async route=>{await page.locator('#mobile-nav [data-nav='+route+']').click();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
  await page.evaluate(()=>location.hash='orders');await page.waitForFunction(()=>document.querySelector('#main')?.dataset.view==='orders');
- await page.getByRole('button',{name:'Enregistrer ma journée',exact:true}).first().click();
+ await page.evaluate(async()=>{await(await import('./js/day-capture.js')).openDay();});
  await page.locator('[data-day-action=camera]').click();await page.waitForFunction(()=>!!document.querySelector('[data-day-camera] video')?.videoWidth);
  for(let n=1;n<=2;n++){
    await page.locator('[data-day-action=snapshot]').click();
@@ -35,11 +35,11 @@ try{
  await page.locator('[data-day-action=camera-stop]').click();assert.equal(await page.evaluate(()=>window.docStreams[0].getTracks().every(t=>t.readyState==='ended')),true);
  await page.locator('[data-day-action=analyse]').click();await page.waitForFunction(()=>window.ocrCalls===1);
  await page.locator('[data-day-action=background]').click();await page.locator('#dialog').waitFor({state:'hidden'});
- assert.equal(await page.locator('#main').getAttribute('data-view'),'orders');await page.locator('[data-day-running]').filter({hasText:/Photo 1/}).waitFor();
- await page.locator('#main [data-day-action=resume]').click();await page.locator('#dialog').waitFor({state:'visible'});
+ assert.equal(await page.locator('#main').getAttribute('data-view'),'orders');assert.equal(await page.locator('[data-day-running]').count(),0);
+ await page.evaluate(async()=>{await(await import('./js/day-capture.js')).openDay();});await page.locator('#dialog').waitFor({state:'visible'});
  assert.equal(await page.locator('[data-day-action=analyse]').isDisabled(),true);
  await page.getByRole('button',{name:'Aide pour cette action',exact:true}).click();await page.getByRole('button',{name:'Reprendre',exact:true}).click();
- await page.locator('[data-day-action=background]').click();await go('home');await page.locator('#main [data-day-action=resume]').click();
+ await page.locator('[data-day-action=background]').click();await go('home');await page.evaluate(async()=>{await(await import('./js/day-capture.js')).openDay();});
  await page.evaluate(()=>window.releaseDayOcr());await page.locator('#batch-progress').filter({hasText:/Analyse terminée/}).waitFor();
  console.log('OK caméra continue : deux photos, un flux, arrêt ; retour Ma journée et Accueil pendant la lecture, reprise et aide');
  // Read both pages and retain the metadata in the editor.
@@ -61,7 +61,7 @@ try{
  console.log('OK catalogue et commandes enregistrés puis annulés ensemble, références/adresses préservées, règle absente explicitement estimée');
  for(const theme of ['light','dark'])for(const width of [320,390]){
   await page.setViewportSize({width,height:844});await page.evaluate(async theme=>{const s=await import('./js/storage.js');await s.save('preferences',{...s.settings(),id:'main',theme});},theme);
-  await page.getByRole('button',{name:'Enregistrer ma journée',exact:true}).first().click();await page.locator('[data-day-action=camera]').click();await page.waitForFunction(()=>!!document.querySelector('[data-day-camera] video')?.videoWidth);
+  await page.evaluate(async()=>{await(await import('./js/day-capture.js')).openDay();});await page.locator('[data-day-action=camera]').click();await page.waitForFunction(()=>!!document.querySelector('[data-day-camera] video')?.videoWidth);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const audit=await page.evaluate(auditContrast);assert.deepEqual(audit.failures,[],'Contraste caméra '+theme+' '+width);
   await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();assert.equal(await page.evaluate(()=>window.docStreams.every(s=>s.getTracks().every(t=>t.readyState==='ended'))),true);
  }

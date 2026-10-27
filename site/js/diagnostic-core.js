@@ -13,6 +13,7 @@ import {generateRecoveryKey,importRecoveryKey,sealJSON,openJSON,fromBase64} from
 import {createDeviceKeys,publicJWK,encryptMessage,decryptMessage,localSeal,localOpen,signedRequest} from './session-crypto.js';
 import {parsePendingVoice} from './pending-voice-core.js';
 import {photoCleanupPlan} from './photo-cleanup-core.js';
+import {pickingDayRecord,pickingSeries,pickingSummary} from './picking-core.js';
 import {HELP,jcMessage} from './help-core.js';
 import {TOOLS,searchTools} from './navigation-core.js';
 import {checkAddress,checkContents} from './training-core.js';
@@ -35,7 +36,8 @@ export function businessChecks(){return [
   same(pickingRule({familyId:'special'},families).units,4);same(pickingRule({familyId:'special',unitsPerPick:6},families).units,6);
   same(inferFamily({name:'Carte de test'}),'cartes');same(pickingRule({},families).units,null);
  }),
- check('picking','Calcul des pickings et estimations',()=>{
+ check('picking','Chiffres saisis et anciens calculs de picking',()=>{
+  const entry=pickingDayRecord({date,manualTotal:'120',manualCommands:'0'}),daily=dailyStats(date,[],[entry]);same(daily.total,120);same(daily.commands,0);same(daily.status,'manual');same(pickingSummary(pickingSeries(date,7,[],[entry])).average,120);
   const known=estimateLines([{sku:'001234',quantity:13,pack:4}]);same(known.total,4);same(known.status,'verified');
   const unknown=estimateLines([{sku:'001234',quantity:13,pack:''}]);same(unknown.status,'estimated');same(unknown.maximum,13);
   same(sheetQuantity('~6~'),6);same(sheetQuantity('(12) manquant'),12);same(sheetQuantity('1O'),null);

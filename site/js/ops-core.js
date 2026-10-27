@@ -75,7 +75,7 @@ export function weekDates(value){
 }
 export function weeklySummary(date,orders,days,issues,pending,goal){
   const dates=weekDates(date),stats=dates.map(day=>dailyStats(day,orders,days,goal));
-  return {dates,stats,total:stats.reduce((n,s)=>n+s.total,0),commands:stats.reduce((n,s)=>n+s.commands,0),days:stats.filter(s=>s.hasData).length,estimated:stats.some(s=>s.hasData&&s.status==='estimated'),issues:issues.filter(r=>dates.includes((r.createdAt||r.updatedAt||'').slice(0,10))),pending:pending.filter(isWaiting)};
+  return {dates,stats,total:stats.reduce((n,s)=>n+s.total,0),commands:stats.some(s=>s.hasData&&s.commands!=null)?stats.reduce((n,s)=>n+(s.hasData?s.commands||0:0),0):stats.some(s=>s.hasData)?null:0,commandsPartial:stats.some(s=>s.hasData&&s.commands==null),days:stats.filter(s=>s.hasData).length,estimated:stats.some(s=>s.hasData&&s.status==='estimated'),issues:issues.filter(r=>dates.includes((r.createdAt||r.updatedAt||'').slice(0,10))),pending:pending.filter(isWaiting)};
 }
 
 export function validQuad(points){

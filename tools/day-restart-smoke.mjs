@@ -23,8 +23,8 @@ try{
   await s.setMeta('day-capture',{date,pages:[{id:'old-draft',photoId:photo}],choices:{}});location.hash='orders';
  },date);
  await page.waitForFunction(()=>document.querySelector('#main')?.dataset.view==='orders');
- const restart=async()=>{await page.locator('#main [data-day-action=restart]').click();await page.locator('[data-day-form=restart]').waitFor({state:'visible'});await page.waitForFunction(()=>document.querySelector('[data-day-form=restart] [name=confirmed]')?.disabled===false);};
- const confirm=async()=>{await page.locator('[data-day-form=restart] [name=confirmed]').check();await page.locator('[data-day-form=restart] [type=submit]').click();await page.locator('[data-day-action=camera]').waitFor();};
+ const restart=async()=>{await page.getByText('Gérer cette journée',{exact:true}).evaluate(el=>el.parentElement.open=true);await page.locator('#main [data-day-action=restart]').click();await page.locator('[data-day-form=restart]').waitFor({state:'visible'});await page.waitForFunction(()=>document.querySelector('[data-day-form=restart] [name=confirmed]')?.disabled===false);};
+ const confirm=async()=>{await page.locator('[data-day-form=restart] [name=confirmed]').check();await page.locator('[data-day-form=restart] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden'});await page.evaluate(async()=>{await(await import('./js/day-capture.js')).openDay();});};
  const close=()=>page.locator('#dialog .dialog-top [data-action=close-dialog]').click();
  const undo=async()=>{await page.locator('[data-ops-action=quick-undo]').click();await page.getByRole('button',{name:'Confirmer l’annulation',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});};
  await restart();assert.match(await page.locator('#dialog-body').innerText(),/2 commande\(s\) · 8 picking/);

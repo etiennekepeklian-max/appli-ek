@@ -1,4 +1,4 @@
-export const VERSION = '1.16.3';
+export const VERSION = '1.17.0';
 export const SCHEMA = 1;
 export const TYPES = ['families','products','enfs','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
 export const LEGACY_SHEETS = {families:'Familles',products:'References',enfs:'ENF',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
@@ -54,10 +54,11 @@ export function estimateLines(lines) {
 }
 export function dailyStats(date,orders,days,goal=1800){
   const completed=orders.filter(o=>!o.deleted&&o.date===date&&o.status==='completed');
-  const correction=days.filter(d=>!d.deleted&&d.date===date).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+  const correction=days.filter(d=>!d.deleted&&d.date===date).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))||String(b.id).localeCompare(String(a.id)))[0];
   const calculated=completed.reduce((a,o)=>a+Number(o.total||0),0);
   const total=correction?.manualTotal!=null?Number(correction.manualTotal):calculated;
-  return {date,total,calculated,commands:new Set(completed.map(o=>orderKey(o.number)||o.id)).size,goal,remaining:Math.max(0,goal-total),percent:goal>0?total/goal*100:0,status:correction?.manualTotal!=null?'corrected':completed.some(o=>o.calculationStatus!=='verified')?'estimated':'verified',hasData:completed.length>0||correction?.manualTotal!=null,correction};
+  const manual=correction?.source==='manager',commands=correction?.manualCommands!=null?Number(correction.manualCommands):manual?null:new Set(completed.map(o=>orderKey(o.number)||o.id)).size;
+  return {date,total,calculated,commands,parcels:correction?.manualParcels??null,pallets:correction?.manualPallets??null,weightKg:correction?.manualWeightKg??null,goal,remaining:Math.max(0,goal-total),percent:goal>0?total/goal*100:0,status:manual?'manual':correction?.manualTotal!=null?'corrected':completed.some(o=>o.calculationStatus!=='verified')?'estimated':'verified',hasData:completed.length>0||correction?.manualTotal!=null,correction};
 }
 export function latestRecords(events){
   const records=new Map(),seen=new Set();
@@ -72,7 +73,7 @@ export function makeEvent(type,record,action,actor,deviceId,lastClock=0){
 }
 export function rowForEvent(ev){
   const r=ev.record;
-  return [ev.id,r.id,ev.updatedAt,ev.actor||'',ev.action||'',r.name||r.title||r.label||r.number||r.sku||'',r.orderNumber||r.number||'',r.sku||r.reference||'',r.location||r.from||'',r.quantity??r.total??'',JSON.stringify({type:ev.type,record:r,schema:ev.schema,...(ev.baseEventId?{baseEventId:ev.baseEventId}:{}),...(ev.resolves?.length?{resolves:ev.resolves}:{})}),ev.deviceId||''];
+  return [ev.id,r.id,ev.updatedAt,ev.actor||'',ev.action||'',r.name||r.title||r.label||r.number||r.sku||r.date||'',r.orderNumber||r.number||'',r.sku||r.reference||'',r.location||r.from||'',r.quantity??r.manualTotal??r.total??'',JSON.stringify({type:ev.type,record:r,schema:ev.schema,...(ev.baseEventId?{baseEventId:ev.baseEventId}:{}),...(ev.resolves?.length?{resolves:ev.resolves}:{})}),ev.deviceId||''];
 }
 export function eventFromRow(row,type){
   if(!row[0]||!row[10])return null;

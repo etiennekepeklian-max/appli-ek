@@ -9,7 +9,7 @@ export function renderMobileNav(route, pendingCount=0){
 
 export function mobileTools(profile='preparer'){
  const groups=[
-  ['Ma journée',[['post','Mon poste','Matériel, repères, consignes et passation','box'],['schedule','Horaires et alertes','Huit minutes avant chaque début et fin','clock'],['voice','Mémos vocaux','Enregistrer et exporter sur ce téléphone','mic'],['orders','Photos et bilan','Toutes les feuilles en fin de journée','camera'],['journal','Journal de la semaine','Bilan, observations et PDF','list']]],
+  ['Ma journée',[['post','Mon poste','Matériel, repères, consignes et passation','box'],['schedule','Horaires et alertes','Huit minutes avant chaque début et fin','clock'],['voice','Mémos vocaux','Enregistrer et exporter sur ce téléphone','mic'],['orders','Suivi picking','Mes chiffres et graphiques par date','chart'],['journal','Journal de la semaine','Bilan, observations et PDF','list']]],
   ['Produits et emplacements',[['enfs','ENF — références et quantités','Photographier une feuille ou consulter sa composition','layers'],['stock','Chercher un produit ou un casier','Référence, EAN, nom ou adresse','box'],['locations','Emplacements et import CSV','Adresses PAC, PAD et RES','pin'],['complete','À compléter','Emplacements, noms et règles manquants','edit'],['families','Familles et règles de picking','Règles communes et exceptions produit','layers'],['unknowns','Codes à identifier','Retrouver les lectures inconnues','help']]],
   ['Manquants et réassorts',[['pending','Suivre les manquants','Par commande ou par référence','clock']]],
   ['Codes-barres',[['codes','Créer et retrouver mes codes','Favoris, récents et étiquettes','barcode'],['scan','Scanner un produit','Caméra, photo ou saisie','scan']]],
@@ -85,7 +85,7 @@ export function enhanceMobileView(root,route,customShortcuts){
     if(quick){
       quick.classList.add('mobile-quick-card');
       quick.querySelector('h2').textContent='Que voulez-vous faire ?';
-      const shortcuts=customShortcuts?.length?customShortcuts:[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','camera','Ma journée','Toutes mes feuilles'],['new-pending','clock','Un manquant','Suivre le réassort']];
+      const shortcuts=customShortcuts?.length?customShortcuts:[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','chart','Ma journée','Chiffres et graphiques'],['new-pending','clock','Un manquant','Suivre le réassort']];
       quick.querySelector('.quick-grid').innerHTML=shortcuts.map(([action,glyph,title,hint])=>`<button class="quick" ${['enfs','codes','scan','stock','locations','unknowns','journal'].includes(action)?`data-nav="${action}"`:`data-action="${action}"`}><span class="quick-icon">${icon(glyph)}</span><span>${title}<small>${hint}</small></span></button>`).join('');
       root.insertBefore(quick,root.querySelector('.common-search'));
       quick.insertAdjacentHTML('afterend','<div class="home-enf-link"><button type="button" class="btn" data-nav="enfs">'+icon('layers')+'ENF — références et quantités</button></div>');

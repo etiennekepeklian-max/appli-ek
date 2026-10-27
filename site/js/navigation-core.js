@@ -9,7 +9,7 @@ export const TOOL_GROUPS=[
   ['pending','Suivre les manquants','Réceptions, relances JC et commandes à reprendre','clock','réassort reçu attente JC'],
   ['enfs','ENF — références et quantités','Consulter le contenu ou photographier une feuille','layers','composition ensemble contenu photo'],
   ['stock','Chercher un produit ou un casier','Référence, EAN, nom et emplacement','box','catalogue adresse rechercher trouver article'],
-  ['orders','Photos et bilan de ma journée','Toutes les commandes en une seule session','camera','objectif picking fin journée feuilles commande'],
+  ['orders','Ma journée — suivi picking','Saisir les chiffres reçus et voir les graphiques','chart','objectif picking fin journée bilan quantité manager statistiques graphique'],
   ['voice','Mémos vocaux','Enregistrer, écouter et exporter sur ce téléphone','mic','mémo vocal note audio son dictaphone']
  ]],
  ['Mon poste et mon équipe',[

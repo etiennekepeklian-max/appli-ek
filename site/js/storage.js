@@ -1,3 +1,4 @@
+import {latestPickingDay,pickingDayRecord} from './picking-core.js';
 import {protectedFiles,hashBytes} from './archive-core.js';
 import {validateEnf} from './enf-core.js';
 import {restartDayPlan} from './day-core.js';
@@ -48,6 +49,13 @@ async function batch(items,action,{undoable=true,resolves=[],expectedScope,metad
   await writeEvents(next,undo,metadata);return next.map(e=>e.record);
 }
 export function saveBatch(items,action='Modification groupée',options){return serial(()=>batch(items,action,options));}
+export function savePickingDay(input){return serial(async()=>{
+  if(input.scope!==namespace)throw Error('La session a changé. Rouvrez Ma journée.');
+  const previous=latestPickingDay(input.date,list('days'));
+  if((previous?.id||'')!==(input.recordId||'')||(previous?._eventId||'')!==(input.revision||''))throw Error('Cette journée a changé depuis son affichage. Rouvrez-la pour vérifier les nouvelles valeurs avant de sauvegarder.');
+  const record=pickingDayRecord(input,previous);record.id=previous?.id||uid();
+  return (await batch([{type:'days',record}],previous?'Chiffres de picking modifiés':'Chiffres de picking enregistrés',{expectedScope:input.scope}))[0];
+});}
 export async function undoInfo(){const info=await meta('last-undo');return info&&(info.items?.length||info.metadata?.length)?info:null;}
 export const undoId=info=>info?.id||info?.at;
 export function dismissUndo(expectedId){return serial(async()=>{
