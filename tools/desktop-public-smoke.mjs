@@ -17,7 +17,11 @@ try{
  await page.locator('#desktop-sidebar .desk-brand').waitFor();
  assert.match(await page.title(),/Pikéo/);
  assert.equal(await page.locator('body.desktop #desktop-sidebar:visible').count(),1);
- assert.equal(await page.locator('#desktop-sidebar [data-nav=administration]').count(),0,'Ne pas proposer des habilitations non sécurisées');
+ assert.equal(await page.locator('#desktop-sidebar [data-nav=administration]').count(),1,'Le menu administration est présent');
+ await page.goto('http://localhost:8765/bureau.html#administration');
+ await page.getByRole('heading',{name:/Administration réservée/}).waitFor();
+ assert.equal(await page.locator('[data-admin-action=new-user]').count(),0,'Aucune création de compte sans authentification du propriétaire');
+ await page.goto('http://localhost:8765/bureau.html#home');
  if(await page.locator('[data-form=onboarding]').count()){
   await page.locator('[data-form=onboarding] [name=name]').fill('Audit bureau');
   await page.locator('[data-form=onboarding] [name=goal]').fill('1800');
