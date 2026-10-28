@@ -48,13 +48,28 @@ try{
  await context.grantPermissions(['clipboard-read','clipboard-write']);
  const jcCard=page.locator('.pending-card').filter({hasText:'RES002-B'});
  await jcCard.getByRole('button',{name:'Message pour réassort',exact:true}).click();
- const expectedJC="S'il te plaît, j’ai besoin de la référence FLOW001 pour poursuivre ma préparation. Quantité manquante : 5 unité(s). Emplacement concerné : RES002-B. Peux-tu aller chercher l’article ? Merci !\n\nÉtienne";
+ const expectedJC="Bonjour, pourrais-tu m’aider à réassortir la référence FLOW001 pour que je puisse poursuivre ma préparation ? Quantité manquante : 5 unité(s). Merci d’avance !\n\nÉtienne";
  assert.equal(await page.locator('[data-jc-message]').inputValue(),expectedJC);
  await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/message pour réassort/i);await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
  await page.getByRole('button',{name:'Copier le message',exact:true}).click();await page.getByText('Message copié.',{exact:true}).waitFor();assert.equal(await read(()=>navigator.clipboard.readText()),expectedJC);await close();
- await page.locator('.pending-card').filter({hasText:'FLOW002'}).getByRole('button',{name:'Message pour réassort',exact:true}).click();await page.getByRole('button',{name:'Compléter la fiche',exact:true}).click();assert.equal(await field('sku').inputValue(),'FLOW002');
+ await page.locator('.pending-card').filter({hasText:'FLOW002'}).getByRole('button',{name:'Message pour réassort',exact:true}).click();assert.match(await page.locator('[data-jc-message]').inputValue(),/FLOW002/);assert.doesNotMatch(await page.locator('[data-jc-message]').inputValue(),/[Ee]mplacement/);await close();
+ await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();
  await field('orderNumber').fill('SAISIE-CONSERVEE');await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/manquant/);await page.keyboard.press('Escape');await page.locator('#help-dialog').waitFor({state:'hidden'});assert.equal(await field('orderNumber').inputValue(),'SAISIE-CONSERVEE');assert.equal(await page.locator('#dialog').getAttribute('open'),'');await close();
- console.log('OK modèle JC, copie réelle, casier absent et aide sans perte de saisie');
+ console.log('OK message de réassort sans lieu et aide sans perte de saisie');
+ await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();
+ await field('orderNumber').fill('CMD-SANS-LIEU');await field('sku').fill('REF-INCONNUE');await field('quantity').fill('8');
+ assert.equal(await field('location').inputValue(),'');await save('pending');
+ assert.deepEqual(await read(async()=>{const s=await import('./js/storage.js');const p=s.list('pending').find(r=>r.orderNumber==='CMD-SANS-LIEU');return [p.sku,p.quantity,p.location];}),['REF-INCONNUE',8,'']);
+ const sansLieu=page.locator('.pending-card').filter({hasText:'CMD-SANS-LIEU'});
+ await sansLieu.getByRole('button',{name:'Message pour réassort',exact:true}).click();
+ assert.match(await page.locator('[data-jc-message]').inputValue(),/REF-INCONNUE.*8 unité/);
+ assert.doesNotMatch(await page.locator('[data-jc-message]').inputValue(),/emplacement|casier/i);
+ await close();
+ await sansLieu.getByRole('button',{name:'Préparer une relance réassort'}).click();
+ assert.match(await page.locator('[data-wb-preview]').inputValue(),/REF-INCONNUE/);
+ assert.doesNotMatch(await page.locator('[data-wb-preview]').inputValue(),/emplacement|casier concerné/i);
+ await close();
+ console.log('OK nouveau manquant sans casier : sauvegarde, message et relance');
 
 
  await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await field('orderNumber').fill('CMD-001');await field('sku').fill('FLOW001');await field('quantity').fill('5');await page.locator('[data-pending-duplicates]:not([hidden])').waitFor();await page.locator('[data-form=pending] [type=submit]').click();await page.locator('[data-form-error]:not([hidden])').waitFor();assert.match(await page.locator('[data-form-error]').innerText(),/déjà signalée/);

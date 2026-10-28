@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {HELP,helpFor,jcMessage} from '../site/js/help-core.js';
 
-test('Le modèle choisi pour JC conserve la référence, les zéros et le casier',()=>{
- assert.equal(jcMessage({sku:'001234',location:'PAC001-A'}),"S'il te plaît, j’ai besoin de la référence 001234 pour poursuivre ma préparation. Emplacement concerné : PAC001-A. Peux-tu aller chercher l’article ? Merci !");
- assert.throws(()=>jcMessage({sku:'001234'}),/emplacement/);
+test('Le message est adressable à Serge ou JC sans casier obligatoire',()=>{
+ assert.equal(jcMessage({sku:'001234',location:'PAC001-A'}),'Bonjour, pourrais-tu m’aider à réassortir la référence 001234 pour que je puisse poursuivre ma préparation ? Merci d’avance !');
+ assert.equal(jcMessage({sku:'001234',quantity:4}),'Bonjour, pourrais-tu m’aider à réassortir la référence 001234 pour que je puisse poursuivre ma préparation ? Quantité manquante : 4 unité(s). Merci d’avance !');
+ assert.doesNotMatch(jcMessage({sku:'001234',location:'PAC001-A',quantity:4}),/PAC001-A|[Ee]mplacement/);
+ assert.doesNotThrow(()=>jcMessage({sku:'001234'}));
  assert.throws(()=>jcMessage({location:'RES001-A'}),/référence/);
 });
 test('Chaque route dispose de sa propre aide ; un formulaire prime sur la route',async()=>{

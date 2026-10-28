@@ -12,7 +12,7 @@ test('La comparaison agrège les références et conserve les zéros',()=>{
 test('La relance utilise le signalement connu sans inventer un envoi',()=>{
  const row={orderNumber:'C1',sku:'001',location:'PAC001-A',status:'waiting',createdAt:'2026-10-25T08:00:00Z'};
  const text=reminderMessage(row,[row,{...row,orderNumber:'C2'},{...row,orderNumber:'C3',status:'done'}],Date.parse('2026-10-25T08:12:00Z'));
- assert.match(text,/depuis 12 min/);assert.match(text,/C1, C2/);assert.doesNotMatch(text,/C3|envoy/);assert.throws(()=>reminderMessage({...row,location:''},[]));
+ assert.match(text,/depuis 12 min/);assert.match(text,/C1, C2/);assert.doesNotMatch(text,/C3|envoy|PAC001-A|emplacement/);assert.doesNotThrow(()=>reminderMessage({...row,location:''},[]));
 });
 test('La passation masque les précisions tant que leur partage n’est pas choisi',()=>{
  const rows=[{orderNumber:'01',sku:'001',location:'PAD001',status:'received',notes:'NOTE PRIVEE'}];
