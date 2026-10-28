@@ -7,7 +7,7 @@
 - Garder les parcours mobiles rapides et les codes-barres noirs sur blanc, en modes clair et sombre. Exécuter les tests métier et les parcours navigateur pertinents avant publication.
 - Ne publier aucun identifiant de feuille privée, secret, jeton, photo ou donnée de travail.
 - Les mémos vocaux utilisent un stockage local séparé. Aucun audio, titre de mémo ou sauvegarde vocale ne doit entrer dans Google Sheets, Drive automatique, le journal métier ou l’export général. Les copies automatiques de version audio restent dans une base locale distincte, sans export ni synchronisation. Seuls les exports/partages déclenchés depuis Mémos vocaux sont autorisés.
-- Godot et Capacitor sont reportés par décision explicite d’Étienne. Poursuivre la version web ; ne pas relancer de migration ni de rappels de maturité sans nouvelle instruction. Lire `docs/GODOT_MIGRATION.md` avant tout changement de plateforme.
+- La migration Godot reste reportée. La préparation de Capacitor est autorisée sur branche isolée ; ne pas compiler, installer, fusionner ou publier l'APK sans accord explicite. Poursuivre la version web pendant ces préparatifs. Lire `docs/GODOT_MIGRATION.md` avant tout changement de plateforme.
 - Conserver les quatre onglets Google `produit`, `manquant`, `objectif picking`, `historique`. Ne pas recréer les anciens onglets ni supprimer des révisions lors d’un regroupement.
 
 - Décision d’Étienne du 25 octobre au soir : produits, commandes et historique Google en clair, sans clé obligatoire. Conserver la lecture des anciennes copies chiffrées et une conversion explicite avec sauvegarde. Sessions par nom sans mot de passe/PIN ; droits administrateur imposés côté serveur et activés par un accès privé, jamais par le prénom seul.

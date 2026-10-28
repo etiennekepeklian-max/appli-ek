@@ -63,7 +63,7 @@ Détails, activation Google et état des choix : [évolutions web](docs/WEB_EVOL
 ## Version 1.7.0 — Pikéo, Contraste terrain et aide contextuelle
 
 - Nom choisi : **Pikéo**. Apparence **Contraste terrain** : noir, blanc et jaune, grandes actions lisibles, modes clair et sombre ; codes-barres toujours noirs sur blanc.
-- **Message pour JC** depuis chaque manquant en attente, y compris la vue groupée : le modèle 3 reprend la référence exacte et l’emplacement, avec aperçu et copie. Un casier absent invite à compléter la fiche. Aucun envoi automatique à un tiers.
+- **Message pour réassort** depuis chaque manquant en attente, y compris la vue groupée : le modèle 3 reprend la référence exacte et l’emplacement, avec aperçu et copie. Un casier absent invite à compléter la fiche. Aucun envoi automatique à un tiers.
 - **Aide contextuelle** avec `?` sur chaque écran, formulaire et cadrage photo. Une fenêtre séparée conserve la saisie et permet de reprendre l’action. Les conseils de message, journée, CSV, picking, sauvegarde et annulation correspondent aux fonctions actuelles.
 - **Maintenance** : `AGENTS.md` exige la vérification de l’aide et sa mise à jour si nécessaire à chaque évolution. Les tests vérifient la couverture des routes.
 - **Compatibilité** : mêmes adresses de site, identité PWA, bases locales, préférences et connexion Google. La signature technique des sauvegardes reste `EK Logistique` afin de conserver la compatibilité avec les exports existants. Les anciens fichiers Google ne sont pas renommés ; le nom historique peut encore apparaître dans le consentement Google.
