@@ -27,6 +27,7 @@ try{
  await page.locator('#dialog [data-action=close-dialog]').click();
  // Catalogue photo review, not write on OCR alone.
  await page.goto(base+'#stock');
+ await page.locator('details.secondary-menu').filter({has:page.locator('[data-action="catalogue-photo"]')}).locator('summary').click();
  await page.getByRole('button',{name:'Importer des feuilles en photo'}).click();
  await page.locator('[data-photo-catalogue-text]').fill('Référence;Nom;Emplacement\n001234;Carte test;PAC001-A\n009876;Carnet test;RES002-B');
  await page.getByRole('button',{name:'Vérifier les lignes'}).click();
