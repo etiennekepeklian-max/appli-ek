@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {HELP,helpFor,jcMessage} from '../site/js/help-core.js';
 
 test('Le modèle choisi pour JC conserve la référence, les zéros et le casier',()=>{
- assert.equal(jcMessage({sku:'001234',location:'PAC001-A'}),'JC, j’ai besoin de la référence 001234 pour poursuivre ma préparation. Emplacement concerné : PAC001-A. Peux-tu aller chercher l’article ? Merci !');
+ assert.equal(jcMessage({sku:'001234',location:'PAC001-A'}),"S'il te plaît, j’ai besoin de la référence 001234 pour poursuivre ma préparation. Emplacement concerné : PAC001-A. Peux-tu aller chercher l’article ? Merci !");
  assert.throws(()=>jcMessage({sku:'001234'}),/emplacement/);
  assert.throws(()=>jcMessage({location:'RES001-A'}),/référence/);
 });

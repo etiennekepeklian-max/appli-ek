@@ -46,7 +46,7 @@ export function reminderMessage(row,rows,now=Date.now()){
  if(!row?.sku||!row.location)throw Error('Complétez la référence et le casier avant de préparer la relance.');
  const started=Date.parse(row.waitingSince||row.createdAt||row.updatedAt),minutes=Number.isFinite(started)?Math.max(0,Math.floor((now-started)/60000)):null;
  const commands=[...new Set(rows.filter(r=>!r.deleted&&['waiting','partial'].includes(r.status)&&refKey(r.sku)===refKey(row.sku)).map(r=>String(r.orderNumber)))];
- return 'Bonjour JC, je reviens vers toi pour la référence '+row.sku+' (emplacement concerné : '+row.location+'). '+(minutes===null?'Le manquant est toujours en attente.':'Le manquant est signalé depuis '+minutes+' min.')+(commands.length?' Commande'+(commands.length>1?'s':'')+' concernée'+(commands.length>1?'s':'')+' : '+commands.join(', ')+'.':'')+' Peux-tu me tenir au courant du réassort ? Merci !';
+ return 'S’il te plaît, je reviens vers toi pour la référence '+row.sku+' (emplacement concerné : '+row.location+'). '+(minutes===null?'Le manquant est toujours en attente.':'Le manquant est signalé depuis '+minutes+' min.')+(commands.length?' Commande'+(commands.length>1?'s':'')+' concernée'+(commands.length>1?'s':'')+' : '+commands.join(', ')+'.':'')+' Peux-tu me tenir au courant du réassort ? Merci !';
 }
 
 export function handoffText(rows,{includeNotes=false}={}){

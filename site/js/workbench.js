@@ -1,5 +1,6 @@
 import {pickingHistory} from './picking-core.js';
 import * as Mascot from './mascot.js';
+import * as Contacts from './reassort-contacts.js';
 import * as Diagnostic from './diagnostic.js';
 import * as Sync from './sync.js';
 import * as Store from './storage.js';
@@ -56,7 +57,7 @@ function progressView(){
 }
 function personalView(){
  const p=Local.preferences();
- return pageHeading('Mes préférences','Ces choix restent personnels à cet appareil.')+back()+fullForm('preferences',field('theme','Apparence',Store.settings().theme||'system',{select:[{value:'system',label:'Comme mon téléphone'},{value:'light',label:'Mode clair'},{value:'dark',label:'Mode sombre'}],full:true})+field('hand','Utilisation à une main',p.hand,{select:[{value:'both',label:'Disposition habituelle'},{value:'left',label:'Main gauche'},{value:'right',label:'Main droite'}],full:true})+field('textSize','Taille de lecture',p.textSize,{select:[{value:'normal',label:'Habituelle'},{value:'large',label:'Agrandie'}]})+field('celebration','Réussite de fin de journée',p.celebration,{select:[{value:'off',label:'Sans animation'},{value:'discreet',label:'Message discret'},{value:'festive',label:'Feu d’artifice bref'}]})+'<div class="field full">'+check('scanVisual','Confirmation visuelle des scans',p.scanVisual)+'</div>'+field('recoveryTimes','Mes rappels de récupération',p.recoveryTimes.join(', '),{full:true,placeholder:'Ex. 10:30, 14:00',hint:'Facultatifs, huit horaires maximum. Ils apparaissent lorsque l’application est ouverte ; aucune précision écran verrouillé n’est promise.'}))+mascotPreferences()+'<section class="card section-gap"><h2>Mes raccourcis et mon apparence</h2>'+hint('L’apparence se règle ci-dessus. Les sons, vibrations et raccourcis se trouvent dans Réglages.')+link('Ouvrir mes réglages','settings','settings')+'</section>';
+ return pageHeading('Mes préférences','Ces choix restent personnels à cet appareil.')+back()+fullForm('preferences',field('theme','Apparence',Store.settings().theme||'system',{select:[{value:'system',label:'Comme mon téléphone'},{value:'light',label:'Mode clair'},{value:'dark',label:'Mode sombre'}],full:true})+field('hand','Utilisation à une main',p.hand,{select:[{value:'both',label:'Disposition habituelle'},{value:'left',label:'Main gauche'},{value:'right',label:'Main droite'}],full:true})+field('textSize','Taille de lecture',p.textSize,{select:[{value:'normal',label:'Habituelle'},{value:'large',label:'Agrandie'}]})+field('celebration','Réussite de fin de journée',p.celebration,{select:[{value:'off',label:'Sans animation'},{value:'discreet',label:'Message discret'},{value:'festive',label:'Feu d’artifice bref'}]})+'<div class="field full">'+check('scanVisual','Confirmation visuelle des scans',p.scanVisual)+'</div>'+field('recoveryTimes','Mes rappels de récupération',p.recoveryTimes.join(', '),{full:true,placeholder:'Ex. 10:30, 14:00',hint:'Facultatifs, huit horaires maximum. Ils apparaissent lorsque l’application est ouverte ; aucune précision écran verrouillé n’est promise.'}))+mascotPreferences()+Contacts.settingsPanel()+'<section class="card section-gap"><h2>Mes raccourcis et mon apparence</h2>'+hint('L’apparence se règle ci-dessus. Les sons, vibrations et raccourcis se trouvent dans Réglages.')+link('Ouvrir mes réglages','settings','settings')+'</section>';
 }
 function mascotPreferences(){
  const selected=Local.get('personal-mascot');
@@ -92,8 +93,8 @@ function recordForm(kind,row={}){
  modal(names[kind],hint(kind==='fatigue'?'Ce ressenti reste privé sur cet appareil. Il n’est ni partagé ni envoyé à Google.':kind==='equipment'?'Définissez votre matériel réel. Aucun équipement n’est imposé.':'Ces repères personnels ne remplacent pas les procédures officielles du site.')+fullForm('record',body,'Enregistrer','data-kind="'+kind+'" data-id="'+esc(row.id||'')+'"'));
  document.querySelector('#dialog').dataset.helpContext='wb-'+kind;const form=document.querySelector('[data-wb-form="record"]');onModalClose(()=>{if(form.dataset.saved)return;const d=Object.fromEntries(new FormData(form));d.id=row.id||'';if(form.elements.active)d.active=form.elements.active.checked;if(form.elements.confirmed)d.confirmed=form.elements.confirmed.checked;delete d.photo;if(Object.values(d).some(v=>String(v).trim())){drafts[kind]=d;void Local.setMeta('form-'+kind,d).catch(()=>{});}});
 }
-function previewText(title,text){
- modal(title,'<label class="field"><span>Informations prêtes à copier</span><textarea readonly rows="10" data-wb-preview>'+esc(text)+'</textarea></label><div class="form-actions">'+wbButton('Copier','copy-preview','','primary')+'</div>');
+function previewText(title,text,withContacts=false){
+ modal(title,'<label class="field"><span>Informations prêtes à copier</span><textarea readonly rows="10" data-wb-preview>'+esc(text)+'</textarea></label><div class="form-actions">'+wbButton('Copier','copy-preview','','primary')+'</div>'+(withContacts?Contacts.actions(text):''));
  document.querySelector('#dialog').dataset.helpContext='handoff';
 }
 function compareOrder(id){
@@ -156,7 +157,7 @@ async function perform(button){if(button.dataset.wbAction==='default-mascot'){aw
  if(action==='goal-pause'){const r=Local.get(id);await Local.save('goal',{...r,active:false});app.render();return;}
  if(action==='keep-day-action'){const rows=endOfDayActions(Store.list('pending'),products().filter(p=>!p.location||!p.effectiveUnitsPerPick).length),r=rows[Number(id)];if(!r)throw Error('La suggestion a changé.');return recordForm('day-action',r);}
  if(action==='copy-preview'){const input=document.querySelector('[data-wb-preview]');try{await navigator.clipboard.writeText(input.value);toast('Texte copié.');}catch{input.focus();input.select();toast('Utilisez Copier dans le menu du téléphone.');}return;}
- if(action==='remind-jc'){const row=Store.get('pending',id);return previewText('Relance pour JC',reminderMessage(row,Store.list('pending')));}
+ if(action==='remind-jc'){const row=Store.get('pending',id);return previewText('Relance pour réassort',reminderMessage(row,Store.list('pending'))+'\n\n'+Store.settings().name,true);}
  if(action==='compare-order')return compareOrder(id);
  if(action==='conflict')return showConflict(id);
  if(action==='resolve-conflict'){
@@ -245,12 +246,12 @@ export function enhance(root,route){
  if(route==='home')root.insertAdjacentHTML('beforeend','<section class="card section-gap wb-home"><h2>Mes repères de travail</h2><div class="actions">'+link('Mon poste','post','box')+link('Reprendre une préparation','resume','clock')+link('Mes progrès','progress','chart')+'</div></section>');
  if(route==='pending'){
   root.querySelector('.filters')?.insertAdjacentHTML('afterend','<div class="actions section-gap">'+link('Préparations à reprendre','resume','clock')+link('Préparer une passation','handoff','arrow')+'</div>');
-  for(const b of root.querySelectorAll('.ops-groups [data-action="message-jc"]')){const r=Store.get('pending',b.dataset.id);if(r)b.insertAdjacentHTML('afterend',small('Relancer JC','remind-jc',r.id));}
+  for(const b of root.querySelectorAll('.ops-groups [data-action="message-jc"]')){const r=Store.get('pending',b.dataset.id);if(r)b.insertAdjacentHTML('afterend',small('Relancer le réassort','remind-jc',r.id));}
   for(const card of root.querySelectorAll('.pending-card')){
    const id=card.querySelector('[data-action="edit-pending"]')?.dataset.id,r=Store.get('pending',id);
    if(!r)continue;
    if(r.cause||r.nextAction)card.insertAdjacentHTML('beforeend',hint((r.cause?esc(CAUSES.find(c=>c[0]===r.cause)?.[1]||r.cause):'')+(r.nextAction?' · Suite : '+esc(r.nextAction):'')));
-   if(['waiting','partial'].includes(r.status))card.insertAdjacentHTML('beforeend','<div class="actions section-gap">'+small('Préparer une relance JC','remind-jc',r.id)+'</div>');
+   if(['waiting','partial'].includes(r.status))card.insertAdjacentHTML('beforeend','<div class="actions section-gap">'+small('Préparer une relance réassort','remind-jc',r.id)+'</div>');
   }
  }
  if(route==='orders')for(const button of root.querySelectorAll('[data-action="edit-order"]')){const id=button.dataset.id;if(Store.getEvents('orders',id).length>1)button.parentElement.insertAdjacentHTML('beforeend',small('Comparer les versions','compare-order',id));}
