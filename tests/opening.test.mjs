@@ -1,13 +1,15 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+import {VERSION} from '../site/js/core.js';
 const get=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
-test('Pikéo Web 1.17.2: one large original mascot for opening and every loading surface',async()=>{
+test('Pikéo : mascot remains large in opening and every loading surface',async()=>{
  const [html,css,js,mascot,manifest,sw]=await Promise.all(['site/index.html','site/opening.css','site/js/opening.js','site/js/mascot.js','site/data/offline-assets.json','site/sw.js'].map(get));
  assert.match(html,/id="pikeo-opening"/);
  assert.match(html,/id="mascot-status"/);
  assert.match(html,/Scannez\. Préparez\. Avancez\./);
  assert.match(html,/opening\.css/);assert.match(html,/js\/opening\.js/);
- assert.match(html,/pikeo-v=1\.17\.2/);
- assert.match(sw,/ek-shell-v1-unified-loading-1172/);
+ assert.ok(html.includes('pikeo-v='+VERSION));
+ assert.ok(sw.includes("const APP_VERSION='"+VERSION+"'"));
+ assert.match(sw,/const SHELL='ek-shell-v1-[^']+'/);
  assert.match(css,/mascot-default\.svg/);
  assert.match(css,/width:min\(78vw,46dvh,430px\)/);
  assert.doesNotMatch(css,/max-width:192px/);
