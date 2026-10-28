@@ -10,7 +10,7 @@ import * as Secrets from './secure-session.js';
 import {sealJSON,openJSON,toBase64,fromBase64} from './secure-core.js';
 import {VERSION,uid,localDate,dailyStats,toCSV,refKey} from './core.js';
 import {KINDS,CAUSES,IMPROVEMENT_STATES,personalPreferences,resumeQueue,orderChanges,reminderMessage,handoffText,concurrentChanges,dayFeedback,endOfDayActions} from './workbench-core.js';
-import {state,esc,fmt,icon,nav,pageHeading,field,check,modal,closeModal,toast,formError,download,jsonDownload,timestampLabel,onModalClose} from './ui.js';
+import {state,esc,btn,fmt,icon,nav,pageHeading,field,check,modal,closeModal,toast,formError,download,jsonDownload,timestampLabel,onModalClose} from './ui.js';
 import {products} from './model.js';
 
 export const ROUTES={post:'Mon poste',resume:'Préparations à reprendre',instructions:'Consignes et rappels',handoff:'Passation',personal:'Mes préférences',progress:'Mes progrès',improvements:'Mes améliorations',storage:'Espace et sauvegardes',diagnostic:'Vérifier l’application',training:'Prise en main',conflicts:'Modifications à comparer',exports:'Partager un bilan'};
@@ -156,7 +156,7 @@ async function perform(button){if(button.dataset.wbAction==='default-mascot'){aw
  if(action==='goal-pause'){const r=Local.get(id);await Local.save('goal',{...r,active:false});app.render();return;}
  if(action==='keep-day-action'){const rows=endOfDayActions(Store.list('pending'),products().filter(p=>!p.location||!p.effectiveUnitsPerPick).length),r=rows[Number(id)];if(!r)throw Error('La suggestion a changé.');return recordForm('day-action',r);}
  if(action==='copy-preview'){const input=document.querySelector('[data-wb-preview]');try{await navigator.clipboard.writeText(input.value);toast('Texte copié.');}catch{input.focus();input.select();toast('Utilisez Copier dans le menu du téléphone.');}return;}
- if(action==='remind-jc'){const row=Store.get('pending',id);return previewText('Relance pour JC',reminderMessage(row,Store.list('pending')));}
+ // Les relances utilisent désormais le même dialogue signé et les mêmes boutons d'appel que le premier message.
  if(action==='compare-order')return compareOrder(id);
  if(action==='conflict')return showConflict(id);
  if(action==='resolve-conflict'){
@@ -245,12 +245,12 @@ export function enhance(root,route){
  if(route==='home')root.insertAdjacentHTML('beforeend','<section class="card section-gap wb-home"><h2>Mes repères de travail</h2><div class="actions">'+link('Mon poste','post','box')+link('Reprendre une préparation','resume','clock')+link('Mes progrès','progress','chart')+'</div></section>');
  if(route==='pending'){
   root.querySelector('.filters')?.insertAdjacentHTML('afterend','<div class="actions section-gap">'+link('Préparations à reprendre','resume','clock')+link('Préparer une passation','handoff','arrow')+'</div>');
-  for(const b of root.querySelectorAll('.ops-groups [data-action="message-jc"]')){const r=Store.get('pending',b.dataset.id);if(r)b.insertAdjacentHTML('afterend',small('Relancer JC','remind-jc',r.id));}
+  for(const b of root.querySelectorAll('.ops-groups [data-action="message-jc"]')){const r=Store.get('pending',b.dataset.id);if(r)b.insertAdjacentHTML('afterend',btn('Relancer le réassort','message-relance','clock','small','data-id="'+esc(r.id)+'"'));}
   for(const card of root.querySelectorAll('.pending-card')){
    const id=card.querySelector('[data-action="edit-pending"]')?.dataset.id,r=Store.get('pending',id);
    if(!r)continue;
    if(r.cause||r.nextAction)card.insertAdjacentHTML('beforeend',hint((r.cause?esc(CAUSES.find(c=>c[0]===r.cause)?.[1]||r.cause):'')+(r.nextAction?' · Suite : '+esc(r.nextAction):'')));
-   if(['waiting','partial'].includes(r.status))card.insertAdjacentHTML('beforeend','<div class="actions section-gap">'+small('Préparer une relance JC','remind-jc',r.id)+'</div>');
+   if(['waiting','partial'].includes(r.status))card.insertAdjacentHTML('beforeend','<div class="actions section-gap">'+btn('Relancer le réassort','message-relance','clock','small','data-id="'+esc(r.id)+'"')+'</div>');
   }
  }
  if(route==='orders')for(const button of root.querySelectorAll('[data-action="edit-order"]')){const id=button.dataset.id;if(Store.getEvents('orders',id).length>1)button.parentElement.insertAdjacentHTML('beforeend',small('Comparer les versions','compare-order',id));}
