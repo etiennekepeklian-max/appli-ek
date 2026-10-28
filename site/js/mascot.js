@@ -1,8 +1,10 @@
-// Visual feedback only: never hold a render, camera, form or operation for an animation.
+// All loading surfaces reuse Pikéo opening #1 with the ORIGINAL mascot.
+// Feedback is visual only: it never blocks navigation, forms or operations.
 import * as Personal from './workbench-store.js';
-const jobs=new Set();let mounted=false,booting=true,readyTimer,loadingTimer;
+const jobs=new Set();let mounted=false,booting=true,loadingTimer;
 let privateBlob,privateURL;
 const root=()=>document.getElementById('mascot-status');
+const clearDialog=()=>document.querySelectorAll('.pk-dialog-loading').forEach(el=>el.remove());
 export function applyPersonal(){
  const blob=Personal.get('personal-mascot')?.photo;
  if(blob===privateBlob)return;
@@ -18,22 +20,45 @@ export async function validateSprite(file){
 }
 export function ready(){
  if(mounted)return;mounted=true;booting=false;
- const el=root();if(!el)return;
- el.classList.add('mascot-ready');el.querySelector('[data-mascot-label]').textContent='Votre espace est prêt';
- // The short greeting may finish beside the already usable interface.
- readyTimer=setTimeout(()=>{if(!jobs.size)el.hidden=true;},800);
+ if(!jobs.size&&root())root().hidden=true;
 }
-export function stop(){booting=false;clearTimeout(readyTimer);clearTimeout(loadingTimer);jobs.clear();if(root())root().hidden=true;}
+export function stop(){
+ booting=false;clearTimeout(loadingTimer);loadingTimer=null;jobs.clear();
+ clearDialog();if(root())root().hidden=true;
+}
+function dialogLoading(dialog,label){
+ let layer=dialog.querySelector('.pk-dialog-loading');
+ if(!layer){
+  layer=document.createElement('div');layer.className='pk-dialog-loading';layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
+  layer.innerHTML='<div class="pk-intro-stage"><div class="pk-intro-text"><div class="pk-intro-title">PIKÉO</div><div class="pk-intro-rule"></div><p class="pk-intro-slogan">Scannez. Préparez. Avancez.</p></div><span class="mascot-sprite" aria-hidden="true"></span><p class="pk-load-label" data-dialog-mascot-label></p></div>';
+  dialog.append(layer);
+ }
+ layer.querySelector('[data-dialog-mascot-label]').textContent=label;
+}
+function paint(){
+ if(!jobs.size)return;
+ const label=[...jobs].at(-1).label,el=root(),dialog=document.querySelector('#dialog[open]');
+ if(dialog){
+  if(el)el.hidden=true;
+  dialogLoading(dialog,label);
+ }else{
+  clearDialog();
+  if(!el)return;
+  el.classList.remove('mascot-ready');el.classList.add('mascot-loading');
+  el.querySelector('[data-mascot-label]').textContent=label;
+  el.hidden=false;
+ }
+}
 export function begin(label='Chargement en cours…'){
  const token={label};jobs.add(token);
- if(!loadingTimer)loadingTimer=setTimeout(()=>{
-  loadingTimer=null;if(!jobs.size||!root())return;
-  clearTimeout(readyTimer);const el=root();el.classList.remove('mascot-ready');el.classList.add('mascot-loading');
-  el.querySelector('[data-mascot-label]').textContent=[...jobs].at(-1).label;el.hidden=false;
-  const header=document.querySelector('#dialog[open] .dialog-top');
-  if(header&&!header.querySelector('.mascot-inline')){const sprite=document.createElement('span');sprite.className='mascot-sprite mascot-walk mascot-inline';sprite.setAttribute('aria-hidden','true');header.querySelector('h2').after(sprite);}
- },150);
+ if(!loadingTimer)loadingTimer=setTimeout(()=>{loadingTimer=null;paint();},180);
  let done=false;
- return ()=>{if(done)return;done=true;jobs.delete(token);if(!jobs.size){clearTimeout(loadingTimer);loadingTimer=null;document.querySelectorAll('.mascot-inline').forEach(el=>el.remove());if(!booting&&root())root().hidden=true;}};
+ return ()=>{
+  if(done)return;done=true;jobs.delete(token);
+  if(!jobs.size){
+   clearTimeout(loadingTimer);loadingTimer=null;clearDialog();
+   if(!booting&&root())root().hidden=true;
+  }else if(!loadingTimer)paint();
+ };
 }
 export async function during(operation,label){const end=begin(label);try{return await operation();}finally{end();}}

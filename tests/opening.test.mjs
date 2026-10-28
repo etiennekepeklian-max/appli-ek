@@ -1,18 +1,30 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 const get=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
-test('Pikéo Web : mascotte originale, version 1.17.1, animation choisie n°1',async()=>{
- const [html,css,js,manifest]=await Promise.all(['site/index.html','site/opening.css','site/js/opening.js','site/data/offline-assets.json'].map(get));
+test('Pikéo Web 1.17.2: one large original mascot for opening and every loading surface',async()=>{
+ const [html,css,js,mascot,manifest,sw]=await Promise.all(['site/index.html','site/opening.css','site/js/opening.js','site/js/mascot.js','site/data/offline-assets.json','site/sw.js'].map(get));
  assert.match(html,/id="pikeo-opening"/);
+ assert.match(html,/id="mascot-status"/);
  assert.match(html,/Scannez\. Préparez\. Avancez\./);
  assert.match(html,/opening\.css/);assert.match(html,/js\/opening\.js/);
- assert.match(html,/pikeo-v=1\.17\.1/);
+ assert.match(html,/pikeo-v=1\.17\.2/);
+ assert.match(sw,/ek-shell-v1-unified-loading-1172/);
  assert.match(css,/mascot-default\.svg/);
+ assert.match(css,/width:min\(78vw,46dvh,430px\)/);
+ assert.doesNotMatch(css,/max-width:192px/);
+ assert.match(css,/#mascot-status \.mascot-sprite/);
+ assert.match(css,/\.pk-dialog-loading \.mascot-sprite/);
+ assert.match(css,/#main \.loading \.loader/);
+ assert.match(css,/#main \.barcode-stage \.loader/);
  assert.match(css,/pointer-events:none/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/2\.4s/);
+ assert.match(mascot,/pk-dialog-loading/);
+ assert.doesNotMatch(mascot,/mascot-inline/);
+ assert.match(mascot,/clearDialog\(\)/);
  assert.match(js,/pikeo-shortcut/);
  assert.match(js,/setTimeout\(end,2400\)/);
  const offline=JSON.parse(manifest);
  assert.ok(offline.includes('opening.css'));
  assert.ok(offline.includes('js/opening.js'));
+ assert.ok(offline.includes('js/mascot.js'));
 });
