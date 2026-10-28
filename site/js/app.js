@@ -183,6 +183,18 @@ async function handleAction(button){const action=button.dataset.action,id=button
   case 'scan-for-pending':{const form=button.closest('[data-form=pending]'),values=dataObject(form);await Ops.persistDraft();state.scanTarget={key:'draft-pending-'+(form.dataset.id||'new'),values:{...values,id:form.dataset.id,location:locationValue(values.location,values.locationType)}};navigate('scan');break;}
   case 'return-to-pending':case 'use-scanned-reference':{const target=state.scanTarget;if(!target)throw Error('Rouvrez le formulaire de manquant.');const p=id?products().find(p=>p.id===id):null;state.scanTarget=null;navigate('pending');if(await Store.meta(target.key))await Ops.restoreDraft(target.key);else pendingForm(target.values);const form=document.querySelector('[data-form=pending]');if(p){form.elements.sku.value=p.sku;delete form.dataset.selectedProductId;form.elements.sku.dispatchEvent(new Event('input',{bubbles:true}));}Fields.refreshPendingReference();break;}
   case 'new-pending':pendingForm();break;case 'edit-pending':pendingForm(getRaw('pending',id));break;
+  case 'delete-pending':{
+    const row=getRaw('pending',id);if(!row||row.deleted)throw Error('Ce manquant est introuvable ou déjà supprimé.');
+    modal('Supprimer ce manquant ?',`<p class="dialog-intro">Commande <strong>${esc(row.orderNumber)}</strong> · Référence <strong>${esc(row.sku)}</strong>${row.quantity==null?'':` · ${fmt(row.quantity)} unité(s)`}</p><p>Seul ce manquant sera retiré des listes. Les autres références et commandes resteront intactes.</p><p class="hint">Une trace restera dans l’historique. Vous pourrez annuler cette suppression tant qu’aucune autre modification n’a été enregistrée.</p><div class="form-actions">${btn('Annuler','close-dialog')}${btn('Confirmer la suppression','confirm-delete-pending','trash','danger',`data-id="${esc(id)}" data-revision="${esc(row._eventId||'')}"`)}</div>`);
+    break;
+  }
+  case 'confirm-delete-pending':{
+    const row=getRaw('pending',id);if(!row||row.deleted)throw Error('Ce manquant est introuvable ou déjà supprimé.');
+    if(String(row._eventId||'')!==button.dataset.revision)throw Error('Ce manquant a changé depuis votre confirmation. Rouvrez sa fiche avant de le supprimer.');
+    await Store.save('pending',{...row,deleted:true},'Manquant supprimé par erreur de saisie');
+    closeModal();toast('Manquant supprimé. Annuler est disponible pour revenir en arrière.');
+    break;
+  }
   case 'pending-received':{const row=getRaw('pending',id);await Store.save('pending',{...row,status:'received',received:row.quantity},'Réassort reçu');toast('Réassort reçu. Vous pourrez clôturer la commande une fois sa préparation terminée.');break;}
   case 'pending-done':{const row=getRaw('pending',id),rows=Store.list('pending').filter(p=>refKey(p.orderNumber)===refKey(row.orderNumber)&&p.status!=='done');if(rows.some(p=>['waiting','partial'].includes(p.status)))throw Error('Une autre référence de cette commande attend encore son réassort.');await Store.saveBatch(rows.map(record=>({type:'pending',record:{...record,status:'done'}})),'Commande en attente clôturée');toast('Commande marquée terminée. Reportez les chiffres de votre manager dans Ma journée.');break;}
   case 'view-product':productDetails(id);break;case 'new-product':productForm();break;case 'edit-product':{const p=products().find(p=>p.id===id);if(!p)throw Error('Référence introuvable.');productForm(p);break;}
