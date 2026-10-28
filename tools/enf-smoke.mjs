@@ -4,7 +4,7 @@ let browser;const errors=[],base='http://localhost:8765/';
 try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
  const c=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await c.newPage();page.on('pageerror',e=>errors.push(e.message));
- await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.getByRole('heading',{name:'ENF 000042',exact:true}).waitFor();
+ await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
  await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.saveBatch([{type:'products',record:{id:'enf-prod-a',sku:'001234',name:'Carte test'}},{type:'products',record:{id:'enf-prod-b',sku:'009876',name:'Autre carte test'}}],'Catalogue ENF de test');});
  await page.getByRole('button',{name:'ENF — références et quantités',exact:true}).click();await page.getByRole('heading',{name:'ENF',exact:true}).waitFor();
  await page.getByRole('button',{name:'Photographier une feuille ENF',exact:true}).click();
