@@ -48,7 +48,7 @@ try{
  await context.grantPermissions(['clipboard-read','clipboard-write']);
  const jcCard=page.locator('.pending-card').filter({hasText:'RES002-B'});
  await jcCard.getByRole('button',{name:'Message pour réassort',exact:true}).click();
- const expectedJC="Bonjour, pourrais-tu m’aider à réassortir la référence FLOW001 pour que je puisse poursuivre ma préparation ? Quantité manquante : 5 unité(s). Merci d’avance !\n\nÉtienne";
+ const expectedJC="Bonjour, pourrais-tu procéder au réassort de la référence FLOW001 ? Il me manque 5 unité(s) pour la commande CMD-001. Merci pour ton aide.\n\nÉtienne";
  assert.equal(await page.locator('[data-jc-message]').inputValue(),expectedJC);
  await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/message pour réassort/i);await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
  await page.getByRole('button',{name:'Copier le message',exact:true}).click();await page.getByText('Message copié.',{exact:true}).waitFor();assert.equal(await read(()=>navigator.clipboard.readText()),expectedJC);await close();
@@ -66,7 +66,7 @@ try{
  assert.doesNotMatch(await page.locator('[data-jc-message]').inputValue(),/emplacement|casier/i);
  await close();
  await sansLieu.getByRole('button',{name:'Préparer une relance réassort'}).click();
- assert.match(await page.locator('[data-wb-preview]').inputValue(),/REF-INCONNUE/);
+ assert.match(await page.locator('[data-wb-preview]').inputValue(),/REF-INCONNUE/);assert.match(await page.locator('[data-wb-preview]').inputValue(),/8 unité\(s\) pour la commande CMD-SANS-LIEU/);
  assert.doesNotMatch(await page.locator('[data-wb-preview]').inputValue(),/emplacement|casier concerné/i);
  await close();
  console.log('OK nouveau manquant sans casier : sauvegarde, message et relance');

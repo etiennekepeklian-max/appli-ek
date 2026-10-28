@@ -65,11 +65,11 @@ export function businessChecks(){return [
   same(parseDelimited('a;b\n"avec;point";"deux"')[1],['avec;point','deux']);
   same(parseDelimited(toCSV(['Référence','Casier'],[['001234','PAC001-A']]))[1],['001234','PAC001-A']);
  }),
- check('pending','Manquants, réassorts et message pour JC',()=>{
+ check('pending','Manquants, réassorts et message pour réassort',()=>{
   const voice=parsePendingVoice('commande 0000123 référence zéro zéro un deux trois quatre');same(voice.orderNumber,'0000123');same(voice.sku,'001234');
   const rows=[{id:'p',orderNumber:'TEST',sku:'001234',status:'waiting',location:'PAC001-A',createdAt:'2026-01-05T08:00:00Z'}];
   same(pendingDuplicates(rows,{orderNumber:'TEST',sku:'001234'}).length,1);assert(isOverdue(rows[0],Date.parse('2026-01-05T08:31:00Z')));
-  assert(jcMessage(rows[0]).includes('001234'));assert(!jcMessage(rows[0]).includes('PAC001-A'));assert(jcMessage({sku:'001234',quantity:4}));same(preferredLocation(product),'PAC001-A');same(preferredLocation({...product,locations:['RES002']}),'');
+  assert(jcMessage(rows[0]).includes('001234'));assert(!jcMessage(rows[0]).includes('PAC001-A'));assert(jcMessage({sku:'001234',orderNumber:'TEST',quantity:4}).includes('4 unité(s) pour la commande TEST'));same(preferredLocation(product),'PAC001-A');same(preferredLocation({...product,locations:['RES002']}),'');
   same(resumeQueue([{...rows[0],status:'received'}]).length,1);
  }),
  check('enf','ENF : lecture, composition et quantités',()=>{

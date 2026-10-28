@@ -10,9 +10,11 @@ test('La comparaison agrège les références et conserve les zéros',()=>{
  assert.deepEqual(orderChanges({lines:[{sku:'001',quantity:2},{sku:'001',quantity:3},{sku:'OLD',quantity:1}]},{lines:[{sku:'001',quantity:7},{sku:'NEW',quantity:4}]}),[{sku:'001',before:5,after:7,delta:2,kind:'changed'},{sku:'OLD',before:1,after:0,delta:-1,kind:'removed'},{sku:'NEW',before:0,after:4,delta:4,kind:'added'}]);
 });
 test('La relance utilise le signalement connu sans inventer un envoi',()=>{
- const row={orderNumber:'C1',sku:'001',location:'PAC001-A',status:'waiting',createdAt:'2026-10-25T08:00:00Z'};
+ const row={orderNumber:'C1',sku:'001',quantity:7,location:'PAC001-A',status:'waiting',createdAt:'2026-10-25T08:00:00Z'};
  const text=reminderMessage(row,[row,{...row,orderNumber:'C2'},{...row,orderNumber:'C3',status:'done'}],Date.parse('2026-10-25T08:12:00Z'));
- assert.match(text,/depuis 12 min/);assert.match(text,/C1, C2/);assert.doesNotMatch(text,/C3|envoy|PAC001-A|emplacement/);assert.doesNotThrow(()=>reminderMessage({...row,location:''},[]));
+ assert.match(text,/depuis 12 min/);assert.match(text,/Il me manque toujours 7 unité\(s\) pour la commande C1/);assert.match(text,/C2/);assert.doesNotMatch(text,/C3|envoy|PAC001-A|emplacement/);assert.doesNotThrow(()=>reminderMessage({...row,location:''},[]));
+ const old=reminderMessage({...row,quantity:null,location:''},[row],Date.parse('2026-10-25T08:12:00Z'));
+ assert.match(old,/Le manquant pour la commande C1 est toujours en attente/);assert.doesNotMatch(old,/7 unité|PAC001-A/);
 });
 test('La passation masque les précisions tant que leur partage n’est pas choisi',()=>{
  const rows=[{orderNumber:'01',sku:'001',location:'PAD001',status:'received',notes:'NOTE PRIVEE'}];

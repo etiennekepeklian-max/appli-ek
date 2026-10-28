@@ -42,11 +42,16 @@ export function orderChanges(before={},after={}){
  return [...new Set([...left.keys(),...right.keys()])].map(sku=>({sku,before:left.get(sku)||0,after:right.get(sku)||0})).filter(r=>r.before!==r.after).map(r=>({...r,delta:r.after-r.before,kind:r.before===0?'added':r.after===0?'removed':'changed'}));
 }
 
-export function reminderMessage(row,rows,now=Date.now()){
- if(!row?.sku)throw Error('Complétez la référence avant de préparer la relance.');
+export function reminderMessage(row,rows=[],now=Date.now()){
+ const reference=String(row?.sku||'').trim(),order=String(row?.orderNumber||'').trim();
+ if(!reference)throw Error('Complétez la référence avant de préparer la relance.');
+ const amount=row.quantity==null||row.quantity===''?null:Number(row.quantity);
+ const detail=Number.isInteger(amount)&&amount>0
+  ?`Il me manque toujours ${amount} unité(s)${order?' pour la commande '+order:''}.`
+  :order?`Le manquant pour la commande ${order} est toujours en attente.`:'Le manquant est toujours en attente.';
  const started=Date.parse(row.waitingSince||row.createdAt||row.updatedAt),minutes=Number.isFinite(started)?Math.max(0,Math.floor((now-started)/60000)):null;
- const commands=[...new Set(rows.filter(r=>!r.deleted&&['waiting','partial'].includes(r.status)&&refKey(r.sku)===refKey(row.sku)).map(r=>String(r.orderNumber)))];
- return 'Bonjour, je reviens vers toi pour la référence '+row.sku+'. '+(minutes===null?'Le manquant est toujours en attente.':'Le manquant est signalé depuis '+minutes+' min.')+(commands.length?' Commande'+(commands.length>1?'s':'')+' concernée'+(commands.length>1?'s':'')+' : '+commands.join(', ')+'.':'')+' Peux-tu me tenir au courant du réassort ? Merci !';
+ const others=[...new Set(rows.filter(r=>!r.deleted&&['waiting','partial'].includes(r.status)&&refKey(r.sku)===refKey(reference)).map(r=>String(r.orderNumber||'').trim()).filter(n=>n&&n!==order))];
+ return `Bonjour, je me permets de te relancer concernant le réassort de la référence ${reference}. ${detail}${minutes===null?'':` Le manquant est signalé depuis ${minutes} min.`}${others.length?' Autre'+(others.length>1?'s':'')+' commande'+(others.length>1?'s':'')+' concernée'+(others.length>1?'s':'')+' : '+others.join(', ')+'.':''} Peux-tu me tenir informé de l’avancement ? Merci pour ton aide.`;
 }
 
 export function handoffText(rows,{includeNotes=false}={}){
