@@ -53,6 +53,7 @@ try{
  await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/message pour réassort/i);await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
  await page.getByRole('button',{name:'Copier le message',exact:true}).click();await page.getByText('Message copié.',{exact:true}).waitFor();assert.equal(await read(()=>navigator.clipboard.readText()),expectedJC);await close();
  await page.locator('.pending-card').filter({hasText:'FLOW002'}).getByRole('button',{name:'Message pour réassort',exact:true}).click();assert.match(await page.locator('[data-jc-message]').inputValue(),/FLOW002/);assert.doesNotMatch(await page.locator('[data-jc-message]').inputValue(),/[Ee]mplacement/);await close();
+ await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();
  await field('orderNumber').fill('SAISIE-CONSERVEE');await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/manquant/);await page.keyboard.press('Escape');await page.locator('#help-dialog').waitFor({state:'hidden'});assert.equal(await field('orderNumber').inputValue(),'SAISIE-CONSERVEE');assert.equal(await page.locator('#dialog').getAttribute('open'),'');await close();
  console.log('OK message de réassort sans lieu et aide sans perte de saisie');
  await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();
