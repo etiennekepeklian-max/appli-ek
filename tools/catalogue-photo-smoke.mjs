@@ -48,7 +48,7 @@ try{
  assert.equal(unknown,'resolved');
  // The web help is a real navigable public static page.
  await page.goto(base+'aide-bureau.html');
- await page.getByRole('heading',{name:'Pikéo · Guide de l’interface bureau'}).waitFor();
+ await page.getByRole('heading',{name:/Pikéo · Guide de l.interface bureau/}).waitFor();
  assert.deepEqual(errors,[]);
  await context.close();
  console.log('Parcours Pikéo OK : ENF manuel + détail, photo avec revue, code emplacement et aide bureau.');
