@@ -18,7 +18,8 @@ try{
  await page.route('**/data/catalogue.json',async route=>{await gate;await route.continue();});
  await page.goto(base,{waitUntil:'domcontentloaded'});
  await page.locator('#mascot-status').waitFor({state:'visible'});
- assert.equal(await page.locator('.mascot-deposit').evaluate(el=>getComputedStyle(el).animationName),'mascot-deposit');
+ assert.equal(await page.locator('#mascot-status .mascot-sprite').evaluate(el=>getComputedStyle(el).animationName),'pk-intro-box');
+ assert.ok(await page.locator('#mascot-status .mascot-sprite').evaluate(el=>el.getBoundingClientRect().width)>=240,'La mascotte doit être grande sur mobile');
  assert.equal(await page.locator('#mascot-status').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
  release();await page.locator('#app-version').filter({hasText:VERSION}).waitFor();await page.unroute('**/data/catalogue.json');
  await page.getByRole('button',{name:'Commencer',exact:true}).click();
@@ -60,7 +61,7 @@ try{
  await page.evaluate(async()=>{window.finishTestLoad=(await import('./js/mascot.js')).begin('Chargement de test…');});
  await page.locator('#mascot-status.mascot-loading').waitFor({state:'visible'});
  await page.evaluate(()=>window.finishTestLoad());await page.locator('#mascot-status').waitFor({state:'hidden'});
- await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.mascot-sprite').first().evaluate(el=>getComputedStyle(el).animationName),'none');await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('#mascot-status .mascot-sprite').evaluate(el=>getComputedStyle(el).animationName),'none');await page.emulateMedia({reducedMotion:'no-preference'});
  const sprite=await page.evaluate(async()=>{const im=new Image();im.src='assets/mascot-default.svg';await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d');x.drawImage(im,0,0);return {width:im.width,height:im.height,alpha:x.getImageData(0,0,1,1).data[3]};});
  assert.deepEqual(sprite,{width:1536,height:1024,alpha:0});
 

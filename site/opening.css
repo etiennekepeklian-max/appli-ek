@@ -1,18 +1,32 @@
-/* Opening #1 Contraste terrain. The ORIGINAL Pikéo sprite is reused. */
-#pikeo-opening{position:fixed;inset:0;z-index:85;pointer-events:none;display:grid;place-items:center;overflow:hidden;padding:20px;background:#f7d64d;color:#171d1b;animation:pk-intro-hide 2.4s linear both}
-#pikeo-opening::before{content:"";position:absolute;left:45%;top:-25%;width:min(86vw,590px);aspect-ratio:1;border-radius:50%;background:#fdf9dd;opacity:.8}
-.pk-intro-stage{position:relative;z-index:1;width:min(100%,520px);min-height:260px;display:grid;grid-template-columns:minmax(0,1fr) minmax(128px,42%);align-items:center;gap:6px}
-.pk-intro-title{font-size:clamp(32px,7.5vw,58px);line-height:1.1;font-weight:900;letter-spacing:.045em}
-.pk-intro-rule{height:6px;width:64px;border-radius:10px;background:#fff9df;margin:15px 0}
-.pk-intro-slogan{font-size:clamp(14px,3.5vw,19px);font-weight:700;line-height:1.4}
-.pk-intro-character{width:100%;max-width:192px;aspect-ratio:3/4;justify-self:end;position:relative;background:url('assets/mascot-default.svg') 0 0/400% 200% no-repeat;animation:pk-intro-box 2.4s step-end both}
-.pk-intro-character::after{content:"👍";position:absolute;right:-5px;top:24%;font-size:clamp(28px,7vw,44px);opacity:0;transform:translateY(9px);animation:pk-intro-thumb 2.4s ease-out both}
+/* One single loading identity: opening #1 "Contraste terrain", original Pikéo sprite. */
+#pikeo-opening,#mascot-status,.pk-dialog-loading{position:fixed;inset:0;overflow:hidden;display:grid;place-items:center;padding:clamp(12px,3vw,28px);background:#f7d64d;color:#171d1b;pointer-events:none}
+#pikeo-opening{z-index:85;animation:pk-intro-hide 2.4s linear both}
+#mascot-status{z-index:80;right:0;bottom:0;width:100%;max-width:none;min-height:100dvh;border:0;border-radius:0;box-shadow:none}
+.pk-dialog-loading{z-index:100;min-height:100dvh;border:0;border-radius:0}
+#pikeo-opening::before,#mascot-status::before,.pk-dialog-loading::before{content:"";position:absolute;left:40%;top:-30%;width:min(115vw,800px);aspect-ratio:1;border-radius:50%;background:#fdf9dd;opacity:.8}
+.pk-intro-stage{position:relative;z-index:1;width:min(100%,650px);max-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(9px,1.8dvh,18px);text-align:center}
+.pk-intro-text{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.5dvh,13px)}
+.pk-intro-title{font-size:clamp(35px,8vw,66px);line-height:1;font-weight:900;letter-spacing:.045em}
+.pk-intro-rule{height:6px;width:74px;border-radius:10px;background:#fff9df}
+.pk-intro-slogan{font-size:clamp(16px,3.8vw,22px);font-weight:700;line-height:1.35}
+.pk-intro-character,#mascot-status .mascot-sprite,.pk-dialog-loading .mascot-sprite{
+ display:block;position:relative;flex:0 0 auto;width:min(78vw,46dvh,430px);height:auto;max-width:none;aspect-ratio:3/4;
+ background:url('assets/mascot-default.svg') 0 0/400% 200% no-repeat;
+ animation:pk-intro-box 2.4s step-end infinite
+}
+#pikeo-opening .pk-intro-character{animation-iteration-count:1}
+.pk-intro-character::after,#mascot-status .mascot-sprite::after,.pk-dialog-loading .mascot-sprite::after{content:"👍";position:absolute;right:-4%;top:23%;font-size:clamp(36px,8vw,62px);opacity:0;transform:translateY(9px);animation:pk-intro-thumb 2.4s ease-out infinite}
+#pikeo-opening .pk-intro-character::after{animation-iteration-count:1}
+#mascot-status .pk-load-label,.pk-dialog-loading .pk-load-label{margin:0;max-width:min(90vw,620px);font-size:clamp(14px,3.5vw,20px);font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+#mascot-status[hidden]{display:none!important}
+body:has(dialog[open]) #mascot-status,body:has(dialog[open]) #pikeo-opening{display:none!important}
+.loader{display:inline-block;vertical-align:middle;flex:none;width:80px;height:auto;aspect-ratio:3/4;border:0;border-radius:0;background:url('assets/mascot-default.svg') 0 0/400% 200% no-repeat;animation:pk-intro-box 2.4s step-end infinite}
+#main .loading{min-height:clamp(350px,72dvh,740px);padding:22px 12px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;text-align:center;color:#171d1b;background:#f7d64d;border-radius:20px}
+#main .loading .loader{width:min(68vw,37dvh,330px)}
+#main .barcode-stage .loader{width:min(52vw,26dvh,220px)}
 @keyframes pk-intro-box{0%,19%{background-position:0 0}20%,44%{background-position:33.333333% 0}45%,69%{background-position:66.666667% 0}70%,100%{background-position:100% 0}}
 @keyframes pk-intro-thumb{0%,76%{opacity:0;transform:translateY(9px)}85%,100%{opacity:1;transform:translateY(0)}}
 @keyframes pk-intro-hide{0%,89%{visibility:visible;opacity:1}100%{visibility:hidden;opacity:0}}
-@media(max-width:360px){.pk-intro-stage{grid-template-columns:minmax(0,1fr) 43%;gap:0;min-height:220px}.pk-intro-rule{margin:10px 0}}
-@media(prefers-reduced-motion:reduce){#pikeo-opening{display:none!important;animation:none!important}.pk-intro-character,.pk-intro-character::after{animation:none!important}}
-@media print{#pikeo-opening{display:none!important}}
-
-/* A first-run onboarding or another dialog must take precedence over the opening. */
-body:has(dialog[open]) #pikeo-opening{display:none!important}
+@media(max-height:560px){.pk-intro-stage{gap:6px}.pk-intro-title{font-size:clamp(28px,6vw,44px)}.pk-intro-character,#mascot-status .mascot-sprite,.pk-dialog-loading .mascot-sprite{width:min(70vw,37dvh,290px)}}
+@media(prefers-reduced-motion:reduce){#pikeo-opening{display:none!important;animation:none!important}.pk-intro-character,#mascot-status .mascot-sprite,.pk-dialog-loading .mascot-sprite,.loader{animation:none!important;background-position:0 0}.pk-intro-character::after,#mascot-status .mascot-sprite::after,.pk-dialog-loading .mascot-sprite::after{animation:none!important;opacity:0}}
+@media print{#pikeo-opening,#mascot-status,.pk-dialog-loading{display:none!important}}
