@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guide bureau · Pikéo</title><meta name="theme-color" content="#ffffff">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<style>
+:root{font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif;color:#172e44;background:#f4f7fa}
+*{box-sizing:border-box}body{margin:0}header{background:#102b43;color:white;padding:22px max(22px,calc((100vw - 1050px)/2))}header h1{margin:0}header p{margin:4px 0 0;color:#d9e7f0}
+main{max-width:1050px;margin:auto;padding:24px 18px 70px}nav{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 24px}a{color:#135885}nav a,.toplink{background:white;border:1px solid #d6e1ea;border-radius:12px;padding:9px 13px;text-decoration:none}
+section{background:white;border:1px solid #dce5ea;border-radius:18px;margin:18px 0;padding:18px 24px;box-shadow:0 2px 9px #102b4308}
+h2{margin:0 0 8px;font-size:1.3rem}h3{margin-bottom:2px}ol{padding-left:22px}li{margin:6px 0}
+.notice{border-left:4px solid #c27919;padding:12px 16px;background:#fff9ed;border-radius:8px}
+code{background:#edf2f6;border-radius:5px;padding:1px 4px}small{color:#496176}
+@media(max-width:550px){section{padding:16px}header{padding:18px}nav a{font-size:14px}}
+</style></head><body>
+<header><h1>Pikéo · Guide de l'interface bureau</h1><p>Le mode d'emploi de la version web sur ordinateur, accessible sans connexion aux données de travail.</p></header>
+<main>
+<p><a class="toplink" href="bureau.html#home">Ouvrir mon espace bureau</a> · <a class="toplink" href="index.html#home">Version téléphone</a></p>
+<nav aria-label="Sommaire">
+<a href="#demarrer">Démarrage</a><a href="#enf">ENF</a><a href="#produits">Produits et photos</a><a href="#reassort">Manquants</a><a href="#codes">Codes</a><a href="#comptes">Utilisateurs</a><a href="#sauvegardes">Sauvegardes</a>
+</nav>
+<section id="demarrer"><h2>1. Démarrer et se repérer</h2><ol>
+<li>Ouvrez <a href="bureau.html">Pikéo Bureau</a>. Le menu latéral rassemble Activité, Catalogue et stock, Mon espace, puis Administration.</li>
+<li>La loupe en haut recherche une fonction, tandis que <strong>?</strong> explique l'écran ou le formulaire actuellement ouvert.</li>
+<li>L'interface téléphone s'ouvre par le lien en bas du menu. Sur le même navigateur, bureau et téléphone partagent les données locales.</li>
+</ol><p class="notice"><strong>Important :</strong> un autre navigateur, un autre téléphone ou un APK Capacitor ne récupère pas automatiquement les données locales. Exportez puis restaurez les sauvegardes prévues.</p></section>
+<section id="enf"><h2>2. Créer et consulter un ENF</h2><ol>
+<li>Ouvrez <a href="bureau.html#enfs">ENF</a>. Avec un compte autorisé à modifier les produits, choisissez <strong>Créer un ENF manuellement</strong> ou <strong>Photographier une feuille ENF</strong>.</li>
+<li>Renseignez le code ENF, puis les références et quantités. Ajoutez une ligne si nécessaire. La photo peut proposer des valeurs à relire.</li>
+<li>Cochez la confirmation et cliquez sur <strong>Enregistrer l'ENF</strong>. La fiche détaillée s'ouvre après la sauvegarde.</li>
+<li>Retrouvez ensuite l'ENF dans la liste, par son code ou une référence. La modification conserve l'historique.</li>
+</ol><p>Si la création est verrouillée, vérifiez votre session et ses autorisations. Un profil Consultation ne peut pas modifier les données.</p></section>
+<section id="produits"><h2>3. Produits, adresses et lecture photo</h2><ol>
+<li>Dans <a href="bureau.html#stock">Produits</a>, utilisez la recherche par référence, nom, code-barres ou casier.</li>
+<li>Pour importer des feuilles papier, sélectionnez <strong>Importer des feuilles en photo</strong>, puis photographiez ou ajoutez jusqu'à dix images à la fois.</li>
+<li>Vérifiez le texte OCR et cliquez sur <strong>Vérifier les lignes</strong>. Les alertes signalent les références répétées, noms contradictoires ou adresses douteuses.</li>
+<li>Une fiche existante est ignorée par défaut : choisissez volontairement <strong>Mettre à jour</strong> si nécessaire. Confirmez la relecture avant d'importer.</li>
+<li>Les adresses reconnues doivent commencer par PAC, PAD ou RES. L'historique conserve les modifications.</li>
+</ol><p>Il reste aussi possible d'importer un CSV <code>reference;emplacement</code>.</p></section>
+<section id="reassort"><h2>4. Manquants et messages de réassort</h2><ol>
+<li>Dans <a href="bureau.html#pending">Manquants</a>, notez la commande, la référence et son casier. Enregistrez le manquant.</li>
+<li>Ouvrez <strong>Message pour réassort</strong>. Le texte commence par « S'il te plaît, », reprend la référence et le casier, puis se signe du nom de la session.</li>
+<li>Copiez le message ou utilisez <strong>Appeler JC</strong> / <strong>Appeler Serge</strong>. Saisissez d'abord leurs numéros dans <a href="bureau.html#settings">Réglages</a>, si les boutons sont indisponibles.</li>
+<li>Préparez une relance depuis le même écran. Un appel n'est jamais déclenché automatiquement.</li>
+</ol></section>
+<section id="codes"><h2>5. Codes-barres et codes inconnus</h2><ol>
+<li><a href="bureau.html#codes">Codes-barres</a> génère un code conservant les zéros au début.</li>
+<li><a href="bureau.html#unknowns">Codes inconnus</a> permet de reconnaître une valeur comme <strong>produit</strong> ou <strong>emplacement</strong>. La fiche doit être enregistrée pour résoudre la lecture.</li>
+<li>Si un code correspond à un lieu, choisissez PAC, PAD ou RES et vérifiez l'adresse avant sauvegarde.</li>
+</ol></section>
+<section id="comptes"><h2>6. Comptes et autorisations</h2><p>Dans <a href="bureau.html#administration">Utilisateurs et droits</a>, seules les sessions suffisamment habilitées peuvent gérer les comptes. Le propriétaire active son accès avec son fichier privé. Changer de prénom ne donne aucun droit administrateur. Vérifiez toujours le récapitulatif des habilitations avant confirmation.</p></section>
+<section id="sauvegardes"><h2>7. Sauvegardes, aides et Android</h2><ol>
+<li>Dans <a href="bureau.html#storage">Espace et sauvegardes</a>, réalisez une copie et vérifiez qu'elle est lisible avant changement de téléphone.</li>
+<li>Les mémos vocaux sont privés et possèdent une sauvegarde distincte. Ne comptez pas sur la sauvegarde générale pour les transférer.</li>
+<li>Pour corriger un problème, ouvrez <a href="bureau.html#diagnostic">Vérifier l'application</a> et consultez son résultat. Les droits caméra, micro et les notifications demandent aussi des essais sur votre appareil.</li>
+<li>La préparation Capacitor est disponible dans GitHub. Un vrai widget Android 1 × 4 et l'APK nécessitent Android Studio et une compilation native.</li>
+</ol></section>
+<p><a class="toplink" href="bureau.html#help">Revenir à l'aide dans Pikéo</a></p>
+<small>Ce guide décrit la version de développement. Les fonctionnalités non encore publiées n'apparaîtront dans le site public qu'après validation et déploiement.</small>
+</main></body></html>
