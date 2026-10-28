@@ -22,3 +22,7 @@ body.desktop #main[data-view=orders]{display:grid;grid-template-columns:minmax(3
 @media print{body.desktop .app-shell{margin:0;width:100%}body.desktop #desktop-sidebar{display:none!important}body.desktop #main{display:block!important;padding:0}.admin-stats{grid-template-columns:repeat(3,1fr)}}
 
 @media(max-width:650px){body.desktop .common-search{grid-template-columns:1fr}body.desktop .common-search>label{grid-column:auto}body.desktop .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Guide de l’interface bureau : accès direct depuis la barre latérale. */
+body.desktop .desk-guide-link{display:block;margin:0 12px 14px;padding:10px 12px;border-radius:10px;background:var(--soft);color:var(--ink);font-size:12px;text-decoration:none;font-weight:700}
+body.desktop .desk-guide-link:hover{text-decoration:underline}
