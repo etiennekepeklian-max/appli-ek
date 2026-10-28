@@ -73,7 +73,7 @@ try{
  // Suppression accidentelle : une fiche, confirmation, annulation et historique.
  await sansLieu.getByRole('button',{name:/Supprimer le manquant REF-INCONNUE/}).click();
  assert.match(await page.locator('#dialog-body').innerText(),/Seul ce manquant sera retiré/);
- await page.getByRole('button',{name:'Annuler',exact:true}).click();
+ await page.locator('#dialog').getByRole('button',{name:'Annuler',exact:true}).click();
  await page.locator('#dialog').waitFor({state:'hidden'});
  assert.equal(await read(async()=>{const s=await import('./js/storage.js');return s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU');}),true);
  await sansLieu.getByRole('button',{name:/Supprimer le manquant REF-INCONNUE/}).click();
