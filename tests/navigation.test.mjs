@@ -14,7 +14,7 @@ test('finder uses workplace words, accents and multiple words',()=>{
 });
 test('finder routes do not turn a request for help into an external send',()=>{
  const jc=searchTools('JC');assert.ok(jc.length);assert.ok(jc.every(t=>!/^send/.test(t.id)));
- assert.deepEqual(TOOLS.filter(t=>t.action).map(t=>t.id),['new-pending']);
+ assert.deepEqual(TOOLS.filter(t=>t.action).map(t=>t.id),['new-pending','import-catalogue-photo']);
 });
 test('exact references and EAN come before prefixes and names, without stripping zeros',()=>{
  const rows=[{sku:'12',name:'0012 in name'},{sku:'001234'},{sku:'0012'},{sku:'X',barcode:'0012'},{sku:'001256'}];
