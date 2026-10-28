@@ -1,26 +1,30 @@
-# Sécurité PIN administrateur, chantier en cours
+# Sécurité des administrateurs Pikéo : préparation contrôlée
 
-**Ne pas publier comme terminé.** Ceci est une préparation non déployée. La production Pikéo conserve ses authentifications de session actuelles.
+**Statut au 28 octobre 2026 : code préparé sur une branche, non activé en production.**
+La version publique de Pikéo reste accessible avec son authentification actuelle. N'utiliser aucun code fictif et ne jamais partager un PIN ou le fichier propriétaire dans une conversation, un commit ou une capture d'écran.
 
-## Principe
+## Protection mise en place dans le code
 
-Un PIN de quatre chiffres n'est jamais une preuve d'identité suffisante : 10 000 combinaisons seulement. Il doit constituer une confirmation complémentaire *après* la signature cryptographique de l'appareil enregistré. Il est vérifié par le serveur, jamais dans le JavaScript du navigateur.
+- Code de **4 chiffres exactement**, seconde confirmation après l'authentification **par signature cryptographique de l'appareil**.
+- Empreinte PBKDF2-HMAC-SHA256 avec sel aléatoire, 310 000 itérations et un secret du serveur **PIKEO_PIN_PEPPER** de 32 octets minimum. Ni le PIN, ni le secret ne sont écrits dans GitHub ou Google Sheets.
+- Vérification côté serveur, invalidation et comptage persisté après chaque échec ; verrouillage à partir de cinq mauvaises tentatives, délai progressif maximal 24 h.
+- Déverrouillage des actions administrateur pour **10 minutes**, lié à l'appareil enregistré ; verrouillage immédiat sur demande.
+- Routes signées **admin-pin-status, admin-pin-enroll, admin-pin-unlock, admin-pin-lock, admin-pin-peers, admin-pin-reset, admin-pin-recover**.
+- Protection serveur des opérations sur les comptes, habilitations et appareils, **ainsi que de la publication de la configuration partagée** lorsqu'elle est réalisée par un administrateur.
+- Réinitialisation du code d'un *autre* administrateur depuis une session administrateur déverrouillée ; récupération propriétaire par le fichier privé original, contrôlé sur le serveur.
+- Interface de saisie, confirmation, verrouillage, récupération et réinitialisation développée pour l'écran d'administration ; saisie masquée et aucun PIN conservé en local.
+- Migration **additive** `backend/admin-pin-schema.sql` : nouvelle table privée, aucune suppression des fiches métier existantes.
 
-- Empreinte PBKDF2-HMAC-SHA256 avec sel aléatoire 128 bits, 310 000 itérations et secret serveur indépendant d'au moins 256 bits. Aucun PIN, sel/empreinte ou secret serveur dans le dépôt public.
-- Verrouillage après cinq erreurs, délais progressifs plafonnés à 24 heures, limitation par appareil ET par IP / compte; journaux sans PIN en clair.
-- Une session de déverrouillage administrative doit être brève, associée au périphérique signé, révoquée en cas de retrait d'un rôle.
-- En cas d'oubli, un autre administrateur authentifié peut imposer la réinitialisation. Le propriétaire doit disposer d'une récupération par son fichier d'accès privé fort et d'une procédure de secours testée.
-- Ne jamais désactiver l'accès propriétaire existant sans avoir vérifié et testé un nouveau code, le verrouillage et la récupération sur deux appareils.
-- Migration SQL additive dans `backend/admin-pin-schema.sql` ; aucune ligne de données métier n'est effacée.
+## Conditions impératives AVANT mise en service
 
-## Ce qu'il reste à implémenter avant activation
+1. Sauvegarder et vérifier la restauration de la base Supabase et du dépôt GitHub. Contrôler la non-régression des données locales et des identités existantes sur ordinateur et téléphone.
+2. Configurer **PIKEO_PIN_PEPPER** uniquement dans les *secrets* de la fonction Edge Supabase. Générer au moins 32 octets aléatoires avec un générateur cryptographique. Ne pas inscrire la valeur dans les fichiers, tickets, journaux ou messages.
+3. Vérifier et appliquer la migration additive `backend/admin-pin-schema.sql` à l'aide des migrations contrôlées Supabase. Ne pas modifier directement les comptes ou leurs droits par une migration destructive.
+4. Vérifier la fonction Edge avec toutes ses dépendances ; mettre en place le contrôle de débit de bout en bout, signer chaque action, tester les erreurs 401, 403, 423 et 429 et garantir que les erreurs PIN enregistrent réellement les compteurs d'échec.
+5. Tester sur **deux appareils administrateurs distincts** : création, erreurs successives, verrouillage, expiration, renouvellement, récupération avec fichier propriétaire, réinitialisation par un autre administrateur, retrait de rôle et réinitialisation de mot de passe/code.
+6. **Réconcilier la branche sécurité avec la version web publiée**, comprenant les messages, suppressions de manquants, OCR, ENF et bureau. Exécuter tous les tests CI et un essai réel avant tout déploiement.
+7. Demander à l'utilisateur de **choisir lui-même son PIN dans l'interface protégée**, jamais dans le chat. Déployer seulement une fois qu'un propriétaire peut récupérer son accès en cas d'erreur.
 
-1. Routes signées `pin-enroll`, `pin-unlock`, `pin-lock`, `pin-reset` et `pin-status` dans le service Edge, avec débit limité **hors transaction révoquée lors d'une erreur**.
-2. Déclenchement du contrôle PIN avant chaque mutation de comptes, droits ou paramètres administrateurs, avec prévention des sessions périmées.
-3. Interface bureau/téléphone : définir un PIN, déverrouiller, changer, récupération, et vérification des droits serveur.
-4. Secrets sécurisés Supabase et tests de bout en bout (échecs, course concurrente, deux appareils, perte de code, suspension du compte).
-5. Revue de sécurité, sauvegarde préalable et activation explicite. Ne jamais utiliser un code PIN choisi à la place de l'utilisateur.
+## Règle de mise en production
 
-## Limites de la préparation
-
-Le module `backend/pikeo-api/pin-core.mjs` fournit la validation, la dérivation et la règle de verrouillage testées. Il n'est pas encore branché à l'API publiée, à la base de données, ou à l'interface.
+Ne pas fusionner cette branche vers `main`, ni remplacer la fonction Edge de production, **avant** que ces sept étapes soient validées. Un service PIN déployé sans secret, base ou récupération opérationnelle risquerait de bloquer les opérations de l'administrateur. Aucun APK ni travail de migration Android ne fait partie de ce chantier.
