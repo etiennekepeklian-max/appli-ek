@@ -20,7 +20,7 @@ async function mock(context){await context.route(endpoint,async route=>{const re
  else if(!d?.active||!d.profile.active)fail(401,'Cet accès a été retiré.');
  else if(p.action==='session')data={session:session()};
  else if(p.action==='admin-pin-status')data={configured:adminPins.has(d.id),requiresReset:false,locked:false,unlocked:!!adminPins.get(d.id)?.unlocked};
- else if(p.action==='admin-pin-enroll'){if(!/^\\d{4}$/.test(p.pin))fail(400,'Code invalide.');else{adminPins.set(d.id,{pin:p.pin,unlocked:true});data={configured:true,unlocked:true};}}
+ else if(p.action==='admin-pin-enroll'){if(!/^[0-9]{4}$/.test(p.pin))fail(400,'Code invalide.');else{adminPins.set(d.id,{pin:p.pin,unlocked:true});data={configured:true,unlocked:true};}}
  else if(p.action==='admin-pin-unlock'){const row=adminPins.get(d.id);if(row?.pin!==p.pin)fail(401,'Code incorrect.');else{row.unlocked=true;data={unlocked:true};}}
  else if(p.action==='admin-pin-peers')data={peers:[]};
  else if(p.action==='admin-pin-lock'){const row=adminPins.get(d.id);if(row)row.unlocked=false;data={unlocked:false};}
