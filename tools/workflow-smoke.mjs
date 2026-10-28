@@ -48,9 +48,9 @@ try{
  await context.grantPermissions(['clipboard-read','clipboard-write']);
  const jcCard=page.locator('.pending-card').filter({hasText:'RES002-B'});
  await jcCard.getByRole('button',{name:'Message pour réassort',exact:true}).click();
- const expectedJC='JC, j’ai besoin de la référence FLOW001 pour poursuivre ma préparation. Emplacement concerné : RES002-B. Peux-tu aller chercher l’article ? Merci !';
- assert.equal(await page.locator('[data-jc-message]').inputValue(),expectedJC);
- await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/message pour JC/);await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
+ const expectedJC=await page.locator('[data-jc-message]').inputValue();
+ assert.match(expectedJC,/^S'il te plaît,/);assert.match(expectedJC,/FLOW001/);assert.match(expectedJC,/RES002-B/);assert.match(expectedJC,/Étienne\s*$/);
+ await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/message pour réassort/i);await page.locator('#help-dialog').getByRole('button',{name:'Reprendre',exact:true}).click();
  await page.getByRole('button',{name:'Copier le message',exact:true}).click();await page.getByText('Message copié.',{exact:true}).waitFor();assert.equal(await read(()=>navigator.clipboard.readText()),expectedJC);await close();
  await page.locator('.pending-card').filter({hasText:'FLOW002'}).getByRole('button',{name:'Message pour réassort',exact:true}).click();await page.getByRole('button',{name:'Compléter la fiche',exact:true}).click();assert.equal(await field('sku').inputValue(),'FLOW002');
  await field('orderNumber').fill('SAISIE-CONSERVEE');await page.locator('#dialog [data-action=quickhelp]').click();assert.match(await page.locator('#context-help-title').innerText(),/manquant/);await page.keyboard.press('Escape');await page.locator('#help-dialog').waitFor({state:'hidden'});assert.equal(await field('orderNumber').inputValue(),'SAISIE-CONSERVEE');assert.equal(await page.locator('#dialog').getAttribute('open'),'');await close();
