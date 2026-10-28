@@ -19,6 +19,7 @@ try{
  await page.goto(base+'#enfs');
  await page.getByRole('button',{name:'Photographier une feuille ENF'}).click();
  await page.locator('[data-enf-form] [name=code]').fill('ENF-TEST-0001');
+ await page.getByRole('button',{name:'Ajouter une référence'}).click();
  await page.locator('[data-enf-sku]').fill('001234');
  await page.locator('[data-enf-qty]').fill('2');
  await page.locator('[data-enf-form] [name=reviewed]').check();
