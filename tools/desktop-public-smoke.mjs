@@ -22,7 +22,7 @@ try{
  await page.getByRole('heading',{name:/Administration réservée/}).waitFor();
  assert.equal(await page.locator('[data-admin-action=new-user]').count(),0,'Aucune création de compte sans authentification du propriétaire');
  await page.goto('http://localhost:8765/bureau.html#home');
- if(await page.locator('[data-form=onboarding]').count()){
+ if(await page.locator('[data-form=onboarding]').isVisible()){
   await page.locator('[data-form=onboarding] [name=name]').fill('Audit bureau');
   await page.locator('[data-form=onboarding] [name=goal]').fill('1800');
   await page.locator('[data-form=onboarding] [type=submit]').click();
