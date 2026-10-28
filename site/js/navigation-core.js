@@ -5,8 +5,8 @@ export const TOOL_GROUPS=[
  ['Au quotidien',[
   ['scan','Scanner un produit','Ouvrir directement la caméra','scan','photo code lecture douchette'],
   ['codes','Créer un code-barres','Référence, PAC, PAD, RES et favoris','barcode','étiquette imprimer code barre'],
-  ['new-pending','Noter un manquant','Référence, commande et emplacement','clock','réassort JC rupture manque dicter vocal voix',true],
-  ['pending','Suivre les manquants','Réceptions, relances JC et commandes à reprendre','clock','réassort reçu attente JC'],
+  ['new-pending','Noter un manquant','Référence, quantité et commande (casier facultatif)','clock','réassort JC rupture manque dicter vocal voix',true],
+  ['pending','Suivre les manquants','Réceptions, relances de réassort et commandes à reprendre','clock','réassort reçu attente JC'],
   ['enfs','ENF — références et quantités','Consulter le contenu ou photographier une feuille','layers','composition ensemble contenu photo'],
   ['stock','Chercher un produit ou un casier','Référence, EAN, nom et emplacement','box','catalogue adresse rechercher trouver article'],
   ['orders','Ma journée — suivi picking','Saisir les chiffres reçus et voir les graphiques','chart','objectif picking fin journée bilan quantité manager statistiques graphique'],
@@ -22,6 +22,7 @@ export const TOOL_GROUPS=[
   ['schedule','Horaires et alertes','Rappels avant le travail et les pauses','clock','notification vibration déjeuner planning']
  ]],
  ['Produits et emplacements',[
+  ['import-catalogue-photo','Importer un catalogue par photo','Lire les références et casiers sur une feuille','camera','photographier tableau produit casier OCR anomalie import',true],
   ['locations','Emplacements et import CSV','Adresses PAC, PAD et RES','pin','casier importer fichier référence'],
   ['families','Familles et règles de picking','Règles communes et exceptions produit','layers','cartes quantité conditionnement unités lot'],
   ['complete','À compléter','Noms, emplacements et règles manquants','edit','informations incomplètes'],

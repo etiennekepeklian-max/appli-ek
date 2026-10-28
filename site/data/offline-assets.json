@@ -110,5 +110,11 @@
   "web-tools.css",
   "workbench.css",
   "workflow.css",
-  "js/reassort-contacts.js"
+  "js/reassort-contacts.js",
+  "js/catalogue-photo.js",
+  "js/catalogue-photo-core.js",
+  "bureau.html",
+  "desktop.css",
+  "js/desktop.js",
+  "aide-bureau.html"
 ]
