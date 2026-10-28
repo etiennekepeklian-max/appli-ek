@@ -8,9 +8,10 @@
   <link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="assets/icon.svg"><link rel="apple-touch-icon" href="assets/icon-192.png">
   <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="mobile.css">
   <link rel="stylesheet" href="ops.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="workflow.css"><link rel="stylesheet" href="terrain.css"><link rel="stylesheet" href="day-tools.css">
-  <link rel="stylesheet" href="picking.css"><link rel="stylesheet" href="workbench.css"><link rel="stylesheet" href="enf.css"><link rel="stylesheet" href="web-tools.css"><link rel="stylesheet" href="ergonomics.css"><link rel="stylesheet" href="desktop.css"><link rel="preload" as="image" href="assets/mascot-default.svg"><script>try{const t=localStorage.getItem("ek-theme")||"system";document.documentElement.dataset.theme=t==="dark"||t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch{}</script>
+  <link rel="stylesheet" href="picking.css"><link rel="stylesheet" href="workbench.css"><link rel="stylesheet" href="enf.css"><link rel="stylesheet" href="web-tools.css"><link rel="stylesheet" href="ergonomics.css"><link rel="stylesheet" href="opening.css"><link rel="stylesheet" href="desktop.css"><link rel="preload" as="image" href="assets/mascot-default.svg"><script>try{const t=localStorage.getItem("ek-theme")||"system";document.documentElement.dataset.theme=t==="dark"||t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch{}</script>
 </head>
 <body class="desktop">
+  <div id="pikeo-opening" aria-hidden="true"><div class="pk-intro-stage"><div class="pk-intro-text"><div class="pk-intro-title">PIKÉO</div><div class="pk-intro-rule"></div><div class="pk-intro-slogan">Scannez. Préparez. Avancez.</div></div><div class="pk-intro-character"></div></div></div>
   <aside id="desktop-sidebar" aria-label="Espace bureau"></aside>
   <!-- Kept hidden so an already cached 1.0 entrypoint can finish updating. -->
   <aside id="sidebar" hidden aria-hidden="true"></aside>
@@ -27,7 +28,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <aside id="mascot-status" class="mascot-status" role="status" aria-live="polite"><span class="mascot-sprite mascot-deposit" aria-hidden="true"></span><p data-mascot-label>Ouverture de votre espace…</p></aside>
   <noscript>Activez JavaScript pour utiliser Pikéo.</noscript>
-  <script src="vendor/jsbarcode.min.js" defer></script><script src="vendor/jspdf.umd.min.js" defer></script>
+  <script src="js/opening.js" defer></script><script src="vendor/jsbarcode.min.js" defer></script><script src="vendor/jspdf.umd.min.js" defer></script>
   <script type="module">
 import {launch} from './js/updates.js?pikeo-v=1.18.0';
 launch(version=>import('./js/app.js'+(version?'?pikeo-v='+version:'')),'1.18.0').catch(error=>{const main=document.getElementById('main');main.replaceChildren();const p=document.createElement('p');p.textContent='Ouverture interrompue : '+error.message;const link=document.createElement('a');link.href='actualiser.html';link.textContent='Actualiser Pikéo sans effacer mes données';main.append(p,link);});

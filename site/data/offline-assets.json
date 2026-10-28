@@ -117,5 +117,7 @@
   "workflow.css",
   "js/catalogue-photo-core.js",
   "js/catalogue-photo.js",
-  "aide-bureau.html"
+  "aide-bureau.html",
+  "opening.css",
+  "js/opening.js"
 ]
