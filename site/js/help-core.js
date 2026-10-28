@@ -91,6 +91,6 @@ export function jcMessage({sku,location}={},signer='',options={}){
  const reference=String(sku||'').trim(),address=String(location||'').trim();
  if(!reference||!address)throw Error('Complétez la référence et l’emplacement du manquant avant de préparer le message.');
  const name=String(signer||'').trim().slice(0,60);
- const lead=options.reminder?'S’il te plaît, peux-tu me dire où en est le réassort de la référence ':'S’il te plaît, peux-tu chercher la référence ';
+ const lead=options.reminder?'S'il te plaît, peux-tu me dire où en est le réassort de la référence ':'S'il te plaît, peux-tu chercher la référence ';
  return lead+reference+' ? Emplacement concerné : '+address+'. Merci !'+(name?'\n\n'+name:'');
 }

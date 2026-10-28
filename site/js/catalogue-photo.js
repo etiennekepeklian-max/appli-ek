@@ -4,7 +4,7 @@ import {products} from './model.js';
 import {uid,refKey} from './core.js';
 import {recognizePhoto} from './features.js';
 import {productLocations} from './ops-core.js';
-import {parseCataloguePhotoText,reviewPhotoRows,auditPhotoRows} from './catalogue-photo-core.js';
+import {parseCataloguePhotoText,reviewPhotoRows} from './catalogue-photo-core.js';
 import {modal,closeModal,toast,esc} from './ui.js';
 let app,reading=false;
 const button=(label,action)=>'<button type="button" class="btn" data-photo-catalogue-action="'+action+'">'+label+'</button>';
