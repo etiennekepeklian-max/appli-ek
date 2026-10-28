@@ -56,7 +56,7 @@ export function pendingGroups(rows,now=Date.now()){
   const groups=new Map();
   for(const p of rows.filter(isWaiting)){
     const key=refKey(p.sku);if(!groups.has(key))groups.set(key,{sku:key,remaining:0,rows:[],overdue:false});
-    const g=groups.get(key);g.remaining+=Math.max(0,Number(p.quantity)-Number(p.received||0));g.rows.push(p);g.overdue||=isOverdue(p,now);
+    const g=groups.get(key);g.remaining+=Number.isInteger(Number(p.quantity))&&Number(p.quantity)>0?Math.max(0,Number(p.quantity)-Number(p.received||0)):0;g.rows.push(p);g.overdue||=isOverdue(p,now);
   }
   return [...groups.values()].sort((a,b)=>Number(b.overdue)-Number(a.overdue)||a.sku.localeCompare(b.sku,'fr'));
 }
