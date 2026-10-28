@@ -16,6 +16,10 @@ export async function recordUnknown(code){
   const id=unknownId(code),old=Store.get('unknowns',id);
   await Store.save('unknowns',{...old,id,code:refKey(code),status:'open',count:(old?.count||0)+1,firstSeen:old?.firstSeen||new Date().toISOString(),lastSeen:new Date().toISOString()},'Code inconnu à identifier');
 }
+export async function resolveUnknownLocations(location){
+ const rows=Store.list('unknowns').filter(r=>r.status!=='resolved'&&refKey(r.code)===refKey(location));
+ if(rows.length)await Store.saveBatch(rows.map(r=>({type:'unknowns',record:{...r,status:'resolved',location}})),'Code identifié comme emplacement',{undoable:false});
+}
 export async function resolveUnknowns(product){
   const rows=Store.list('unknowns').filter(r=>r.status!=='resolved'&&[refKey(product.sku),refKey(product.barcode)].includes(refKey(r.code)));
   if(rows.length)await Store.saveBatch(rows.map(r=>({type:'unknowns',record:{...r,status:'resolved',productId:product.id}})),'Code identifié',{undoable:false});
@@ -27,7 +31,7 @@ function options(){
 }
 function unknownsView(){
   const rows=Store.list('unknowns').filter(r=>r.status!=='resolved'&&matchesSearch(r,['code','notes'],state.query)).sort((a,b)=>b.lastSeen.localeCompare(a.lastSeen));
-  return `<div class="page-heading"><h1>Codes inconnus</h1><p>Les codes non reconnus restent ici, même hors connexion.</p></div><div class="search-box"><label for="view-search">Rechercher</label><input id="view-search" data-filter-search type="search" value="${esc(state.query)}"></div>${rows.length?rows.map(r=>`<article class="card section-gap"><h2 class="mono">${esc(r.code)}</h2><p>${r.count} lecture(s) · dernière : ${new Date(r.lastSeen).toLocaleString('fr-FR')}</p><div class="actions section-gap">${opsButton('Identifier ce produit','identify-unknown',`data-id="${esc(r.id)}"`)}${opsButton('Classer sans suite','dismiss-unknown',`data-id="${esc(r.id)}"`)}</div></article>`).join(''):'<div class="card section-gap"><p>Aucun code en attente d’identification.</p></div>'}`;
+  return `<div class="page-heading"><h1>Codes inconnus</h1><p>Les codes non reconnus restent ici, même hors connexion.</p></div><div class="search-box"><label for="view-search">Rechercher</label><input id="view-search" data-filter-search type="search" value="${esc(state.query)}"></div>${rows.length?rows.map(r=>`<article class="card section-gap"><h2 class="mono">${esc(r.code)}</h2><p>${r.count} lecture(s) · dernière : ${new Date(r.lastSeen).toLocaleString('fr-FR')}</p><div class="actions section-gap">${opsButton('Identifier cet emplacement','identify-unknown-location',`data-id="${esc(r.id)}"`)}${opsButton('Identifier ce produit','identify-unknown',`data-id="${esc(r.id)}"`)}${opsButton('Classer sans suite','dismiss-unknown',`data-id="${esc(r.id)}"`)}</div></article>`).join(''):'<div class="card section-gap"><p>Aucun code en attente d’identification.</p></div>'}`;
 }
 function journalView(){
   const dates=weekDates(state.date),r=Store.get('journal','week-'+dates[0])||{},summary=weeklySummary(state.date,Store.list('orders'),Store.list('days'),Store.list('issues'),Store.list('pending'),Store.settings().goal);
@@ -189,6 +193,7 @@ async function action(button){
     const status=await Notification.requestPermission();toast(status==='granted'?'Notifications autorisées.':'Notifications non autorisées. Vous pouvez les régler dans le navigateur.');app.render();await notifyOverdue();
   }
   else if(name==='test-feedback'){unlockFeedback();scanFeedback('success');toast('Test du son et de la vibration selon vos options enregistrées.');}
+  else if(name==='identify-unknown-location'){const r=Store.get('unknowns',id);app.locationForm({name:r.code});}
   else if(name==='identify-unknown'){const r=Store.get('unknowns',id);app.productForm({sku:r.code,barcode:r.code});}
   else if(name==='dismiss-unknown'){const r=Store.get('unknowns',id);await Store.save('unknowns',{...r,status:'resolved'},'Code inconnu classé');}
   else if(name==='hide-undo'){await Store.dismissUndo(button.dataset.undoId);await refreshUndo();}
