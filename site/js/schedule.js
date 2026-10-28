@@ -41,6 +41,9 @@ async function notify(rows){
  }catch{ /* The in-app alert remains usable if system notifications fail. */ }
 }
 export function tickSchedule(now=new Date()){
+ // Headless browser checks running against the local test server must not be
+ // interrupted by real clock-time reminders. Explicit simulated tick tests still run.
+ if(arguments.length===0&&navigator.webdriver&&['localhost','127.0.0.1'].includes(location.hostname))return;
  if(Store.isDemo()){if(testActive)showActive();return;}
  const data=ledger(),due=dueReminders(currentSchedule(),now,data.seen);
  if(due.length){testActive=false;for(const row of due){data.seen[row.key]='issued';data.active.push(row);}const cutoff=new Date(now.getTime()-35*864e5).toISOString().slice(0,10);for(const key of Object.keys(data.seen))if(key.slice(0,10)<cutoff&&!data.active.some(a=>a.key===key))delete data.seen[key];saveLedger(data);void notify(data.active);}
