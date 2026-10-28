@@ -4,7 +4,7 @@ let browser;const errors=[],base='http://localhost:8765/';
 try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
  const c=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await c.newPage();page.on('pageerror',e=>errors.push(e.message));
- await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
+ await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.getByRole('heading',{name:'ENF 000042',exact:true}).waitFor();
  await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.saveBatch([{type:'products',record:{id:'enf-prod-a',sku:'001234',name:'Carte test'}},{type:'products',record:{id:'enf-prod-b',sku:'009876',name:'Autre carte test'}}],'Catalogue ENF de test');});
  await page.getByRole('button',{name:'ENF — références et quantités',exact:true}).click();await page.getByRole('heading',{name:'ENF',exact:true}).waitFor();
  await page.getByRole('button',{name:'Photographier une feuille ENF',exact:true}).click();
@@ -16,7 +16,7 @@ try{
  await page.locator('[data-enf-photos]').setInputFiles(file);await page.waitForFunction(()=>!document.querySelector('[data-enf-photos]').disabled);assert.equal(await page.locator('[data-enf-row]').count(),2);
  await page.getByRole('button',{name:'Enregistrer l’ENF',exact:true}).click();await page.getByText('Vérifiez le tableau puis cochez la relecture.',{exact:true}).waitFor();assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.list('enfs').length;}),0);
  await page.locator('[data-enf-form] [name=reviewed]').check();await page.getByRole('button',{name:'Enregistrer l’ENF',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
- await page.getByRole('button',{name:'Voir le contenu',exact:true}).click();await page.getByRole('heading',{name:'ENF 000042',exact:true}).waitFor();assert.match(await page.locator('#dialog').innerText(),/001234/);assert.match(await page.locator('#dialog').innerText(),/009876/);
+ await page.getByRole('heading',{name:'ENF 000042',exact:true}).waitFor();assert.match(await page.locator('#dialog').innerText(),/001234/);assert.match(await page.locator('#dialog').innerText(),/009876/);
  await page.locator('#dialog [data-action=quickhelp]').click();await page.getByRole('heading',{name:'Aide · Contenu des ENF',exact:true}).waitFor();await page.getByRole('button',{name:'Reprendre',exact:true}).click();assert.ok(await page.locator('#dialog').evaluate(d=>d.open));
  await page.getByRole('button',{name:'Photo source 1'}).click();await page.locator('#dialog img').waitFor();await page.locator('#dialog [data-action=close-dialog]').click();
  const backup=await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.exportData();});assert.equal(backup.events.filter(e=>e.type==='enfs').length,1);assert.ok(backup.files.some(f=>f.kind==='enf-photo'));
