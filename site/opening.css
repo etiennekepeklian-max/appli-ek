@@ -1,0 +1,18 @@
+/* Opening #1 Contraste terrain. The ORIGINAL Pikéo sprite is reused. */
+#pikeo-opening{position:fixed;inset:0;z-index:85;pointer-events:none;display:grid;place-items:center;overflow:hidden;padding:20px;background:#f7d64d;color:#171d1b;animation:pk-intro-hide 2.4s linear both}
+#pikeo-opening::before{content:"";position:absolute;left:45%;top:-25%;width:min(86vw,590px);aspect-ratio:1;border-radius:50%;background:#fdf9dd;opacity:.8}
+.pk-intro-stage{position:relative;z-index:1;width:min(100%,520px);min-height:260px;display:grid;grid-template-columns:minmax(0,1fr) minmax(128px,42%);align-items:center;gap:6px}
+.pk-intro-title{font-size:clamp(32px,7.5vw,58px);line-height:1.1;font-weight:900;letter-spacing:.045em}
+.pk-intro-rule{height:6px;width:64px;border-radius:10px;background:#fff9df;margin:15px 0}
+.pk-intro-slogan{font-size:clamp(14px,3.5vw,19px);font-weight:700;line-height:1.4}
+.pk-intro-character{width:100%;max-width:192px;aspect-ratio:3/4;justify-self:end;position:relative;background:url('assets/mascot-default.svg') 0 0/400% 200% no-repeat;animation:pk-intro-box 2.4s step-end both}
+.pk-intro-character::after{content:"👍";position:absolute;right:-5px;top:24%;font-size:clamp(28px,7vw,44px);opacity:0;transform:translateY(9px);animation:pk-intro-thumb 2.4s ease-out both}
+@keyframes pk-intro-box{0%,19%{background-position:0 0}20%,44%{background-position:33.333333% 0}45%,69%{background-position:66.666667% 0}70%,100%{background-position:100% 0}}
+@keyframes pk-intro-thumb{0%,76%{opacity:0;transform:translateY(9px)}85%,100%{opacity:1;transform:translateY(0)}}
+@keyframes pk-intro-hide{0%,89%{visibility:visible;opacity:1}100%{visibility:hidden;opacity:0}}
+@media(max-width:360px){.pk-intro-stage{grid-template-columns:minmax(0,1fr) 43%;gap:0;min-height:220px}.pk-intro-rule{margin:10px 0}}
+@media(prefers-reduced-motion:reduce){#pikeo-opening{display:none!important;animation:none!important}.pk-intro-character,.pk-intro-character::after{animation:none!important}}
+@media print{#pikeo-opening{display:none!important}}
+
+/* A first-run onboarding or another dialog must take precedence over the opening. */
+body:has(dialog[open]) #pikeo-opening{display:none!important}

@@ -1,3 +1,15 @@
+# Version 1.17.1 · animation d'ouverture Pikéo n°1 (28 octobre 2026)
+
+Mise à jour **web uniquement**, issue du choix explicite de la proposition n°1 « Contraste terrain ».
+- Mascotte **originale** : `site/assets/mascot-default.svg`, inchangée. Pas de nouveau personnage.
+- Slogan « Scannez. Préparez. Avancez. » et fond jaune, durée 2,4 secondes.
+- Animation décorative sans interaction, absente si réduction des animations, ou lancement direct d'un écran.
+- La mise à jour n'efface ni les données locales ni les mémos et ne migre pas vers Android.
+- Correctif isolé basé sur la version publiée 1.17.0 : aucun autre chantier 1.18.0 n'est fusionné.
+- Contrôles : `npm test`, `npm run check`, tests de navigateur de GitHub Actions et disponibilité du site après déploiement.
+
+---
+
 # Validation — version 1.17.0 (27 octobre 2026)
 
 Le suivi picking est désormais une saisie journalière des chiffres communiqués par les managers. Les points d’entrée accueil, raccourcis, Outils, Ma journée et l’aide n’invitent plus à photographier les commandes. Les anciens enregistrements et brouillons photo restent intacts ; les modules de lecture sont conservés pour compatibilité, avec ouverture explicite dans leurs tests.
