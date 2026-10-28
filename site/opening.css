@@ -1,5 +1,5 @@
 /* Opening #1 Contraste terrain. The ORIGINAL Pikéo sprite is reused. */
-#pikeo-opening{position:fixed;inset:0;z-index:64;pointer-events:none;display:grid;place-items:center;overflow:hidden;padding:20px;background:#f7d64d;color:#171d1b;animation:pk-intro-hide 2.4s linear both}
+#pikeo-opening{position:fixed;inset:0;z-index:85;pointer-events:none;display:grid;place-items:center;overflow:hidden;padding:20px;background:#f7d64d;color:#171d1b;animation:pk-intro-hide 2.4s linear both}
 #pikeo-opening::before{content:"";position:absolute;left:45%;top:-25%;width:min(86vw,590px);aspect-ratio:1;border-radius:50%;background:#fdf9dd;opacity:.8}
 .pk-intro-stage{position:relative;z-index:1;width:min(100%,520px);min-height:260px;display:grid;grid-template-columns:minmax(0,1fr) minmax(128px,42%);align-items:center;gap:6px}
 .pk-intro-title{font-size:clamp(32px,7.5vw,58px);line-height:1.1;font-weight:900;letter-spacing:.045em}
@@ -13,3 +13,6 @@
 @media(max-width:360px){.pk-intro-stage{grid-template-columns:minmax(0,1fr) 43%;gap:0;min-height:220px}.pk-intro-rule{margin:10px 0}}
 @media(prefers-reduced-motion:reduce){#pikeo-opening{display:none!important;animation:none!important}.pk-intro-character,.pk-intro-character::after{animation:none!important}}
 @media print{#pikeo-opening{display:none!important}}
+
+/* A first-run onboarding or another dialog must take precedence over the opening. */
+body:has(dialog[open]) #pikeo-opening{display:none!important}
