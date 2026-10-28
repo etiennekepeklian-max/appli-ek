@@ -17,7 +17,7 @@ export function field(name,label,value='',options={}){
   const attr=`id="${id}" name="${name}" ${options.required?'required':''} ${options.readonly?'readonly':''} ${options.attrs||''}`;
   if(options.select){input=`<select ${attr}>${options.select.map(o=>{const v=typeof o==='string'?o:o.value;const l=typeof o==='string'?o:o.label;return `<option value="${esc(v)}" ${String(v)===String(value)?'selected':''}>${esc(l)}</option>`;}).join('')}</select>`;}
   else if(options.textarea){input=`<textarea ${attr} placeholder="${esc(options.placeholder||'')}" rows="${options.rows||3}">${esc(value)}</textarea>`;}
-  else{input=`<input ${attr} type="${options.type||'text'}" value="${esc(value)}" placeholder="${esc(options.placeholder||'')}" ${options.type==='number'?'min="0" step="1" inputmode="numeric"':''} ${options.code?'autocomplete="off" autocapitalize="characters" spellcheck="false"':''}>`;}
+  else{input=`<input ${attr} type="${options.type||'text'}" value="${esc(value)}" placeholder="${esc(options.placeholder||'')}" ${options.type==='number'?`min="${options.min??0}" step="1" inputmode="numeric"`:''} ${options.code?'autocomplete="off" autocapitalize="characters" spellcheck="false"':''}>`;}
   if(options.voice||options.type==='number')input=`<div class="input-voice">${input}<button type="button" class="mic-btn" data-action="dictate" data-target="${id}" data-code="${options.code?'1':'0'}" aria-label="Dicter ${esc(label)}" title="Dicter">${icon('mic')}</button></div>`;
   return `<div class="field ${options.full?'full':''}"><label for="${id}">${esc(label)}${options.required?' <span aria-hidden="true">*</span>':''}</label>${input}${options.hint?`<p class="hint">${options.hint}</p>`:''}</div>`;
 }
