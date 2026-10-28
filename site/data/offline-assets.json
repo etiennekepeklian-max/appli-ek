@@ -118,5 +118,6 @@
   "js/desktop.js",
   "aide-bureau.html",
   "js/administration.js",
-  "js/permissions-core.js"
+  "js/permissions-core.js",
+  "js/access-ui.js"
 ]
