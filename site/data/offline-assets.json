@@ -119,5 +119,6 @@
   "aide-bureau.html",
   "js/administration.js",
   "js/permissions-core.js",
-  "js/access-ui.js"
+  "js/access-ui.js",
+  "js/admin-pin-ui.js"
 ]
