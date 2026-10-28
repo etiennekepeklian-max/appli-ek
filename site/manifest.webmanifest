@@ -30,6 +30,19 @@
   ],
   "shortcuts": [
     {
+      "name": "Ajouter un manquant",
+      "short_name": "Manquant",
+      "description": "Ouvrir directement le formulaire pour noter une référence manquante.",
+      "url": "./#ajouter-manquant",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "Créer un code-barres",
       "url": "./#codes"
     },
