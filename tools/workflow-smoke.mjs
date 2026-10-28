@@ -82,7 +82,7 @@ try{
  assert.deepEqual(await read(async()=>{const s=await import('./js/storage.js');return [s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU'),s.list('pending').filter(p=>p.orderNumber==='CMD-001').length];}),[false,2]);
  await page.locator('#undo-bar [data-ops-action=quick-undo]').click();
  await page.waitForFunction(async()=>{const s=await import('./js/storage.js');return s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU');});
- assert.ok(await page.locator('.pending-card').filter({hasText:'CMD-SANS-LIEU'}).count());
+ await page.locator('.pending-card').filter({hasText:'CMD-SANS-LIEU'}).waitFor({state:'visible',timeout:10000});
  console.log('OK suppression confirmée d’un seul manquant, annulation et restauration sans perdre les autres');
 
 
