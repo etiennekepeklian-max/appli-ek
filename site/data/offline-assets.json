@@ -113,5 +113,6 @@
   "vendor/zxing-browser.min.js",
   "web-tools.css",
   "workbench.css",
-  "workflow.css"
+  "workflow.css",
+  "js/admin-pin-ui.js"
 ]

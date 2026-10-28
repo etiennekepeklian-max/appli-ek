@@ -1,6 +1,7 @@
 import postgres from 'npm:postgres@3.4.9';
 import {nameKey,cleanName,uuid,publicKey,verify,hash,validMessage,mergeSharedEnfs} from './core.mjs';
 import {hasPermission,validPermissions,permissionsFor} from './permissions-core.js';
+import * as Pin from './pin-service.mjs';
 const db=postgres(Deno.env.get('SUPABASE_DB_URL'),{ssl:'require',prepare:false,max:1,idle_timeout:20,connect_timeout:10});
 const allowed=new Set(['https://etiennekepeklian-max.github.io','http://localhost:8765','http://127.0.0.1:8765']);
 class HttpError extends Error{constructor(status,message){super(message);this.status=status;}}
@@ -50,6 +51,41 @@ async function handle(req){
     const fresh=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId} and d.active and p.active for update of d,p`)[0];if(!fresh)reject(401,'Cet accès a été retiré.');
     const allow=key=>{if(!hasPermission(access(fresh),key))reject(403,'Votre accès ne permet pas cette action.');};
     const owner=()=>{if(!(fresh.is_owner&&fresh.role==='admin'))reject(403,'Seul Étienne peut gérer les utilisateurs et leurs droits.');};
+    const adminDevice=fresh.role==='admin';
+    if(p.action?.startsWith('admin-pin-')){
+     if(!adminDevice)reject(403,'Seuls les appareils administrateurs peuvent utiliser un code administrateur.');
+     if(p.action==='admin-pin-status')return await Pin.status(sql,fresh.id);
+     if(p.action==='admin-pin-enroll'){
+      const r=await Pin.enroll(sql,fresh.id,p.pin,Deno.env.get('PIKEO_PIN_PEPPER'));
+      if(!r.__pinError)await audit(sql,fresh.id,fresh.id,'admin-pin-enrolled');
+      return r;
+     }
+     if(p.action==='admin-pin-unlock')return await Pin.unlock(sql,fresh.id,p.pin,Deno.env.get('PIKEO_PIN_PEPPER'));
+     if(p.action==='admin-pin-lock')return await Pin.lock(sql,fresh.id);
+     if(p.action==='admin-pin-recover'){
+      owner();
+      const r=await Pin.recovery(sql,fresh.id,p.ownerSecret);
+      if(!r.__pinError)await audit(sql,fresh.id,fresh.id,'admin-pin-owner-recovery');
+      return r;
+     }
+     if(p.action==='admin-pin-peers'){
+      const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;
+      return {peers:await sql`select d.id,p.name from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id
+       where d.role='admin' and d.active and p.active and d.id<>${fresh.id} order by p.name,d.created_at`};
+     }
+     if(p.action==='admin-pin-reset'){
+      if(!uuid(p.target))reject(400,'Appareil invalide.');
+      const r=await Pin.resetByAdmin(sql,fresh.id,p.target);
+      if(!r.__pinError)await audit(sql,fresh.id,p.target,'admin-pin-reset-by-peer');
+      return r;
+     }
+     reject(400,'Action PIN inconnue.');
+    }
+    const protectedActions=['users','user-create','user-update','set-access','devices','set-role'];
+    if(protectedActions.includes(p.action)){
+     owner();
+     const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;
+    }
     if(p.action==='session')return {session:view(fresh)};
     if(p.action==='directory')return {profiles:await sql`select p.id,p.name,jsonb_agg(jsonb_build_object('id',d.id,'encryptionKey',d.encryption_key)) as devices from pikeo_private.profiles p join pikeo_private.devices d on d.profile_id=p.id and d.active group by p.id order by p.name`};
     if(p.action==='users'){owner();return {users:await sql`select p.id,p.name,p.is_owner,p.active,p.default_role,p.access_version,p.created_at,coalesce((select jsonb_agg(jsonb_build_object('id',d.id,'role',d.role,'permissions',d.permissions,'active',d.active,'version',d.access_version,'lastSeen',d.last_seen) order by d.created_at) from pikeo_private.devices d where d.profile_id=p.id),'[]'::jsonb) as devices from pikeo_private.profiles p order by p.is_owner desc,p.name`,audit:await sql`select a.id,a.action,a.target,a.details,a.created_at,p.name as actor_name from pikeo_private.access_audit a left join pikeo_private.devices d on d.id=a.actor left join pikeo_private.profiles p on p.id=d.profile_id order by a.created_at desc limit 50`};}
@@ -74,6 +110,10 @@ async function handle(req){
     }
     if(p.action==='config-get')return (await sql`select version,data from pikeo_private.shared_config where id=true`)[0];
     if(p.action==='config-put'){
+     // Shared configuration is also an administrative mutation: require an
+     // unlocked PIN for administrators, while preserving explicit operator
+     // permissions when they are granted separately.
+     if(adminDevice){const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;}
      allow('configure');if(!Array.isArray(p.data?.records)||p.data.records.length>10000||!p.data.records.every(r=>['products','enfs','families','packagings','locations','replenishments'].includes(r.type)&&typeof r.record?.id==='string'))reject(400,'Paramètres partagés invalides.');
      const previous=(await sql`select data from pikeo_private.shared_config where id=true`)[0];const shared=mergeSharedEnfs(p.data,previous?.data);
      const r=await sql`update pikeo_private.shared_config set data=${sql.json(shared)},version=version+1,updated_at=now() where id=true and version=${Number(p.version)} returning version`;if(!r.length)reject(409,'Les réglages ont changé. Actualisez avant de publier.');return r[0];
@@ -97,6 +137,7 @@ async function handle(req){
     reject(400,'Action inconnue.');
    });
   }
+  if(result?.__pinError)reject(result.status,result.message);
   return new Response(JSON.stringify(result),{headers});
  }catch(e){const status=e instanceof HttpError?e.status:400;if(!(e instanceof HttpError)&&!(e instanceof SyntaxError))console.error('pikeo-api failure',e.code||e.name);return new Response(JSON.stringify({error:e instanceof HttpError?e.message:'La demande ne peut pas être traitée. Réessayez.'}),{status,headers});}
 }
