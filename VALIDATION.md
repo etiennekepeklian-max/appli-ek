@@ -1,3 +1,9 @@
+# Choix de l’ouverture n° 1 · 28 octobre 2026
+
+Choix confirmé : contraste terrain (fond jaune), sprite existant `site/assets/mascot-default.svg`, slogan « Scannez. Préparez. Avancez. ». Intégration sur `index.html` et `bureau.html`, sans nouveau personnage. Déroulé décoratif de 2,4 s maximum, sans bloquer aucune action ; mise en cache PWA, raccourcis directs sans écran, réduction des animations respectée. Aucun déploiement public depuis cette branche. Tests dans `tests/opening.test.mjs` et vérifications GitHub Actions.
+
+---
+
 # Validation — version 1.17.0 (27 octobre 2026)
 
 Le suivi picking est désormais une saisie journalière des chiffres communiqués par les managers. Les points d’entrée accueil, raccourcis, Outils, Ma journée et l’aide n’invitent plus à photographier les commandes. Les anciens enregistrements et brouillons photo restent intacts ; les modules de lecture sont conservés pour compatibilité, avec ouverture explicite dans leurs tests.

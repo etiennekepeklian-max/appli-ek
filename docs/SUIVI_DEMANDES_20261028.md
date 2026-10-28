@@ -13,7 +13,7 @@
 | Outils et aides actualisées | `site/js/navigation-core.js`, `site/js/help-core.js`, `site/js/views.js`, liens bureau | `tests/navigation.test.mjs`, suite UI |
 | Guide bureau autonome | `site/aide-bureau.html` et liens dans `bureau.html` + navigation latérale | `tools/catalogue-photo-smoke.mjs` |
 | Préparation Capacitor | Config, preflight, contrat des liens, modèle Android du widget 1×4 | `npm run android:check` et tests de routes. **APK et widget natif non compilés** |
-| Cinq propositions de mascotte | `site/propositions-mascotte.html` réutilise `assets/mascot-default.svg` ; cinq GIF autonomes 2,4 s remis dans la conversation | Test navigateur dans `tools/update-smoke.mjs` ; **une animation définitive reste à sélectionner et intégrer** |
+| Cinq propositions de mascotte | `site/propositions-mascotte.html` réutilise `assets/mascot-default.svg` ; cinq GIF autonomes 2,4 s remis dans la conversation | Test navigateur dans `tools/update-smoke.mjs` ; **proposition n° 1 Contraste terrain sélectionnée et intégrée dans la branche, publication en attente** |
 
 ## En suspens ou à vérifier physiquement
 
