@@ -51,6 +51,7 @@ test('les opérations administratives utilisent un PIN côté serveur et les éc
  const ui=await readFile(new URL('../site/js/administration.js',import.meta.url),'utf8');
  assert.match(api,/protectedActions=\['users','user-create','user-update','set-access','devices','set-role'\]/);
  assert.match(api,/Pin\.assertUnlocked\(sql,fresh\.id\)/);
+ assert.match(api,/if\(adminDevice\)\{const denied=await Pin\.assertUnlocked\(sql,fresh\.id\);if\(denied\)return denied;\}/);
  assert.match(api,/if\(result\?\.__pinError\)reject\(result\.status,result\.message\)/);
  assert.match(api,/admin-pin-recover/);
  assert.match(api,/admin-pin-reset/);
