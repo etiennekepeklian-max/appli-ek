@@ -42,6 +42,7 @@ export const TOOL_GROUPS=[
   ['photo-cleanup','Supprimer des photos par date','Libérer le téléphone en conservant les bilans','trash','mémoire stockage place supprimer effacer photos journée'],
   ['archive','Archiver mes fichiers','Vérifier une copie puis retirer des fichiers choisis','download','archivage photos espace libérer restaurer'],
   ['users','Sessions et collègues','Mon nom et les habilitations de l’équipe','user','compte profil administrateur opérateur connexion'],
+  ['administration','Comptes et habilitations','Créer ou suspendre un utilisateur, régler les droits des appareils','shield','administrateur comptes autorisation accès historique modifier profils'],
   ['history','Historique et annulation','Retrouver ou annuler une action enregistrée','history','annuler erreur retour correction'],
   ['conflicts','Modifications à comparer','Relire les versions concurrentes','list','conflit historique'],
   ['diagnostic','Vérifier l’application','Calculs, fichiers, stockage et tests de fonctionnement','sync','diagnostic connexion panne test contrôle santé vérifier hors ligne'],

@@ -116,5 +116,8 @@
   "bureau.html",
   "desktop.css",
   "js/desktop.js",
-  "aide-bureau.html"
+  "aide-bureau.html",
+  "js/administration.js",
+  "js/permissions-core.js",
+  "js/access-ui.js"
 ]
