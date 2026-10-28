@@ -114,5 +114,8 @@
   "vendor/zxing-browser.min.js",
   "web-tools.css",
   "workbench.css",
-  "workflow.css"
+  "workflow.css",
+  "js/catalogue-photo-core.js",
+  "js/catalogue-photo.js",
+  "aide-bureau.html"
 ]

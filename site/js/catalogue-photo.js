@@ -23,7 +23,7 @@ export function open(){
 async function readFiles(files){
  if(reading)return;reading=true;
  const selected=[...files];
- if(selected.length>10)throw Error('Sélectionnez au maximum 10 pages à la fois.');
+ if(selected.length>10){reading=false;throw Error('Sélectionnez au maximum 10 pages à la fois.');}
  const root=host();if(!root){reading=false;return;}
  const input=root.querySelector('[data-photo-catalogue-files]');input.disabled=true;
  try{
