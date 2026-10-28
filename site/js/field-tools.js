@@ -7,9 +7,9 @@ import {persistDraft,hydratePhotos} from './ops.js';
 import {pendingDuplicates,preferredLocation} from './workflow-core.js';
 
 let pendingTimer;
-export function locationFields(value=''){
+export function locationFields(value='',{optional=false}={}){
   const parts=splitLocation(value);
-  return `${field('locationType','Type d’emplacement',parts.type,{select:[{value:'',label:'À préciser'},...LOCATION_TYPES.map(value=>({value,label:value}))]})}${field('location','Adresse de l’emplacement',parts.address,{code:true,voice:true})}<p class="hint full" data-location-preview>${esc(value||'Le type sélectionné sera ajouté devant l’adresse.')}</p>`;
+  return `${field('locationType',optional?'Type d’emplacement (facultatif)':'Type d’emplacement',parts.type,{select:[{value:'',label:'À préciser'},...LOCATION_TYPES.map(value=>({value,label:value}))]})}${field('location',optional?'Adresse de l’emplacement (facultatif)':'Adresse de l’emplacement',parts.address,{code:true,voice:true})}<p class="hint full" data-location-preview>${esc(value||(optional?'Casier facultatif : laissez les champs vides si vous ne le connaissez pas.':'Le type sélectionné sera ajouté devant l’adresse.'))}</p>`;
 }
 function setLocation(form,value,sku){
   const p=splitLocation(value);form.elements.locationType.value=p.type;form.elements.location.value=p.address;
