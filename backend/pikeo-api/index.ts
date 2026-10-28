@@ -1,7 +1,6 @@
 import postgres from 'npm:postgres@3.4.9';
 import {nameKey,cleanName,uuid,publicKey,verify,hash,validMessage,mergeSharedEnfs} from './core.mjs';
 import {hasPermission,validPermissions,permissionsFor} from './permissions-core.js';
-import {handlePinAction,requirePinUnlock,requiresAdminUnlock,isPinFailure} from './pin-operations.mjs';
 import * as Pin from './pin-service.mjs';
 const db=postgres(Deno.env.get('SUPABASE_DB_URL'),{ssl:'require',prepare:false,max:1,idle_timeout:20,connect_timeout:10});
 const allowed=new Set(['https://etiennekepeklian-max.github.io','http://localhost:8765','http://127.0.0.1:8765']);
@@ -88,9 +87,6 @@ async function handle(req){
      const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;
     }
     if(p.action==='session')return {session:view(fresh)};
-    if(p.action.startsWith('pin-'))return await handlePinAction({sql,action:p.action,payload:p,user:fresh,pepper:Deno.env.get('PIKEO_PIN_PEPPER'),reject,audit});
-    // Always enforce the extra factor on the server. Hiding controls in the browser is insufficient.
-    if(requiresAdminUnlock(fresh,p.action))await requirePinUnlock(sql,fresh,reject);
     if(p.action==='directory')return {profiles:await sql`select p.id,p.name,jsonb_agg(jsonb_build_object('id',d.id,'encryptionKey',d.encryption_key)) as devices from pikeo_private.profiles p join pikeo_private.devices d on d.profile_id=p.id and d.active group by p.id order by p.name`};
     if(p.action==='users'){owner();return {users:await sql`select p.id,p.name,p.is_owner,p.active,p.default_role,p.access_version,p.created_at,coalesce((select jsonb_agg(jsonb_build_object('id',d.id,'role',d.role,'permissions',d.permissions,'active',d.active,'version',d.access_version,'lastSeen',d.last_seen) order by d.created_at) from pikeo_private.devices d where d.profile_id=p.id),'[]'::jsonb) as devices from pikeo_private.profiles p order by p.is_owner desc,p.name`,audit:await sql`select a.id,a.action,a.target,a.details,a.created_at,p.name as actor_name from pikeo_private.access_audit a left join pikeo_private.devices d on d.id=a.actor left join pikeo_private.profiles p on p.id=d.profile_id order by a.created_at desc limit 50`};}
     if(p.action==='user-create'){
@@ -138,9 +134,6 @@ async function handle(req){
    });
   }
   if(result?.__pinError)reject(result.status,result.message);
-  // The unlock error must be returned by the transaction so its failed-attempt
-  // counter is committed; only then is it converted to an HTTP error.
-  if(isPinFailure(result))reject(result.__pinErrorStatus,result.__pinErrorMessage);
   return new Response(JSON.stringify(result),{headers});
  }catch(e){const status=e instanceof HttpError?e.status:400;if(!(e instanceof HttpError)&&!(e instanceof SyntaxError))console.error('pikeo-api failure',e.code||e.name);return new Response(JSON.stringify({error:e instanceof HttpError?e.message:'La demande ne peut pas être traitée. Réessayez.'}),{status,headers});}
 }
