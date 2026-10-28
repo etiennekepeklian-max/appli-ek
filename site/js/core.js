@@ -1,4 +1,4 @@
-export const VERSION = '1.17.3';
+export const VERSION = '1.17.4';
 export const SCHEMA = 1;
 export const TYPES = ['families','products','enfs','packagings','locations','pending','orders','days','issues','movements','counts','replenishments','documents','codes','preferences','unknowns','journal'];
 export const LEGACY_SHEETS = {families:'Familles',products:'References',enfs:'ENF',packagings:'Conditionnements',locations:'Emplacements',pending:'Commandes_attente',orders:'Commandes',days:'Pickings',issues:'Ecarts_stock',movements:'Mouvements',counts:'Inventaires',replenishments:'Reassorts',documents:'Documents',codes:'Historique',preferences:'Parametres',unknowns:'Codes_inconnus',journal:'Journal_hebdomadaire'};
