@@ -5,6 +5,7 @@ import {uuid,hash} from './core.mjs';
 
 export const ADMIN_PIN_UNLOCK_MINUTES=10;
 export const PRIVILEGED_ADMIN_ACTIONS=new Set(['users','devices','user-create','user-update','set-access','set-role','config-put']);
+export const ADMIN_PIN_ACTIONS=PRIVILEGED_ADMIN_ACTIONS;
 export const requiresAdminUnlock=(user,action)=>user?.role==='admin'&&PRIVILEGED_ADMIN_ACTIONS.has(action);
 export const pinFailure=(status,message)=>({__pinErrorStatus:status,__pinErrorMessage:message});
 export const isPinFailure=value=>Number.isInteger(value?.__pinErrorStatus);
