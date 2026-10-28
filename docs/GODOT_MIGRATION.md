@@ -1,3 +1,5 @@
+> **27 octobre 2026 : nouvelle décision.** Étienne autorise la **préparation de Capacitor** (config, raccourcis, modèle widget, documentation) sur branche isolée, mais pas encore la conversion Android, l'APK, la publication ou une refonte Godot. Voir `docs/CAPACITOR_READINESS.md`. Le petit bonhomme doit être strictement celui déjà présent dans `site/assets/mascot-default.svg`.
+
 # Décision du 25 octobre 2026
 
 Godot et Capacitor sont reportés. Continuer les évolutions de la version web. Les propositions ci-dessous restent une archive de préparation ; elles ne constituent pas une autorisation de migration. Aucune écriture sur le PC D:\Pikéo n’est possible depuis cet environnement.

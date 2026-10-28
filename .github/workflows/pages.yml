@@ -1,7 +1,7 @@
 name: Verifier et publier EK Logistique
 on:
   push:
-    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0, codex/desktop-v1.18.0]
+    branches: [main, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0, codex/desktop-v1.18.0, codex/capacitor-readiness-20261027]
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '22'
       - name: Verifier le projet
-        run: npm test && npm run check
+        run: npm test && npm run check && npm run android:check
       - name: Préparer le cache hors ligne
         run: node tools/prepare.mjs
       - name: Installer le navigateur de test
@@ -75,7 +75,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: node tools/prepare.mjs && node tools/enf-smoke.mjs
+      - run: node tools/prepare.mjs && node tools/enf-smoke.mjs && node tools/catalogue-photo-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4

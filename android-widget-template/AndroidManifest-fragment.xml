@@ -1,0 +1,17 @@
+<!-- Merge into the generated android/app/src/main/AndroidManifest.xml
+     <application>, after generating the Android project. -->
+<receiver android:name=".PikeoWidgetProvider" android:exported="true">
+  <intent-filter>
+    <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+  </intent-filter>
+  <meta-data android:name="android.appwidget.provider" android:resource="@xml/pikeo_widget_info" />
+</receiver>
+
+<!-- Inside <activity android:name=".MainActivity"> to support external app links.
+     Widget intents use an explicit MainActivity component. -->
+<intent-filter>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="pikeo" android:host="shortcut" />
+</intent-filter>

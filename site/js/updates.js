@@ -52,6 +52,16 @@ async function applyUpdate(){
  }catch(e){applying=false;banner(e.message+' Les données sont conservées.',true);}
 }
 export async function launch(load,expected){
+ // Android assets are shipped inside the APK: never replace them via the PWA
+ // service worker or fetch a web release to update the native application.
+ if(globalThis.Capacitor?.isNativePlatform?.()){
+   appModule=await load('');
+   if(appModule.ready)await appModule.ready;
+   currentVersion=document.getElementById('app-version')?.textContent||expected;
+   document.getElementById('check-update')?.addEventListener('click',()=>banner('Sur Android, les mises à jour de Pikéo se font en installant une nouvelle version de l’application. Vos données restent protégées.'));
+   return;
+ }
+
  let target=expected,ready=navigator.serviceWorker?.controller?.state==='activated'&&await workerVersion(navigator.serviceWorker.controller)===expected;
  if(!ready&&navigator.onLine){try{target=await latestVersion();}catch{}try{ready=await ensureWorker(target);}catch{}}
  // Before importing modules, activate a complete shell. A running form is never reloaded.

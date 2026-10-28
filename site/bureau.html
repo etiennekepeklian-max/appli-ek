@@ -8,9 +8,10 @@
   <link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="assets/icon.svg"><link rel="apple-touch-icon" href="assets/icon-192.png">
   <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="mobile.css">
   <link rel="stylesheet" href="ops.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="workflow.css"><link rel="stylesheet" href="terrain.css"><link rel="stylesheet" href="day-tools.css">
-  <link rel="stylesheet" href="picking.css"><link rel="stylesheet" href="workbench.css"><link rel="stylesheet" href="enf.css"><link rel="stylesheet" href="web-tools.css"><link rel="stylesheet" href="ergonomics.css"><link rel="stylesheet" href="desktop.css"><link rel="preload" as="image" href="assets/mascot-default.svg"><script>try{const t=localStorage.getItem("ek-theme")||"system";document.documentElement.dataset.theme=t==="dark"||t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch{}</script>
+  <link rel="stylesheet" href="picking.css"><link rel="stylesheet" href="workbench.css"><link rel="stylesheet" href="enf.css"><link rel="stylesheet" href="web-tools.css"><link rel="stylesheet" href="ergonomics.css"><link rel="stylesheet" href="opening.css"><link rel="stylesheet" href="desktop.css"><link rel="preload" as="image" href="assets/mascot-default.svg"><script>try{const t=localStorage.getItem("ek-theme")||"system";document.documentElement.dataset.theme=t==="dark"||t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch{}</script>
 </head>
 <body class="desktop">
+  <div id="pikeo-opening" aria-hidden="true"><div class="pk-intro-stage"><div class="pk-intro-text"><div class="pk-intro-title">PIKÉO</div><div class="pk-intro-rule"></div><div class="pk-intro-slogan">Scannez. Préparez. Avancez.</div></div><div class="pk-intro-character"></div></div></div>
   <aside id="desktop-sidebar" aria-label="Espace bureau"></aside>
   <!-- Kept hidden so an already cached 1.0 entrypoint can finish updating. -->
   <aside id="sidebar" hidden aria-hidden="true"></aside>
@@ -19,7 +20,7 @@
     <header class="topbar"><button class="brand mobile-brand" data-nav="home" aria-label="Pikéo accueil"><span class="brand-mark" aria-hidden="true">P</span></button><div class="mobile-app-title"><strong>Pikéo</strong><span class="breadcrumb" id="breadcrumb">Votre espace terrain</span><span id="network" class="connection"><i></i> Sur cet appareil</span></div><div class="topbar-actions"><button type="button" class="icon-button" data-action="find-tools" aria-label="Trouver une fonction" title="Trouver une fonction"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg></button><button class="icon-button" data-action="quickhelp" aria-label="Aide pour cette page" title="Aide">?</button><button class="avatar" data-nav="users" aria-label="Ouvrir mes sessions" id="avatar">EK</button></div></header>
     <div id="demo-banner" hidden></div>
     <main id="main" tabindex="-1"><div class="loading"><span class="loader"></span>Ouverture de votre espace…</div></main>
-    <footer class="app-footer"><span>Pikéo <span id="app-version"></span></span><button type="button" id="check-update">Vérifier la version</button><button data-nav="help">Aide et prise en main</button><a href="bureau.html">Version ordinateur</a></footer>
+    <footer class="app-footer"><span>Pikéo <span id="app-version"></span></span><button type="button" id="check-update">Vérifier la version</button><button data-nav="help">Aide et prise en main</button><a href="aide-bureau.html">Guide bureau</a></footer>
   </div>
   <nav class="mobile-nav" aria-label="Navigation principale" id="mobile-nav"></nav>
   <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title" tabindex="-1"></h2><div class="dialog-header-actions"><button type="button" class="icon-button context-help" data-action="quickhelp" aria-label="Aide pour cette action">?</button><button class="icon-button" data-action="close-dialog" aria-label="Fermer"><span aria-hidden="true">×</span></button></div></div><div id="dialog-body"></div></dialog>
@@ -27,7 +28,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <aside id="mascot-status" class="mascot-status" role="status" aria-live="polite"><span class="mascot-sprite mascot-deposit" aria-hidden="true"></span><p data-mascot-label>Ouverture de votre espace…</p></aside>
   <noscript>Activez JavaScript pour utiliser Pikéo.</noscript>
-  <script src="vendor/jsbarcode.min.js" defer></script><script src="vendor/jspdf.umd.min.js" defer></script>
+  <script src="js/opening.js" defer></script><script src="vendor/jsbarcode.min.js" defer></script><script src="vendor/jspdf.umd.min.js" defer></script>
   <script type="module">
 import {launch} from './js/updates.js?pikeo-v=1.18.0';
 launch(version=>import('./js/app.js'+(version?'?pikeo-v='+version:'')),'1.18.0').catch(error=>{const main=document.getElementById('main');main.replaceChildren();const p=document.createElement('p');p.textContent='Ouverture interrompue : '+error.message;const link=document.createElement('a');link.href='actualiser.html';link.textContent='Actualiser Pikéo sans effacer mes données';main.append(p,link);});

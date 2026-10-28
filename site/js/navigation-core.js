@@ -7,6 +7,7 @@ export const TOOL_GROUPS=[
   ['codes','Créer un code-barres','Référence, PAC, PAD, RES et favoris','barcode','étiquette imprimer code barre'],
   ['new-pending','Noter un manquant','Référence, commande et emplacement','clock','réassort JC rupture manque dicter vocal voix',true],
   ['pending','Suivre les manquants','Réceptions, relances JC et commandes à reprendre','clock','réassort reçu attente JC'],
+  ['catalogue-photo','Importer une feuille produit en photo','Relecture OCR et alertes avant import','camera','import liste adresse feuille photo produits',true],
   ['enfs','ENF — références et quantités','Consulter le contenu ou photographier une feuille','layers','composition ensemble contenu photo'],
   ['stock','Chercher un produit ou un casier','Référence, EAN, nom et emplacement','box','catalogue adresse rechercher trouver article'],
   ['orders','Ma journée — suivi picking','Saisir les chiffres reçus et voir les graphiques','chart','objectif picking fin journée bilan quantité manager statistiques graphique'],

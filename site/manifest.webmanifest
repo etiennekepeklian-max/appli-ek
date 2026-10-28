@@ -31,15 +31,27 @@
   "shortcuts": [
     {
       "name": "Créer un code-barres",
-      "url": "./#codes"
+      "short_name": "Code-barres",
+      "description": "Ouvrir le générateur de codes",
+      "url": "./?pikeo-shortcut=barcode#codes"
     },
     {
-      "name": "Commandes en attente",
-      "url": "./#pending"
+      "name": "Ajouter un manquant",
+      "short_name": "Manquant",
+      "description": "Ouvrir la saisie d'un manquant",
+      "url": "./?pikeo-shortcut=missing#pending"
     },
     {
-      "name": "Ajouter mes pickings",
-      "url": "./#orders"
+      "name": "Liste des produits",
+      "short_name": "Produits",
+      "description": "Consulter les références et adresses",
+      "url": "./?pikeo-shortcut=products#stock"
+    },
+    {
+      "name": "Consulter les ENF",
+      "short_name": "ENF",
+      "description": "Consulter les compositions ENF",
+      "url": "./?pikeo-shortcut=enf#enfs"
     }
   ]
 }

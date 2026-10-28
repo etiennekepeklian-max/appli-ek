@@ -7,7 +7,7 @@
 - Garder les parcours mobiles rapides et les codes-barres noirs sur blanc, en modes clair et sombre. Exécuter les tests métier et les parcours navigateur pertinents avant publication.
 - Ne publier aucun identifiant de feuille privée, secret, jeton, photo ou donnée de travail.
 - Les mémos vocaux utilisent un stockage local séparé. Aucun audio, titre de mémo ou sauvegarde vocale ne doit entrer dans Google Sheets, Drive automatique, le journal métier ou l’export général. Les copies automatiques de version audio restent dans une base locale distincte, sans export ni synchronisation. Seuls les exports/partages déclenchés depuis Mémos vocaux sont autorisés.
-- Godot et Capacitor sont reportés par décision explicite d’Étienne. Poursuivre la version web ; ne pas relancer de migration ni de rappels de maturité sans nouvelle instruction. Lire `docs/GODOT_MIGRATION.md` avant tout changement de plateforme.
+- La migration Godot reste reportée. La préparation de Capacitor est autorisée sur branche isolée ; ne pas compiler, installer, fusionner ou publier l'APK sans accord explicite. Poursuivre la version web pendant ces préparatifs. Lire `docs/GODOT_MIGRATION.md` avant tout changement de plateforme.
 - Conserver les quatre onglets Google `produit`, `manquant`, `objectif picking`, `historique`. Ne pas recréer les anciens onglets ni supprimer des révisions lors d’un regroupement.
 
 - Décision d’Étienne du 25 octobre au soir : produits, commandes et historique Google en clair, sans clé obligatoire. Conserver la lecture des anciennes copies chiffrées et une conversion explicite avec sauvegarde. Sessions par nom sans mot de passe/PIN ; droits administrateur imposés côté serveur et activés par un accès privé, jamais par le prénom seul.
@@ -17,3 +17,7 @@
 
 - Version bureau : conserver `bureau.html` et `index.html` sur la même origine et avec les mêmes identifiants de stockage. La version mobile reste disponible. Ne pas promettre de copie automatique des données entre appareils sans synchronisation Google. Les clés et mémos ne se synchronisent pas.
 - Permissions : conserver le modèle identique dans `site/js/permissions-core.js` et `backend/pikeo-api/permissions-core.js`. L’accès propriétaire nécessite le fichier privé, jamais le nom seul ; aucun rôle élevé automatique pour un nouvel appareil. Tester les parcours d’administration avec le relais simulé de `tools/desktop-smoke.mjs`, sans créer de clé propriétaire temporaire sur le serveur réel.
+
+- Décision du 27 octobre (préparation Capacitor autorisée, migration/publication non lancée) : conserver la mascotte **originale** `site/assets/mascot-default.svg` et le rendu privé éventuel du module `site/js/mascot.js`. Ne pas inventer de nouveau personnage. Widget Android validé 1 ligne × 4 : Code-barres, Ajouter un manquant, Produits, ENF. Les scripts, routes et modèles peuvent être préparés sur branche isolée ; APK et déploiement uniquement après nouveau GO.
+
+- Choix confirmé le 28 octobre 2026 : ouverture Pikéo n° 1 « Contraste terrain », slogan « Scannez. Préparez. Avancez. », uniquement la mascotte existante `site/assets/mascot-default.svg` ; durée maximale de 2,4 secondes, accès direct et commandes jamais bloqués, mouvement réduit respecté. Ne pas remplacer le personnage.

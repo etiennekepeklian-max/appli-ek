@@ -20,6 +20,7 @@
   "js/administration.js",
   "js/alert-acks.js",
   "js/app.js",
+  "js/android-shortcuts-core.js",
   "js/archive-core.js",
   "js/archive.js",
   "js/camera.js",
@@ -113,5 +114,10 @@
   "vendor/zxing-browser.min.js",
   "web-tools.css",
   "workbench.css",
-  "workflow.css"
+  "workflow.css",
+  "js/catalogue-photo-core.js",
+  "js/catalogue-photo.js",
+  "aide-bureau.html",
+  "opening.css",
+  "js/opening.js"
 ]
