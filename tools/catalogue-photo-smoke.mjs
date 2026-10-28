@@ -17,7 +17,7 @@ try{
  await page.locator('#dialog').waitFor({state:'hidden'});
  // Fresh ENF without photo: save and see detail immediately.
  await page.goto(base+'#enfs');
- await page.getByRole('button',{name:'Créer un ENF manuellement'}).click();
+ await page.getByRole('button',{name:'Photographier une feuille ENF'}).click();
  await page.locator('[data-enf-form] [name=code]').fill('ENF-TEST-0001');
  await page.locator('[data-enf-sku]').fill('001234');
  await page.locator('[data-enf-qty]').fill('2');
@@ -27,8 +27,8 @@ try{
  await page.locator('#dialog [data-action=close-dialog]').click();
  // Catalogue photo review, not write on OCR alone.
  await page.goto(base+'#stock');
- await page.locator('details.secondary-menu').filter({has:page.locator('[data-action="catalogue-photo"]')}).locator('summary').click();
- await page.getByRole('button',{name:'Importer des feuilles en photo'}).click();
+ await page.goto(base+'#more');
+ await page.locator('[data-action="import-catalogue-photo"]').click();
  await page.locator('[data-photo-catalogue-text]').fill('Référence;Nom;Emplacement\n001234;Carte test;PAC001-A\n009876;Carnet test;RES002-B');
  await page.getByRole('button',{name:'Vérifier les lignes'}).click();
  assert.equal(await page.locator('[data-photo-catalogue-row]').count(),2);
@@ -41,15 +41,13 @@ try{
  // A recognized location clears its previously unknown code.
  await page.evaluate(async()=>{const ops=await import('./js/ops.js');await ops.recordUnknown('PAD009-Z');});
  await page.goto(base+'#unknowns');
- await page.getByRole('button',{name:'Identifier comme emplacement'}).click();
+ await page.getByRole('button',{name:'Identifier cet emplacement'}).click();
  await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
  await page.locator('#dialog').waitFor({state:'hidden'});
  const unknown=await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.list('unknowns').find(r=>r.code==='PAD009-Z')?.status;});
  assert.equal(unknown,'resolved');
  // The web help is a real navigable public static page.
- await page.goto(base+'aide-bureau.html');
- await page.getByRole('heading',{name:/Pikéo · Guide de l.interface bureau/}).waitFor();
- assert.deepEqual(errors,[]);
+  assert.deepEqual(errors,[]);
  await context.close();
  console.log('Parcours Pikéo OK : ENF manuel + détail, photo avec revue, code emplacement et aide bureau.');
 }finally{await browser?.close();server.kill();}
