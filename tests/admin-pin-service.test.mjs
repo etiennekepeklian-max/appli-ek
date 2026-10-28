@@ -24,7 +24,7 @@ function fakeDB(record){
  return sql;
 }
 test('PIN refusé: échecs sauvegardés puis verrouillage, même si la réponse est une erreur HTTP',async()=>{
- const salt=randomSalt(),verifier=await digestPin('0042',salt,pepper,12000);
+ const salt=randomSalt(),verifier=await digestPin('0042',salt,pepper);
  const row={salt_hex:salt,verifier_hex:verifier,requires_reset:false,failed_attempts:0,locked_until:null,unlocked_until:null};
  const sql=fakeDB(row);
  for(let i=1;i<=5;i++){
