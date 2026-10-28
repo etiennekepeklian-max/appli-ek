@@ -70,6 +70,20 @@ try{
  assert.doesNotMatch(await page.locator('[data-wb-preview]').inputValue(),/emplacement|casier concerné/i);
  await close();
  console.log('OK nouveau manquant sans casier : sauvegarde, message et relance');
+ // Suppression accidentelle : une fiche, confirmation, annulation et historique.
+ await sansLieu.getByRole('button',{name:/Supprimer le manquant REF-INCONNUE/}).click();
+ assert.match(await page.locator('#dialog-body').innerText(),/Seul ce manquant sera retiré/);
+ await page.locator('#dialog').getByRole('button',{name:'Annuler',exact:true}).click();
+ await page.locator('#dialog').waitFor({state:'hidden'});
+ assert.equal(await read(async()=>{const s=await import('./js/storage.js');return s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU');}),true);
+ await sansLieu.getByRole('button',{name:/Supprimer le manquant REF-INCONNUE/}).click();
+ await page.getByRole('button',{name:'Confirmer la suppression',exact:true}).click();
+ await page.locator('#dialog').waitFor({state:'hidden'});
+ assert.deepEqual(await read(async()=>{const s=await import('./js/storage.js');return [s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU'),s.list('pending').filter(p=>p.orderNumber==='CMD-001').length];}),[false,2]);
+ await page.locator('#undo-bar [data-ops-action=quick-undo]').click();
+ await page.waitForFunction(async()=>{const s=await import('./js/storage.js');return s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU');});
+ assert.ok(await page.locator('.pending-card').filter({hasText:'CMD-SANS-LIEU'}).count());
+ console.log('OK suppression confirmée d’un seul manquant, annulation et restauration sans perdre les autres');
 
 
  await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await field('orderNumber').fill('CMD-001');await field('sku').fill('FLOW001');await field('quantity').fill('5');await page.locator('[data-pending-duplicates]:not([hidden])').waitFor();await page.locator('[data-form=pending] [type=submit]').click();await page.locator('[data-form-error]:not([hidden])').waitFor();assert.match(await page.locator('[data-form-error]').innerText(),/déjà signalée/);
