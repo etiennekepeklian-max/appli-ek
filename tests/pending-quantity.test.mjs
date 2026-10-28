@@ -22,8 +22,8 @@ test('les anciennes fiches sans quantité restent visibles sans fausser le regro
 });
 
 test('le message pour JC indique la quantité lorsqu’elle est renseignée',()=>{
-  assert.match(jcMessage({sku:'00123',location:'PAC01',quantity:12}),/Quantité manquante : 12 unité\(s\)/);
-  assert.doesNotMatch(jcMessage({sku:'00123',location:'PAC01'}),/Quantité manquante/);
+  assert.match(jcMessage({sku:'00123',location:'PAC01',orderNumber:'C-02',quantity:12}),/Il me manque 12 unité\(s\) pour la commande C-02/);
+  assert.doesNotMatch(jcMessage({sku:'00123',location:'PAC01'}),/\d+ unité\(s\)|PAC01/);
 });
 
 test('le formulaire et la sauvegarde rendent la quantité disponible sans migration des enregistrements',async()=>{
