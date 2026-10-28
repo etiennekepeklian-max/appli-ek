@@ -110,6 +110,10 @@ async function handle(req){
     }
     if(p.action==='config-get')return (await sql`select version,data from pikeo_private.shared_config where id=true`)[0];
     if(p.action==='config-put'){
+     // Shared configuration is also an administrative mutation: require an
+     // unlocked PIN for administrators, while preserving explicit operator
+     // permissions when they are granted separately.
+     if(adminDevice){const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;}
      allow('configure');if(!Array.isArray(p.data?.records)||p.data.records.length>10000||!p.data.records.every(r=>['products','enfs','families','packagings','locations','replenishments'].includes(r.type)&&typeof r.record?.id==='string'))reject(400,'Paramètres partagés invalides.');
      const previous=(await sql`select data from pikeo_private.shared_config where id=true`)[0];const shared=mergeSharedEnfs(p.data,previous?.data);
      const r=await sql`update pikeo_private.shared_config set data=${sql.json(shared)},version=version+1,updated_at=now() where id=true and version=${Number(p.version)} returning version`;if(!r.length)reject(409,'Les réglages ont changé. Actualisez avant de publier.');return r[0];
