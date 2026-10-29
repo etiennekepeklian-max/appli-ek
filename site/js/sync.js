@@ -92,7 +92,7 @@ export async function sync(){
   if(Store.isDemo())throw Error('Les données d’exemple restent dans la démonstration.');
   if(busy)return;
   if(!connected())throw Error('Connectez votre compte Google pour synchroniser.');
-  const key=Secrets.unlocked()?Secrets.key():null;
+  const key=Secrets.unlocked()?Secrets.key():null,backupScope=Store.scope();
   const c=connection();if(!/^[A-Za-z0-9_-]{20,}$/.test(c.spreadsheetId))throw Error('Renseignez un identifiant Google Sheet valide.');
   busy=true;lastError='';emit('Lecture de la sauvegarde Google…');
   try{
@@ -108,7 +108,7 @@ export async function sync(){
         await Store.markSynced(chunk.map(e=>e.id));sent+=chunk.length;
       }
     }
-    await Store.setMeta('lastSync',new Date().toISOString());await Store.setMeta('lastSyncSheet',c.spreadsheetId);busy=false;const remaining=Store.pendingEvents().length;emit(remaining?'Dernier envoi terminé. Des modifications récentes restent à sauvegarder.':legacyCount?'Sauvegarde à jour. Des lignes anciennes restent à convertir pour être lisibles.':'Sauvegarde Google à jour et lisible.',{sent,received,remaining,success:true});return {sent,received};
+    await Store.setMeta('lastSync',new Date().toISOString());await Store.setMeta('lastSyncSheet',c.spreadsheetId);busy=false;const remaining=Store.pendingEvents().length;emit(remaining?'Dernier envoi terminé. Des modifications récentes restent à sauvegarder.':legacyCount?'Sauvegarde à jour. Des lignes anciennes restent à convertir pour être lisibles.':'Sauvegarde Google à jour et lisible.',{sent,received,remaining,scope:backupScope,sheetId:c.spreadsheetId,success:true});return {sent,received};
   }catch(e){busy=false;emit(e.message,{error:true});throw e;}finally{busy=false;}
 }
 export async function createDatabase(){

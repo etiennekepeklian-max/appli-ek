@@ -12,6 +12,20 @@ export function localLookupStatus(matches){
   return matches.length!==1||matches[0].namePending||!String(matches[0].name||'').trim()?'ambiguous':'known';
 }
 export function safeSourceURL(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')?u.href:'';}catch{return '';}}
+
+export function safeProductImageURL(value){
+ if(typeof value!=='string'||value.length>2048)return '';
+ try{
+  const u=new URL(value.startsWith('//')?'https:'+value:value);
+  const host=u.hostname.toLowerCase().replace(/\.$/,'');
+  if(u.protocol!=='https:'||u.username||u.password||u.port&&u.port!=='443'||!host.includes('.')||/^[0-9.]+$/.test(host)||/[\[\]:]/.test(host)||/(?:^|\.)(?:localhost|local|internal|lan|home|onion)$/.test(host))return '';
+  u.hash='';
+  if(host==='cdn.shopify.com'||['fr.checkout.draegerparis.com','www.draegerparis.com'].includes(host)&&u.pathname.startsWith('/cdn/shop/')){
+   u.searchParams.set('width','480');u.searchParams.delete('height');u.searchParams.delete('crop');
+  }
+  return u.href;
+ }catch{return '';}
+}
 const text=(v,max=240)=>typeof v==='string'?v.trim().replace(/[\u0000-\u001f]/g,' ').slice(0,max):'';
 export function normalizeCandidate(raw,code){
   if(!raw||typeof raw!=='object')return null;
@@ -21,7 +35,7 @@ export function normalizeCandidate(raw,code){
   const host=new URL(sourceUrl).hostname;
   if(sourceKind==='draeger'&&!['fr.checkout.draegerparis.com','www.draegerparis.com'].includes(host)||sourceKind==='upcitemdb'&&host!=='www.upcitemdb.com')return null;
   const exact=!!(sku&&codeKey(sku)===codeKey(code)||sameBarcode(barcode,code));
-  return {name,sku,barcode,sourceKind,sourceUrl,brand:text(raw.brand,100),exact,retrievedAt:Number.isFinite(Date.parse(raw.retrievedAt))?raw.retrievedAt:''};
+  return {name,sku,barcode,sourceKind,sourceUrl,imageUrl:safeProductImageURL(raw.imageUrl),brand:text(raw.brand,100),exact,retrievedAt:Number.isFinite(Date.parse(raw.retrievedAt))?raw.retrievedAt:''};
 }
 const productCodes=p=>[p.sku,p.barcode,p.articleCode,...(Array.isArray(p.referenceCodes)?p.referenceCodes:[])].map(codeKey).filter(Boolean);
 export function candidateMatches(candidate,rows){return rows.filter(p=>productCodes(p).some(code=>code===codeKey(candidate.sku)||code===codeKey(candidate.barcode))||sameBarcode(p.barcode,candidate.barcode));}

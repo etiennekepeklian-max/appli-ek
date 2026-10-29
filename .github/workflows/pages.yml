@@ -1,7 +1,7 @@
 name: Verifier et publier EK Logistique
 on:
   push:
-    branches: [main, security/pin-admin-web-reconcilie-20261028, codex/pikeo-product-lookup-20261029, codex/pikeo-web-11710-admin-cache, codex/pikeo-administration-comptes-20261028, integration/web-sans-android-20261028, codex/pikeo-opening-1.17.1, codex/pikeo-unified-loading-1.17.2, codex/pikeo-manquant-raccourci-1173, codex/pikeo-contacts-reassort-prives, codex/pikeo-manquant-emplacement-facultatif-1176, codex/pikeo-message-reassort-modele-1-1177, codex/pikeo-supprimer-manquant-1178, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0]
+    branches: [main, codex/lookup-photos-cache-20261029, security/pin-admin-web-reconcilie-20261028, codex/pikeo-product-lookup-20261029, codex/pikeo-web-11710-admin-cache, codex/pikeo-administration-comptes-20261028, integration/web-sans-android-20261028, codex/pikeo-opening-1.17.1, codex/pikeo-unified-loading-1.17.2, codex/pikeo-manquant-raccourci-1173, codex/pikeo-contacts-reassort-prives, codex/pikeo-manquant-emplacement-facultatif-1176, codex/pikeo-message-reassort-modele-1-1177, codex/pikeo-supprimer-manquant-1178, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0]
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,7 +27,12 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.56.1
           google-chrome --version
       - name: Verifier les parcours mobiles
-        run: node tools/product-lookup-smoke.mjs && node tools/ui-smoke.mjs && node tools/workflow-smoke.mjs && node tools/document-day-smoke.mjs && node tools/day-restart-smoke.mjs && node tools/undo-choice-smoke.mjs && node tools/day-tools-smoke.mjs && node tools/workbench-smoke.mjs && node tools/cloud-smoke.mjs && node tools/catalogue-photo-smoke.mjs && node tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs
+        run: node tools/product-lookup-smoke.mjs && node tools/cache-cleanup-smoke.mjs && node tools/ui-smoke.mjs && node tools/workflow-smoke.mjs && node tools/document-day-smoke.mjs && node tools/day-restart-smoke.mjs && node tools/undo-choice-smoke.mjs && node tools/day-tools-smoke.mjs && node tools/workbench-smoke.mjs && node tools/cloud-smoke.mjs && node tools/catalogue-photo-smoke.mjs && node tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs
+        env:
+          EK_TEST_BROWSER_CHANNEL: chrome
+      - name: Vérifier la recherche publique avec une photo
+        if: github.ref == 'refs/heads/main'
+        run: node tools/product-lookup-live-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -193,6 +198,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
+          const {VERSION}=await import('./site/js/core.js');
           const base=process.env.PIKEO_PUBLISHED_URL;
           assert.ok(base?.startsWith('https://etiennekepeklian-max.github.io/'));
           let verified=false;
@@ -200,10 +206,14 @@ jobs:
             try{
               const release=await fetch(new URL('release.json?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});
               assert.equal(release.status,200);
-              assert.equal((await release.json()).version,'1.18.0');
+              assert.equal((await release.json()).version,VERSION);
               const module=await fetch(new URL('js/admin-pin-ui.js?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000)});
               assert.equal(module.status,200);
               assert.ok((await module.text()).includes("API.request('admin-pin-enroll'"));
+              for(const [path,marker] of [['js/product-image.js','publicProductPhoto'],['js/cache-cleanup.js','installCacheCleanup']]){
+                const resource=await fetch(new URL(path+'?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000)});
+                assert.equal(resource.status,200);assert.ok((await resource.text()).includes(marker));
+              }
               verified=true;break;
             }catch(error){
               if(attempt===5)throw error;
@@ -211,6 +221,6 @@ jobs:
             }
           }
           assert.ok(verified);
-          console.log('Pikéo web 1.18.0 et interface PIN vérifiés sur le site public.');
+          console.log('Pikéo web '+VERSION+' et interface PIN vérifiés sur le site public.');
           NODE
 

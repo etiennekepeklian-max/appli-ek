@@ -1,6 +1,6 @@
 import {writeAlertAcks} from './js/alert-acks.js';
 import {redundantOCRAsset} from './js/offline-core.js';
-const APP_VERSION='1.18.0';
+const APP_VERSION='1.18.1';
 const SHELL='ek-shell-v1-a4958a7f1102';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
