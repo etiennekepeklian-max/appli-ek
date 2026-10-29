@@ -82,7 +82,8 @@ try{
  assert.deepEqual(await read(async()=>{const s=await import('./js/storage.js');return [s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU'),s.list('pending').filter(p=>p.orderNumber==='CMD-001').length];}),[false,2]);
  await page.locator('#undo-bar [data-ops-action=quick-undo]').click();
  await page.waitForFunction(async()=>{const s=await import('./js/storage.js');return s.list('pending').some(p=>p.orderNumber==='CMD-SANS-LIEU');});
- assert.ok(await page.locator('.pending-card').filter({hasText:'CMD-SANS-LIEU'}).count());
+ await page.locator('.pending-card').filter({hasText:'CMD-SANS-LIEU'}).waitFor({state:'visible'});
+ assert.equal(await page.locator('.pending-card').filter({hasText:'CMD-SANS-LIEU'}).count(),1);
  console.log('OK suppression confirmée d’un seul manquant, annulation et restauration sans perdre les autres');
 
 
@@ -107,9 +108,9 @@ try{
  console.log('OK recherche commune, code d’emplacement, liste à compléter et constat daté sans niveau économique obligatoire');
  // A slow optional web lookup must not lock another form after SPA navigation.
  let lookupDone=false;
- await context.route('https://fr.checkout.draegerparis.com/search/suggest.json?**',async route=>{await new Promise(resolve=>{releaseLookup=resolve;});lookupDone=true;await route.fulfill({json:{resources:{results:{products:[]}}}}).catch(()=>{});});
- await go('scan');await page.locator('[name=code]').fill('SLOW-UNKNOWN');const looking=page.waitForRequest(r=>r.url().includes('/search/suggest.json?'));await page.locator('[data-form=lookup-product] [type=submit]').click();await looking;
- await page.locator('#mobile-nav [data-nav=pending]').click();await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await field('orderNumber').fill('CMD-WHILE-LOOKUP');await field('sku').fill('FLOW002');await field('quantity').fill('1');await page.locator('[data-form=pending] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden',timeout:3000});assert.equal(lookupDone,false);releaseLookup();await context.unroute('https://fr.checkout.draegerparis.com/search/suggest.json?**');
+ await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-product-lookup',async route=>{await new Promise(resolve=>{releaseLookup=resolve;});lookupDone=true;await route.fulfill({json:{candidates:[],warnings:[]}}).catch(()=>{});});
+ await go('scan');await page.locator('[name=code]').fill('SLOW-UNKNOWN');const looking=page.waitForRequest(r=>r.url().endsWith('/functions/v1/pikeo-product-lookup'));await page.locator('[data-form=lookup-product] [type=submit]').click();await looking;
+ await page.locator('#mobile-nav [data-nav=pending]').click();await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await field('orderNumber').fill('CMD-WHILE-LOOKUP');await field('sku').fill('FLOW002');await field('quantity').fill('1');await page.locator('[data-form=pending] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden',timeout:3000});assert.equal(lookupDone,false);releaseLookup();await context.unroute('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-product-lookup');
  console.log('OK une recherche réseau en cours ne bloque pas l’enregistrement d’un autre formulaire');
 
 
