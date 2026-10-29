@@ -1,0 +1,10 @@
+<!-- PREPARATION ONLY: merge inside the future app's <application>, after migration approval. -->
+<service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:name="com.pikeo.preparation.media.PikeoMediaAccessService"
+    android:label="Pikéo · commandes multimédias"
+    android:exported="false"
+    android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+    <intent-filter>
+        <action android:name="android.service.notification.NotificationListenerService" />
+    </intent-filter>
+</service>

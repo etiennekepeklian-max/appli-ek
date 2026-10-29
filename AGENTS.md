@@ -14,3 +14,9 @@
 - Les repères privés de workbench-store (ressenti, entraide, préférences, photos de reprise) ne rejoignent pas la synchronisation métier. Les comptes et autorisations doivent être imposés par un service authentifié ; ne pas présenter un masque de boutons comme une protection.
 
 - Décision d’Étienne du 27 octobre : le suivi picking utilise les chiffres journaliers saisis à partir des managers, modifiables après sauvegarde et visibles en graphiques. Retirer les invitations à photographier/analyser les commandes de ce parcours. Préserver les anciens bilans et photos, leur nettoyage explicite et la compatibilité des sauvegardes.
+
+- Consigne générale d’Étienne du 29 octobre : minimiser ses manipulations. Effectuer de façon autonome les préparatifs, la configuration et les vérifications accessibles ; le solliciter pour les décisions stratégiques ou visuelles, les choix indispensables et les étapes qui exigent réellement son téléphone ou une autorisation personnelle. Cette préférence ne lance pas la migration Android.
+
+- Prochaine session d’Étienne sur son ordinateur : lui proposer la préparation de l’environnement Android avec les moyens de contrôle réellement disponibles (Node.js, Capacitor, Android Studio et SDK compatibles). Effectuer les étapes accessibles après son accord et vérifier les versions. Cette préparation ne crée pas d’APK, ne lance pas de migration, ne réécrit pas l’application et ne transfère aucune donnée. Ne pas prétendre détecter l’allumage du PC ni disposer d’un contrôle natif absent.
+
+- Pour la préparation sur PC, Étienne indiquera quand il y sera. Si cette information manque au moment où une action sur PC devient utile, lui demander simplement s’il est devant l’ordinateur ; aucun rappel programmé ni détection automatique de connexion n’est demandé.

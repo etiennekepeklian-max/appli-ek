@@ -236,3 +236,7 @@ L’application n’écrit pas dans Velocity et ne constitue pas le stock offici
 - Ma journée / Outils → Supprimer des photos par date : choisir les dates, vérifier le récapitulatif et confirmer. Les bilans restent conservés ; les photos des brouillons en cours sont protégées.
 - L’option de nettoyage des copies de version retire seulement les images sélectionnées des points locaux. Elles ne sont plus récupérables depuis ces points ; aucune copie Google n’est effacée.
 - Noter un manquant → Dicter commande et référence : dire les deux numéros avec leurs libellés, puis relire et enregistrer. L’adresse connue est proposée. Aucun audio n’est conservé par Pikéo ; la reconnaissance du navigateur peut utiliser Internet. Le texte et le micro du clavier restent disponibles en secours.
+
+## Préparation du contrôle musical
+
+Le bouton Musique et son aide sont préparés pour les écrans mobile et bureau. Le web indique que le contrôle des lecteurs externes est indisponible. Le contrat, les sources Android de référence non compilées, les étapes de branchement et les essais requis sont décrits dans [docs/ANDROID_MEDIA_PREPARATION.md](docs/ANDROID_MEDIA_PREPARATION.md). Aucune migration Android ni installation sur le PC n’est effectuée par cette évolution.
