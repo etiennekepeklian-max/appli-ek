@@ -1,4 +1,4 @@
--- PREPARATION ONLY: additive migration. NOT DEPLOYED.
+-- Additive migration for the web admin PIN.
 -- PIN: 4 digits, verified on the server as a second factor for signed admin devices.
 -- The 256-bit secret PIKEO_PIN_PEPPER must be stored in Supabase Edge Function secrets.
 -- Apply only after verifying a tested admin PIN enrollment/recovery flow and backups.

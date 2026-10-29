@@ -48,6 +48,16 @@ try{
   .replace('Deno.serve(handle);','export {handle};');
  globalThis[dependencyKey]={db,Deno:{env:{get:name=>env[name]}}};
  try{({handle}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64')));}finally{delete globalThis[dependencyKey];}
+ await check('état serveur PIN sans divulgation du secret, absence et valeur trop courte détectées',async()=>{
+  const health=async()=>{const r=await handle(new Request('https://synthetic.invalid/pikeo-api'));assert.equal(r.status,200);return r.json();};
+  const ready=await health();
+  assert.deepEqual(ready,{app:'Pikeo',version:'1.18.0',status:'ready',adminPinReady:true});
+  assert.ok(!JSON.stringify(ready).includes(pepper));
+  try{
+   delete env.PIKEO_PIN_PEPPER;assert.equal((await health()).adminPinReady,false);
+   env.PIKEO_PIN_PEPPER='short-synthetic';assert.equal((await health()).adminPinReady,false);
+  }finally{env.PIKEO_PIN_PEPPER=pepper;}
+ });
  const owner=await device('Étienne',{owner:true});await enroll(owner);
  await check('nom seul sans privilège, fichier propriétaire préservé et consultation initiale',async()=>{
   const namesake=await device('Étienne');

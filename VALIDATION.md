@@ -342,3 +342,7 @@ Validation locale de la version de publication : 240 tests réussis, 151 modules
 Intégration du PIN sur la recherche produit publiée 1.17.11 et le maintien du résultat au réaffichage. Les routes, sources publiques, confirmations, doublons et droits du catalogue sont conservés. Android reste reporté. La configuration du secret serveur précède le déploiement du PIN.
 
 Intégration locale validée : 251 tests réussis, 158 modules et 818 dépendances contrôlés, 28 empreintes fournisseur, cache et versions cohérents. La suite SQL isolée et les parcours complets sont relancés sur le commit réconcilié avant activation du PIN.
+
+## 29 octobre 2026 — contrôle de disponibilité du secret PIN
+
+Le point de santé GET du serveur indique uniquement si le secret PIN est configuré avec la longueur minimale requise. Aucune valeur, empreinte ou longueur du secret n’est renvoyée. Ce contrôle permet de vérifier la configuration après le déploiement, sans créer de compte ni choisir le PIN personnel du propriétaire. Le contrat PostgreSQL isolé vérifie le secret présent, absent et trop court ; la récupération et les quinze scénarios existants sont conservés. Aucun parcours utilisateur ne change ; aide PIN et administration inchangée après relecture.
