@@ -1,7 +1,7 @@
 name: Verifier et publier EK Logistique
 on:
   push:
-    branches: [main, codex/lookup-photos-cache-20261029, security/pin-admin-web-reconcilie-20261028, codex/pikeo-product-lookup-20261029, codex/pikeo-web-11710-admin-cache, codex/pikeo-administration-comptes-20261028, integration/web-sans-android-20261028, codex/pikeo-opening-1.17.1, codex/pikeo-unified-loading-1.17.2, codex/pikeo-manquant-raccourci-1173, codex/pikeo-contacts-reassort-prives, codex/pikeo-manquant-emplacement-facultatif-1176, codex/pikeo-message-reassort-modele-1-1177, codex/pikeo-supprimer-manquant-1178, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0]
+    branches: [main, codex/bureau-admin-20261029, codex/lookup-photos-cache-20261029, security/pin-admin-web-reconcilie-20261028, codex/pikeo-product-lookup-20261029, codex/pikeo-web-11710-admin-cache, codex/pikeo-administration-comptes-20261028, integration/web-sans-android-20261028, codex/pikeo-opening-1.17.1, codex/pikeo-unified-loading-1.17.2, codex/pikeo-manquant-raccourci-1173, codex/pikeo-contacts-reassort-prives, codex/pikeo-manquant-emplacement-facultatif-1176, codex/pikeo-message-reassort-modele-1-1177, codex/pikeo-supprimer-manquant-1178, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0]
   workflow_dispatch:
 permissions:
   contents: read
@@ -169,10 +169,11 @@ jobs:
           assert.equal(response.status,200,'Le serveur doit répondre avant publication.');
           const health=await response.json();
           assert.equal(health.app,'Pikeo');
-          assert.equal(health.version,'1.18.0');
+          assert.equal(health.version,'1.18.2');
           assert.equal(health.status,'ready');
+          assert.equal(health.bureauAdminOnly,true);
           assert.equal(health.adminPinReady,true,'Le secret serveur PIN doit être configuré.');
-          console.log('Serveur PIN 1.18.0 disponible ; configuration du secret validée sans lire sa valeur.');
+          console.log('Serveur PIN et Bureau 1.18.2 disponible ; configuration du secret validée sans lire sa valeur.');
           NODE
   deploy:
     if: github.ref == 'refs/heads/main'
@@ -210,7 +211,7 @@ jobs:
               const module=await fetch(new URL('js/admin-pin-ui.js?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000)});
               assert.equal(module.status,200);
               assert.ok((await module.text()).includes("API.request('admin-pin-enroll'"));
-              for(const [path,marker] of [['js/product-image.js','publicProductPhoto'],['js/cache-cleanup.js','installCacheCleanup']]){
+              for(const [path,marker] of [['js/product-image.js','publicProductPhoto'],['js/cache-cleanup.js','installCacheCleanup'],['js/bureau-entry.js','authorizeBureau']]){
                 const resource=await fetch(new URL(path+'?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000)});
                 assert.equal(resource.status,200);assert.ok((await resource.text()).includes(marker));
               }

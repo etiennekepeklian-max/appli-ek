@@ -19,7 +19,7 @@ async function handle(req){
  const origin=req.headers.get('origin');if(origin&&!allowed.has(origin))return new Response('Origine refusée',{status:403});
  const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origin||'https://etiennekepeklian-max.github.io','Access-Control-Allow-Headers':'content-type,apikey','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','Vary':'Origin'};
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
- if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'1.18.0',status:'ready',adminPinReady:(Deno.env.get('PIKEO_PIN_PEPPER')||'').length>=32}),{headers});
+  if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'1.18.2',status:'ready',bureauAdminOnly:true,adminPinReady:(Deno.env.get('PIKEO_PIN_PEPPER')||'').length>=32}),{headers});
  try{
   if(req.method!=='POST')reject(405,'Méthode non autorisée.');
   const text=await req.text();if(text.length>2500000)reject(413,'Demande trop volumineuse.');
@@ -72,6 +72,12 @@ async function handle(req){
     const allow=key=>{if(!hasPermission(access(fresh),key))reject(403,'Votre accès ne permet pas cette action.');};
     const owner=()=>{if(!(fresh.is_owner&&fresh.role==='admin'))reject(403,'Seul Étienne peut gérer les utilisateurs et leurs droits.');};
     const adminDevice=fresh.role==='admin';
+    // This decision uses the freshly locked server rows, never caller roles,
+    // display names, local permissions or a previous browser authorization.
+    if(p.action==='bureau-access'){
+     if(!adminDevice)reject(403,'Pikéo Bureau est réservé aux administrateurs.');
+     return {session:view(fresh),expiresAt:new Date(Date.now()+60000).toISOString()};
+    }
     if(p.action?.startsWith('admin-pin-')){
      if(!adminDevice)reject(403,'Seuls les appareils administrateurs peuvent utiliser un code administrateur.');
      if(p.action==='admin-pin-status')return await Pin.status(sql,fresh.id);

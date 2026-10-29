@@ -51,7 +51,7 @@ try{
  await check('état serveur PIN sans divulgation du secret, absence et valeur trop courte détectées',async()=>{
   const health=async()=>{const r=await handle(new Request('https://synthetic.invalid/pikeo-api'));assert.equal(r.status,200);return r.json();};
   const ready=await health();
-  assert.deepEqual(ready,{app:'Pikeo',version:'1.18.0',status:'ready',adminPinReady:true});
+  assert.deepEqual(ready,{app:'Pikeo',version:'1.18.2',status:'ready',bureauAdminOnly:true,adminPinReady:true});
   assert.ok(!JSON.stringify(ready).includes(pepper));
   try{
    delete env.PIKEO_PIN_PEPPER;assert.equal((await health()).adminPinReady,false);
@@ -65,6 +65,30 @@ try{
   assert.equal((await api(namesake,'admin-pin-enroll',{pin:'0042'})).status,403);
   const reader=await device();await db`update pikeo_private.profiles set default_role='viewer' where id=${reader.profileId}`;
   assert.equal((await device(reader.name)).session.role,'viewer');assert.equal(owner.session.owner,true);
+ });
+ await check('Bureau : administrateurs actifs uniquement, nom et permissions déclarés sans effet',async()=>{
+  const operator=await device('Étienne'),viewer=await device(undefined,{role:'viewer'}),admin=await device(undefined,{role:'admin'});
+  assert.equal((await api(operator,'bureau-access',{role:'admin',owner:true,permissions:['configure']})).status,403);
+  await db`update pikeo_private.devices set permissions='["configure"]'::jsonb where id=${operator.id}`;
+  assert.equal((await api(operator,'bureau-access')).status,403);
+  assert.equal((await api(viewer,'bureau-access')).status,403);
+  const r=await api(admin,'bureau-access');assert.equal(r.status,200);assert.equal(r.data.session.deviceId,admin.id);assert.equal(r.data.session.role,'admin');
+  assert.ok(Date.parse(r.data.expiresAt)>Date.now()&&Date.parse(r.data.expiresAt)<=Date.now()+60000);
+  assert.equal((await api(owner,'bureau-access')).status,200);
+  assert.equal((await api(admin,'bureau-access',{},r.body)).status,409);
+  const forged={...r.body,payload:{...r.body.payload,deviceId:operator.id,nonce:crypto.randomUUID()}};
+  assert.equal((await api(operator,'bureau-access',{},forged)).status,401);
+ });
+ await check('Bureau : rétrogradation, retrait de l’appareil et suspension immédiats côté serveur',async()=>{
+  const admin=await device(undefined,{role:'admin'});
+  assert.equal((await api(admin,'bureau-access')).status,200);
+  await db`update pikeo_private.devices set role='operator' where id=${admin.id}`;
+  assert.equal((await api(admin,'bureau-access')).status,403);
+  await db`update pikeo_private.devices set role='admin',active=false where id=${admin.id}`;
+  assert.equal((await api(admin,'bureau-access')).status,401);
+  await db`update pikeo_private.devices set active=true where id=${admin.id}`;
+  await db`update pikeo_private.profiles set active=false where id=${admin.profileId}`;
+  assert.equal((await api(admin,'bureau-access')).status,401);
  });
  await check('un autre appareil du même compte ne peut réinitialiser son propre code',async()=>{
   const actor=await device(undefined,{role:'admin'}),same=await device(actor.name,{role:'admin'});

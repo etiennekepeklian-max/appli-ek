@@ -1,3 +1,11 @@
+## Pikéo 1.18.2 — Bureau réservé aux administrateurs
+
+Le lien Bureau de Tous mes outils et du guide apparaît après vérification en ligne d’une session administrateur active sur cet appareil. Le mode personnel, les opérateurs et la consultation n’y ont pas accès ; choisir le nom Étienne ne donne pas de privilège.
+
+L’entrée bureau attend une demande `bureau-access` signée avant d’importer l’application. Le serveur contrôle les rôles et les états actuels du profil et de l’appareil ; la permission `configure` seule ne suffit pas. Une réponse n’est valable qu’une minute en mémoire. Vérification toutes les 30 secondes et au retour dans la fenêtre ; erreur, perte de réseau, changement de session ou retrait des droits verrouillent l’interface en conservant les champs et les données. La version mobile conserve son fonctionnement hors connexion. Le PIN existant continue de protéger les opérations sensibles.
+
+Les fichiers statiques sont hébergés publiquement sur GitHub Pages. Ce contrôle réserve le parcours Bureau dans l’application ; il ne rend pas son HTML ni son code source confidentiels. Les opérations du service restent soumises à leur propre authentification et à leurs permissions serveur. Aucune migration, modification d’habilitation ni suppression de données n’est nécessaire pour cette version.
+
 # Pikéo
 
 ## Version 1.18.1 — photos de recherche et nettoyage du cache

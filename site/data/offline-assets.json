@@ -24,6 +24,8 @@
   "js/app.js",
   "js/archive-core.js",
   "js/archive.js",
+  "js/bureau-entry.js",
+  "js/bureau-links.js",
   "js/cache-cleanup-core.js",
   "js/cache-cleanup.js",
   "js/camera.js",

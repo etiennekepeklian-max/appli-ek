@@ -17,3 +17,5 @@
 
 - Décision d’Étienne du 29 octobre : recherche Internet automatique lors de la lecture d’une référence ou d’un code-barres inconnu, ambigu ou associé à un nom à confirmer. Afficher les sources et les incertitudes ; tout ajout ou modification exige la relecture et Enregistrer. Aucun emplacement ni conditionnement n’est déduit du Web.
 - Minimiser les manipulations d’Étienne. La publication et l’activation du PIN sont demandées : poursuivre leur préparation et résoudre les prérequis serveur. Seule la migration Android reste reportée.
+
+- Décision d’Étienne du 29 octobre : Pikéo Bureau est réservé aux appareils administrateurs actifs. Masquer ses liens pour les autres sessions et vérifier l’accès signé auprès du serveur avant de charger le bureau, y compris via son adresse directe. Le nom, le rôle conservé localement et la permission configure ne suffisent pas. Préserver les données et les champs lors du verrouillage ; la version mobile garde son accès hors ligne.
