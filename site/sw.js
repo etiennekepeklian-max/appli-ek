@@ -1,6 +1,6 @@
 import {writeAlertAcks} from './js/alert-acks.js';
 import {redundantOCRAsset} from './js/offline-core.js';
-const APP_VERSION='1.17.10';
+const APP_VERSION='1.18.0';
 const SHELL='ek-shell-v1-unified-loading-11710';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
@@ -22,5 +22,6 @@ self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(ev
     const response=await fetch(event.request);if(response.ok&&!url.pathname.endsWith('/sw.js')){const cache=await caches.open(url.pathname.includes('/vendor/ocr/')?LARGE:SHELL);await cache.put(event.request,response.clone());}return response;
   })());
 });
+
 
 

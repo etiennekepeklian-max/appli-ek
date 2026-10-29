@@ -313,3 +313,13 @@ Limites d’activation inchangées : secret PIKEO_PIN_PEPPER de production non c
 
 
 Le contrat PostgreSQL a reproduit un interblocage réel entre l’écriture des nonces et la prise des verrous d’appareils lors de tentatives simultanées. Les profils concernés sont maintenant verrouillés par ordre stable avant les écritures. Les réinitialisations croisées, changements d’habilitation et ouvertures de session suivent le même ordre ; un enregistrement concurrent ne peut pas réutiliser l’identifiant d’un autre signataire. Ces cas sont ajoutés au contrat de base isolée.
+
+
+
+## 29 octobre 2026 — préparation de la publication PIN web 1.18.0
+
+Publication autorisée indépendamment d’Android. Les huit repères de version web passent à 1.18.0 pour renouveler les ressources mises en cache sans changer l’identité PWA, les clés de stockage, les comptes ou les données métier. Aide des écrans et formulaires PIN relue : création/confirmation, verrouillage, récupération et réinitialisation restent décrits dans help-core.js et la page Aide. Le README distingue les sessions ordinaires du déverrouillage administrateur.
+
+L’activation serveur reste conditionnée au secret PIKEO_PIN_PEPPER, à la migration additive, au maintien de la récupération propriétaire et à la vérification après déploiement. La session navigateur du tableau de bord exige une connexion ; aucun PIN personnel n’est créé par l’assistant. La suite PostgreSQL isolée et les parcours web sont relancés sur cette version avant intégration.
+
+Validation locale de la version de publication : 240 tests réussis, 151 modules et 788 dépendances vérifiés, 28 empreintes fournisseur, versions et ressources hors ligne cohérents. Le code serveur actuellement déployé et ses deux dépendances correspondent à la sauvegarde GitHub v3. Le serveur conserve un fichier de récupération propriétaire actif ; aucune clé n’a été remplacée et aucun appareil n’a reçu de droit supplémentaire.

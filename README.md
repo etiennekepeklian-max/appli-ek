@@ -1,5 +1,12 @@
 # Pikéo
 
+## Version 1.18.0 — PIN administrateur web
+
+- Un code à quatre chiffres protège les opérations sensibles des appareils administrateurs, en complément de leur signature. Les sessions ordinaires restent accessibles par nom.
+- Création et confirmation du code dans Administration, déverrouillage pendant dix minutes, verrouillage immédiat et limitation des tentatives côté serveur.
+- Récupération du propriétaire avec son fichier privé existant et réinitialisation par un autre compte administrateur déverrouillé. Le code personnel se choisit dans Pikéo et ne se communique pas dans une conversation.
+- Publication web autorisée le 29 octobre 2026. Mise en service après configuration du secret serveur et migration additive ; les identités, données et mémos sont conservés. Android reste reporté.
+
 ## Version 1.17.0 — suivi picking manuel
 
 - Ma journée propose la saisie par date des chiffres communiqués par les managers : pickings, et facultativement commandes, colis, palettes, poids, source et note. Sauvegarder applique les modifications, y compris pour un jour passé.
@@ -25,7 +32,7 @@
 
 ## Version 1.10.0 — sessions par nom, habilitations et données lisibles
 
-- Aucune saisie de mot de passe ou PIN. Étienne active son accès administrateur avec son fichier privé, puis attribue les habilitations aux appareils.
+- Les sessions ordinaires utilisent le nom. Étienne active son accès administrateur avec son fichier privé ; depuis la version 1.18.0, un PIN protège ensuite les opérations sensibles de chaque appareil administrateur.
 - Sessions avec données, mémos et préférences séparés. L’espace personnel initial reste intact.
 - Produits, commandes, historique et documents Google lisibles, sans clé obligatoire. Les anciennes lignes connues du téléphone sont converties après sauvegarde.
 - Messages avec historique local et relais temporaire chiffré, exports séparés et participation collective facultative sans classement de cadence.
