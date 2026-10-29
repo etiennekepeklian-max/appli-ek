@@ -305,3 +305,7 @@ Les propositions ne rejoignent le catalogue qu'après relecture du formulaire et
 Aide revue : scanner, recherche de produit, proposition dans la fiche et FAQ. Les tests utilisent uniquement des références fictives et des sources simulées. La suite product-lookup-smoke complète les suites existantes avec confirmation, abandon, provenance, doublons, variantes, droits, réponses tardives, hors ligne, mobile/bureau et contraste. Les résultats GitHub font foi avant publication. PIN et Android ne sont pas activés par cette version.
 
 Validation locale : 245 tests métier réussis, syntaxe et dépendances, empreintes fournisseur, références, familles, versions et ressources hors ligne vérifiés. Le parcours navigateur est imposé avant publication. Le catalogue public et les familles du dépôt restent strictement inchangés ; le compactage se fait uniquement pendant la préparation du site.
+
+### Maintien du résultat lors du réaffichage
+
+Le rendu général restaure désormais le résultat de recherche courant (y compris chargement ou erreur) et ne relance pas la caméra après lecture. La restauration ne refait ni requête ni écriture et refuse un autre espace. Le parcours navigateur attend la fermeture effective de la prise en main initiale et vérifie qu’un réaffichage conserve la proposition sans nouvelle requête ni ajout. L’aide reste adaptée : aucun geste utilisateur ne change. L’activation du PIN est un chantier actif demandé par Étienne ; Android reste reporté.

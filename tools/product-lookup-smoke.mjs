@@ -25,10 +25,14 @@ try{
   page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://localhost:8765/'+(desktop?'bureau.html':'')+'#scan');
   await page.getByRole('button',{name:'Commencer',exact:true}).click();
+  await page.locator('#dialog').waitFor({state:'hidden'});
+  await page.evaluate(async()=>{await (await import('./js/app.js')).ready;});
   const lookup=async code=>{await page.locator('[name=code]').fill(code);await page.locator('[data-form=lookup-product] [type=submit]').click();};
   const rows=()=>page.evaluate(async()=>{const s=await import('./js/storage.js');return s.list('products');});
   await lookup('000WEB1');await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).waitFor();
   assert.equal((await rows()).length,0);assert.equal(await page.locator('[data-web-lookup] a').first().getAttribute('href'),'https://fr.checkout.draegerparis.com/products/fixture');
+  const callsBeforeRedraw=requests.length;await page.evaluate(async()=>{document.querySelector('#scan-result').replaceChildren();const features=await import('./js/features.js');features.renderProductLookup();});
+  await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).waitFor();assert.equal(requests.length,callsBeforeRedraw);assert.equal((await rows()).length,0);
   await page.evaluate(async()=>{const identity=await import('./js/identity-context.js');identity.setIdentity({id:'viewer-test',role:'viewer',scope:'live'});const access=await import('./js/access-ui.js');access.guard(document);});
   assert.equal(await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).isEnabled(),false);
   await page.evaluate(async()=>{const identity=await import('./js/identity-context.js');identity.setIdentity(null);const access=await import('./js/access-ui.js');access.guard(document);});

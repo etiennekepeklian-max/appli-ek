@@ -56,7 +56,7 @@ function render(){
   const avatar=Store.settings().name.split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase();document.querySelector('#avatar').textContent=avatar;
   document.body.classList.toggle('beginner',Store.settings().beginner);
   document.querySelector('#app-version').textContent=VERSION;const demo=document.querySelector('#demo-banner');demo.hidden=!Store.isDemo();demo.className='demo-banner';demo.innerHTML=Store.isDemo()?`<strong>Mode démonstration</strong><span>Des exemples séparés de vos données.</span>${btn('Revenir à mes données','exit-demo','','small')}`:'';
-  updateNetwork();if(state.route==='codes')Features.showBarcode();if(state.route==='voice')void Voice.mountVoice().catch(e=>toast(e.message,true));if(state.route==='schedule')Schedule.mountSchedule();if(state.route==='scan'&&Store.settings().welcomed)void autoStartCamera();
+  updateNetwork();if(state.route==='codes')Features.showBarcode();if(state.route==='voice')void Voice.mountVoice().catch(e=>toast(e.message,true));if(state.route==='schedule')Schedule.mountSchedule();if(state.route==='scan'){Features.renderProductLookup();if(Store.settings().welcomed&&!state.scanResult)void autoStartCamera();}
   if(id){const next=document.getElementById(id);if(next&&document.querySelector('#main').contains(next)){next.focus({preventScroll:true});if(typeof selection==='number'&&['text','search'].includes(next.type))next.setSelectionRange(selection,selection);}}
 }
 function queueRender(){if(['scan','voice'].includes(state.route)||renderPending)return;renderPending=true;queueMicrotask(()=>{renderPending=false;render();});}
