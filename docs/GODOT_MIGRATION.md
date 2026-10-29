@@ -2,6 +2,10 @@
 
 Godot et Capacitor sont reportés. Continuer les évolutions de la version web. Les propositions ci-dessous restent une archive de préparation ; elles ne constituent pas une autorisation de migration. Aucune écriture sur le PC D:\Pikéo n’est possible depuis cet environnement.
 
+# Préparation multimédia du 29 octobre 2026
+
+Voir [ANDROID_MEDIA_PREPARATION.md](ANDROID_MEDIA_PREPARATION.md) pour le bouton musique web, le contrat commun et les sources de référence Android non compilées. La priorité de test est YouTube Music puis le lecteur natif du téléphone. Cette préparation et la future installation des outils sur PC ne lancent aucune migration.
+
 # Pikéo : préparer Godot 4, migrer à la toute fin
 
 État : préparation uniquement, aucune application native ni APK livrés. La version web reste utilisée. Attendre la fin des fonctionnalités et l’accord final explicite d’Étienne. À chaque étape fonctionnelle importante, proposer de refaire le point sur la maturité de l’application ; sa réponse décide de la suite. Le volet des Réglages recueille aussi une demande de bilan final, sans autoriser une migration automatique.

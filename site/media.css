@@ -1,0 +1,24 @@
+/* The dock stays outside route rendering; dialogs receive the same controls in their header. */
+.media-dock{position:fixed;right:max(12px,calc((100vw - 480px)/2 + 12px));bottom:calc(84px + env(safe-area-inset-bottom));display:flex;align-items:center;border:1px solid var(--line);border-radius:30px;background:var(--paper);color:var(--ink);box-shadow:0 4px 18px #0003;z-index:60;padding:3px;gap:2px}
+.media-dock button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;border-radius:25px;background:var(--paper);color:var(--ink)}
+.media-main{gap:7px;padding:8px 12px;font-size:12px;font-weight:650}
+.media-more{min-width:40px;font-size:24px}
+.media-dock button:hover{background:var(--soft)}
+.media-dock[data-available=true] .media-main{background:var(--ink);color:var(--paper)}
+.media-dock button:focus-visible{outline:3px solid var(--green);outline-offset:3px}
+.has-media-controls #main::after{content:"";display:block;height:68px}
+.media-in-dialog{position:static;border:0;box-shadow:none;padding:0;flex-shrink:0}
+.media-in-dialog .media-main{min-width:40px;min-height:40px;padding:8px}
+.media-in-dialog [data-media-label],.media-in-dialog .media-more{display:none}
+#media-dialog{max-width:620px}
+.media-panel-body{padding:22px;line-height:1.6}
+.media-panel-body>p{font-size:14px}
+.media-panel-body>.hint{font-size:12px}
+.media-panel-body [data-media-error]{margin-top:16px;color:var(--red)}
+.media-panel-body .actions>button{white-space:normal;text-align:center;min-height:46px}
+.media-sources{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:12px}
+.media-sources legend{font-size:13px;padding:0 5px}
+.media-sources label{display:flex;align-items:center;gap:10px;min-height:46px;font-size:14px;overflow-wrap:anywhere}
+.media-sources input{width:20px;min-height:20px;flex-shrink:0;accent-color:var(--green)}
+body.desktop>.media-dock{right:24px;bottom:24px}
+@media print{.media-dock,#media-dialog{display:none!important}.has-media-controls #main::after{display:none}}
