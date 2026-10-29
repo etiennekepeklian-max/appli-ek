@@ -120,6 +120,19 @@ try{
   assert.equal(results.filter(r=>r.status===401).length,4);assert.equal(results.filter(r=>r.status===429).length,3);
   assert.equal((await pinRow(peer)).failed_attempts,5);
  });
+
+ await check('réinitialisations croisées sans interblocage : un seul compte peut réinitialiser l’autre',async()=>{
+  const first=await device(undefined,{role:'admin'}),second=await device(undefined,{role:'admin'});
+  await enroll(first);await enroll(second);
+  const results=await Promise.all([api(first,'admin-pin-reset',{target:second.id}),api(second,'admin-pin-reset',{target:first.id})]);
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,403]);
+ });
+ await check('ouvertures de session concurrentes et contrôles PIN sans interblocage',async()=>{
+  const actor=await device(undefined,{role:'admin'});await enroll(actor);
+  const rows=await Promise.all([api(actor,'admin-pin-status'),api(actor,'session'),device(actor.name),device(actor.name)]);
+  assert.equal(rows[0].status,200);assert.equal(rows[1].status,200);
+  assert.equal(rows[2].session.role,'operator');assert.equal(rows[3].session.role,'operator');
+ });
  await check('signature modifiée et demande rejouée refusées',async()=>{
   const r=await api(owner,'session');assert.equal(r.status,200);
   assert.equal((await api(owner,'session',{},r.body)).status,409);

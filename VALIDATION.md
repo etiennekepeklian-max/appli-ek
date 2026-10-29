@@ -310,3 +310,6 @@ Vérifications : les 240 tests unitaires existants sont conservés. Le nouveau j
 Aide revue : administration, session, formulaire de code et page Aide. Aucun PIN, fichier propriétaire, photo ou contenu métier réel n’est ajouté aux tests.
 
 Limites d’activation inchangées : secret PIKEO_PIN_PEPPER de production non configuré, table admin_pins non appliquée, PIN personnel à choisir par le propriétaire dans l’interface. Les comptes réels et le service public ne sont pas utilisés comme terrain d’essai.
+
+
+Le contrat PostgreSQL a reproduit un interblocage réel entre l’écriture des nonces et la prise des verrous d’appareils lors de tentatives simultanées. Les profils concernés sont maintenant verrouillés par ordre stable avant les écritures. Les réinitialisations croisées, changements d’habilitation et ouvertures de session suivent le même ordre ; un enregistrement concurrent ne peut pas réutiliser l’identifiant d’un autre signataire. Ces cas sont ajoutés au contrat de base isolée.

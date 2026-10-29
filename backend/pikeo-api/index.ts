@@ -7,6 +7,11 @@ const allowed=new Set(['https://etiennekepeklian-max.github.io','http://localhos
 class HttpError extends Error{constructor(status,message){super(message);this.status=status;}}
 const reject=(status,message)=>{throw new HttpError(status,message);};
 async function rate(sql,bucket,max,minutes=1){const r=await sql`insert into pikeo_private.rate_limits(bucket,hits,expires_at) values(${bucket},1,now()+(${minutes}*interval '1 minute')) on conflict(bucket) do update set hits=pikeo_private.rate_limits.hits+1 returning hits`;if(r[0].hits>max)reject(429,'Trop de demandes. Réessayez un peu plus tard.');}
+async function lockProfiles(sql,ids){
+ // Lock related profiles before any device row or nonce FK lock. Sorted
+ // transaction locks avoid inversions during peer resets and concurrent logins.
+ for(const id of [...new Set(ids)].sort())await sql`select pg_advisory_xact_lock(hashtextextended(${id},0))`;
+}
 const access=d=>({...d,owner:d.is_owner&&d.role==='admin'});
 const view=d=>({profileId:d.profile_id,deviceId:d.id,name:d.name,role:d.role,owner:d.is_owner&&d.role==='admin',permissions:permissionsFor(access(d)),active:true,sharing:d.share_achievements});
 async function audit(sql,actor,target,action,details={}){await sql`insert into pikeo_private.access_audit(actor,target,action,details) values(${actor},${target},${action},${sql.json(details)})`;}
@@ -32,13 +37,19 @@ async function handle(req){
     const n=validOwner?'Étienne':name,k=validOwner?'etienne':nameKey(name);
     const count=await sql`select count(*)::int as n from pikeo_private.profiles`;if(count[0].n>=500)reject(429,'Le nombre de profils doit être revu par l’administrateur.');
     await sql`insert into pikeo_private.profiles(name,name_key) values(${n},${k}) on conflict(name_key) do nothing`;
-    const profile=(await sql`select * from pikeo_private.profiles where name_key=${k} for update`)[0];
+    let profile=(await sql`select * from pikeo_private.profiles where name_key=${k}`)[0];
+    const candidate=(await sql`select * from pikeo_private.devices where id=${p.deviceId}`)[0];
+    if(candidate&&(candidate.profile_id!==profile.id||candidate.signing_key.x!==signing.x||candidate.signing_key.y!==signing.y||candidate.encryption_key.x!==encryption.x||candidate.encryption_key.y!==encryption.y))reject(403,'Cet appareil ne correspond pas à ce profil.');
+    await lockProfiles(sql,[profile.id]);
+    profile=(await sql`select * from pikeo_private.profiles where name_key=${k} for update`)[0];
     if(!profile.active)reject(403,'Ce compte est suspendu. Contactez Étienne.');
     const existing=(await sql`select * from pikeo_private.devices where id=${p.deviceId} for update`)[0];
     if(existing&&(!existing.active||existing.profile_id!==profile.id||existing.signing_key.x!==signing.x||existing.signing_key.y!==signing.y||existing.encryption_key.x!==encryption.x||existing.encryption_key.y!==encryption.y))reject(403,'Cet appareil ne correspond pas à ce profil.');
     // A declared name must never grant administrator status to a new device.
     const initialRole=validOwner?'admin':profile.default_role==='viewer'?'viewer':'operator';
-    await sql`insert into pikeo_private.devices(id,profile_id,signing_key,encryption_key,role) values(${p.deviceId},${profile.id},${sql.json(signing)},${sql.json(encryption)},${initialRole}) on conflict(id) do update set last_seen=now()`;
+    const saved=await sql`insert into pikeo_private.devices(id,profile_id,signing_key,encryption_key,role) values(${p.deviceId},${profile.id},${sql.json(signing)},${sql.json(encryption)},${initialRole}) on conflict(id) do update set last_seen=now()
+     where pikeo_private.devices.profile_id=excluded.profile_id and pikeo_private.devices.signing_key=excluded.signing_key and pikeo_private.devices.encryption_key=excluded.encryption_key returning id`;
+    if(!saved.length)reject(403,'Cet appareil ne correspond pas à ce profil.');
     const replay=await sql`insert into pikeo_private.nonces(device_id,nonce) values(${p.deviceId},${p.nonce}) on conflict do nothing returning nonce`;if(!replay.length)reject(409,'Cette demande a déjà été traitée.');
     if(validOwner){await sql`update pikeo_private.devices set role='admin',permissions=null where id=${p.deviceId}`;await audit(sql,p.deviceId,p.deviceId,'owner-activation');}
     const device=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId}`)[0];return {session:view(device)};
@@ -48,6 +59,13 @@ async function handle(req){
    if(!d?.active||!await verify(p,body.signature,d.signing_key))reject(401,'Ouvrez à nouveau votre session sur cet appareil.');
    await db.begin(async sql=>rate(sql,'request:'+p.deviceId+':'+Math.floor(Date.now()/60000),150));
    result=await db.begin(async sql=>{
+    const relatedProfiles=[d.profile_id];
+    if(['admin-pin-reset','set-access','set-role'].includes(p.action)&&uuid(p.target)){
+     const target=(await sql`select profile_id from pikeo_private.devices where id=${p.target}`)[0];
+     if(target)relatedProfiles.push(target.profile_id);
+    }
+    if(p.action==='user-update'&&uuid(p.target))relatedProfiles.push(p.target);
+    await lockProfiles(sql,relatedProfiles);
     const nonce=await sql`insert into pikeo_private.nonces(device_id,nonce) values(${p.deviceId},${p.nonce}) on conflict do nothing returning nonce`;if(!nonce.length)reject(409,'Cette demande a déjà été traitée.');
     await sql`update pikeo_private.devices set last_seen=now() where id=${p.deviceId}`;
     const fresh=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId} and d.active and p.active for update of d,p`)[0];if(!fresh)reject(401,'Cet accès a été retiré.');
