@@ -9,7 +9,7 @@ const base='http://localhost:8765/';
 const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe','inherit']});
 await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('Serveur indisponible.')),15000);server.stdout.on('data',data=>{if(String(data).includes('http://')){clearTimeout(t);resolve();}});});
 let browser,page;const errors=[];
-const locked=async page=>{await page.locator('#bureau-access-gate[data-ready]').waitFor({state:'visible'});assert.equal(await page.locator('.app-shell').isVisible(),false);assert.equal(await page.locator('#desktop-sidebar').isVisible(),false);};
+const locked=async page=>{await page.locator('#bureau-access-gate[data-ready]').waitFor({state:'visible'});assert.equal(await page.locator('.app-shell').isVisible(),false);assert.equal(await page.locator('#desktop-sidebar').isVisible(),false);assert.equal(await page.getByRole('button',{name:'Annuler',exact:true}).count(),0,'Aucune notification ni action métier visible derrière le verrouillage.');};
 const more=async page=>{await page.goto(base+'index.html#more');await page.locator('[data-tool-directory]').waitFor();};
 const noLink=async page=>assert.equal(await page.locator('a[href^="bureau.html"]').count(),0);
 try{

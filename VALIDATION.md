@@ -1,3 +1,7 @@
+## 29 octobre 2026 — 1.18.3, écran Bureau verrouillé
+
+La revue de la capture navigateur a révélé la notification Annuler sous la porte d’accès. Tous les éléments de l’application en dehors de cette porte sont désormais masqués pendant le verrouillage, y compris les notifications ajoutées après le chargement. Le scénario navigateur vérifie aussi l’absence d’action Annuler visible. Aides de l’entrée, FAQ et guide revérifiés : le parcours et la saisie conservée restent identiques. Aucun changement du serveur ni des données.
+
 ## 29 octobre 2026 — 1.18.2, Bureau administrateur
 
 - Modification limitée à la version web, entrée Bureau et service d’autorisation existant ; aucune migration ni changement de rôle réel. La version 1.18.1 reste dans l’historique Git comme retour arrière ; le service PIN v5 est sauvegardé par son code identique sur main avant modification.

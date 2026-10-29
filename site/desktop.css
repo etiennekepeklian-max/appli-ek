@@ -1,5 +1,5 @@
 /* The bureau uses the same application, origin, databases and business forms. */
-body[data-bureau-locked]>.app-shell,body[data-bureau-locked]>#desktop-sidebar,body[data-bureau-locked]>.mobile-nav,body[data-bureau-locked]>#pikeo-opening,body[data-bureau-locked]>#mascot-status,body[data-bureau-locked]>#toast{display:none!important}
+body[data-bureau-locked]>:not(#bureau-access-gate):not(script):not(style){display:none!important}
 #bureau-access-gate{max-width:620px;margin:10vh auto;padding:28px;line-height:1.6}
 #bureau-access-gate[hidden]{display:none}
 #bureau-access-gate .actions{display:flex;flex-wrap:wrap;gap:12px}
