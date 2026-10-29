@@ -1,6 +1,7 @@
 import {webProductProposal,lookupScannedProduct} from './product-lookup.js';
 import {productIdentityConflict,safeSourceURL,safeProductImageURL} from './product-lookup-core.js';
 import {publicProductPhoto} from './product-image.js';
+import {installCacheCleanup} from './cache-cleanup.js';
 import * as Mascot from './mascot.js';
 import * as Navigation from './navigation.js';
 import * as Desktop from './desktop.js';
@@ -296,6 +297,7 @@ async function start(){
   catch(e){Mascot.stop();document.querySelector('#main').innerHTML=`<div class="card"><h1>Ouverture impossible</h1><p class="error-message">${esc(e.message)}</p><p class="small section-gap">Ouvrez l’application via le lanceur local ou son adresse HTTPS. Les fichiers ne doivent pas être ouverts directement en file://.</p><button class="btn primary section-gap" onclick="location.reload()">Réessayer</button></div>`;}
 }
 installMobileViewport();
+installCacheCleanup();
 export const ready=start();
 export async function prepareUpdate(){
  await Training.flush();

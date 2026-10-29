@@ -27,7 +27,12 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.56.1
           google-chrome --version
       - name: Verifier les parcours mobiles
-        run: node tools/product-lookup-smoke.mjs && node tools/ui-smoke.mjs && node tools/workflow-smoke.mjs && node tools/document-day-smoke.mjs && node tools/day-restart-smoke.mjs && node tools/undo-choice-smoke.mjs && node tools/day-tools-smoke.mjs && node tools/workbench-smoke.mjs && node tools/cloud-smoke.mjs && node tools/catalogue-photo-smoke.mjs && node tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs
+        run: node tools/product-lookup-smoke.mjs && node tools/cache-cleanup-smoke.mjs && node tools/ui-smoke.mjs && node tools/workflow-smoke.mjs && node tools/document-day-smoke.mjs && node tools/day-restart-smoke.mjs && node tools/undo-choice-smoke.mjs && node tools/day-tools-smoke.mjs && node tools/workbench-smoke.mjs && node tools/cloud-smoke.mjs && node tools/catalogue-photo-smoke.mjs && node tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs
+        env:
+          EK_TEST_BROWSER_CHANNEL: chrome
+      - name: Vérifier la recherche publique avec une photo
+        if: github.ref == 'refs/heads/main'
+        run: node tools/product-lookup-live-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -205,6 +210,10 @@ jobs:
               const module=await fetch(new URL('js/admin-pin-ui.js?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000)});
               assert.equal(module.status,200);
               assert.ok((await module.text()).includes("API.request('admin-pin-enroll'"));
+              for(const [path,marker] of [['js/product-image.js','publicProductPhoto'],['js/cache-cleanup.js','installCacheCleanup']]){
+                const resource=await fetch(new URL(path+'?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000)});
+                assert.equal(resource.status,200);assert.ok((await resource.text()).includes(marker));
+              }
               verified=true;break;
             }catch(error){
               if(attempt===5)throw error;

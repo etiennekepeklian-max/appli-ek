@@ -351,8 +351,16 @@ Le job security-db vérifie aussi le serveur réellement publié avant intégrat
 
 ## 29 octobre 2026 — recherche automatique et photos publiques
 
-Le relais transmet la photo de variante Draeger lorsqu’elle existe, sinon celle du produit ; UPCitemdb peut fournir une photo externe. Les adresses d’images sont contrôlées en HTTPS, les adresses locales et actives refusées, et les miniatures Shopify bornées à 480 × 480 pixels. Le relais ne télécharge aucune image et ne reçoit toujours que le code cherché.
+Le relais transmet la photo de variante Draeger lorsqu’elle existe, sinon celle du produit ; UPCitemdb peut fournir une photo externe. Les adresses d’images sont contrôlées en HTTPS, les adresses locales et actives refusées, et les miniatures Shopify de largeur bornée à 480 pixels sans imposer un recadrage. Le relais ne télécharge aucune image et ne reçoit toujours que le code cherché.
 
 Le scanner, la proposition et la fiche affichent la photo avec ses proportions, dans 220 × 220 pixels au maximum ; un échec d’image laisse les autres informations disponibles. Le lien n’est conservé qu’après Enregistrer ; les photos personnelles restent prioritaires. La réutilisation d’un résultat récent vérifie aussi que la fiche locale n’a pas changé.
 
 Aide revue pour Scanner, Compléter une référence, la proposition et la FAQ. Tests ajoutés : adresses d’images, priorité de variante et repli, source externe, absence de téléchargement par le relais, résultat automatique, validation, répétition du code après modification, photo personnelle, échec image, mobile 320/390 px, bureau et thèmes clair/sombre. Android reste reporté.
+
+## 29 octobre 2026 — proposition de nettoyage après sauvegarde
+
+Une synchronisation Google terminée, sans modification restante, peut proposer le nettoyage du cache technique. L’estimation mesure les corps des réponses dans les seuls caches Pikéo et le seul chemin de cette application ; elle ne confond pas ce cache avec tout le stockage du navigateur. Les réponses non mesurables sont conservées. La suppression exige le bouton de confirmation, ne touche ni IndexedDB ni les préférences, et laisse les autres applications et les fichiers ajoutés après la proposition.
+
+Le contrôle vérifie encore la session, la feuille, l’état de sauvegarde et le réseau lors de la confirmation. Une saisie, une fenêtre ouverte ou un champ actif retarde la proposition. Un cache identique déjà proposé n’est pas reproposé pendant la session. La fenêtre prévient que les fichiers techniques hors connexion devront être téléchargés de nouveau et son aide conserve la proposition.
+
+Six tests de cache couvrent les octets UTF-8, le périmètre, le plan confirmé, les nouveaux fichiers, une annulation, un échec partiel et une API absente. Le parcours navigateur utilise de vraies entrées CacheStorage et des sauvegardes Google fictives : échec sans proposition, saisie conservée, estimation, annulation, aide, absence de réseau, confirmation et conservation réelle des fiches, d’une photo, d’un brouillon, d’un mémo audio et des préférences, en clair/sombre à 320/390 px. Aucun cache ni donnée d’utilisateur réel n’est effacé par ces tests.

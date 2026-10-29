@@ -24,6 +24,8 @@
   "js/app.js",
   "js/archive-core.js",
   "js/archive.js",
+  "js/cache-cleanup-core.js",
+  "js/cache-cleanup.js",
   "js/camera.js",
   "js/catalogue-core.js",
   "js/catalogue-photo-core.js",

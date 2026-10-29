@@ -63,7 +63,7 @@ try{
   await page.locator('#dialog [data-form=product] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden'});
   const amended=await rows();assert.equal(amended.length,3);assert.equal(amended.find(r=>r.id==='AMB-1').name,'Nom relu explicitement');assert.equal(amended.find(r=>r.id==='AMB-2').name,'Ancien AMB-2');
   assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.list('unknowns').find(r=>r.code==='012345678905')?.status;}),'open');
-  const rowsBeforeBroken=(await rows()).length;await lookup('BROKEN-PHOTO');await page.locator('[data-product-image-error]').waitFor({state:'visible'});assert.equal((await rows()).length,rowsBeforeBroken);assert.equal(await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).isEnabled(),true);
+  const rowsBeforeBroken=(await rows()).length;await lookup('BROKEN-PHOTO');await page.locator('[data-web-lookup] [data-product-image-error]').waitFor({state:'visible'});assert.equal((await rows()).length,rowsBeforeBroken);assert.equal(await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).isEnabled(),true);
   await lookup('SLOW-LOOKUP');await page.locator('[data-web-lookup]').getByRole('heading',{name:'Recherche Internet en cours…',exact:true}).waitFor();
   await lookup('QUOTA-LOOKUP');await page.getByText('Quota de test atteint',{exact:true}).waitFor();release?.();release=null;
   assert.equal(await page.locator('#scan-result .mono').first().innerText(),'QUOTA-LOOKUP');

@@ -1,11 +1,12 @@
 # Pikéo
 
-## Version 1.18.1 — recherche avec photo
+## Version 1.18.1 — photos de recherche et nettoyage du cache
 
 - Le scanner recherche automatiquement les codes absents, ambigus ou sans désignation confirmée et affiche les résultats avec leur source.
-- Photo publique facultative : miniature Shopify limitée à 480 pixels, affichage à 220 pixels au maximum sans déformation ; photo personnelle prioritaire et absence d’image tolérée.
+- Photo publique facultative : miniature Shopify de 480 pixels de large au maximum, affichage à 220 pixels au maximum sans déformation ; photo personnelle prioritaire et absence d’image tolérée.
 - Le lien de la photo rejoint la fiche après relecture et Enregistrer, puis reste visible avec Internet. Aucun emplacement ou conditionnement n’est déduit du Web.
 - Une fiche modifiée est relue immédiatement même si le même code vient d’être scanné.
+- Après une sauvegarde Google réussie, proposition de retirer le cache technique avec espace estimé et confirmation. Fiches, photos, brouillons, mémos et préférences restent conservés ; Internet permet de télécharger de nouveau les fichiers techniques.
 
 ## Version 1.18.0 — PIN administrateur web
 

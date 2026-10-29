@@ -21,7 +21,7 @@ export function safeProductImageURL(value){
   if(u.protocol!=='https:'||u.username||u.password||u.port&&u.port!=='443'||!host.includes('.')||/^[0-9.]+$/.test(host)||/[\[\]:]/.test(host)||/(?:^|\.)(?:localhost|local|internal|lan|home|onion)$/.test(host))return '';
   u.hash='';
   if(host==='cdn.shopify.com'||['fr.checkout.draegerparis.com','www.draegerparis.com'].includes(host)&&u.pathname.startsWith('/cdn/shop/')){
-   u.searchParams.set('width','480');u.searchParams.set('height','480');u.searchParams.delete('crop');
+   u.searchParams.set('width','480');u.searchParams.delete('height');u.searchParams.delete('crop');
   }
   return u.href;
  }catch{return '';}

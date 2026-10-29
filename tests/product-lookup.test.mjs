@@ -68,8 +68,8 @@ test('relais : les réponses démesurées sont interrompues et signalées',async
 });
 
 test('photos publiques : HTTPS, adresses publiques et miniatures Shopify bornées',()=>{
- const url=safeProductImageURL('//cdn.shopify.com/s/files/1/test.jpg?v=1&width=2400&crop=center#fragment');
- assert.equal(new URL(url).searchParams.get('width'),'480');assert.equal(new URL(url).searchParams.get('height'),'480');
+ const url=safeProductImageURL('//cdn.shopify.com/s/files/1/test.jpg?v=1&width=2400&height=2400&crop=center#fragment');
+ assert.equal(new URL(url).searchParams.get('width'),'480');assert.equal(new URL(url).searchParams.has('height'),false);
  assert.equal(new URL(url).searchParams.has('crop'),false);assert.equal(new URL(url).hash,'');
  assert.equal(safeProductImageURL(url),url);
  for(const image of ['data:image/png;base64,abc','javascript:alert(1)','http://images.example.com/a.jpg','https://localhost/a','https://127.0.0.1/a','https://[::1]/a','https://router.lan/a','https://user:secret@images.example.com/a','https://images.example.com:8443/a'])
