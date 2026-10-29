@@ -10,7 +10,7 @@ export async function status(sql,deviceId){
  const row=await current(sql,deviceId);
  return {configured:!!row,requiresReset:!!row?.requires_reset,
   unlocked:!!row&&!row.requires_reset&&row.unlocked_until!=null&&Date.parse(row.unlocked_until)>Date.now(),
-  locked:!!row&&isLocked(row.locked_until)};
+  locked:!!row&&isLocked(row.locked_until),expiresAt:row?.unlocked_until?new Date(row.unlocked_until).toISOString():null};
 }
 export async function assertUnlocked(sql,deviceId){
  const pin=await status(sql,deviceId);
@@ -53,14 +53,21 @@ export async function lock(sql,deviceId){
  await sql`update pikeo_private.admin_pins set unlocked_until=null,updated_at=now() where device_id=${deviceId}`;
  return {unlocked:false};
 }
+export async function lockProfile(sql,profileId){
+ await sql`update pikeo_private.admin_pins pin set unlocked_until=null,updated_at=now()
+  from pikeo_private.devices d where pin.device_id=d.id and d.profile_id=${profileId}`;
+}
 export async function resetByAdmin(sql,actorId,targetId){
  if(actorId===targetId)return error(403,'Demandez la réinitialisation à un autre administrateur.');
  const allowed=await assertUnlocked(sql,actorId);
  if(allowed)return allowed;
- const target=(await sql`select d.id,d.role,d.active,p.active as profile_active from pikeo_private.devices d
-  join pikeo_private.profiles p on p.id=d.profile_id where d.id=${targetId} for update of d`)[0];
+ const target=(await sql`select d.id,d.profile_id,d.role,d.active,p.active as profile_active,actor.profile_id as actor_profile_id
+  from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id
+  join pikeo_private.devices actor on actor.id=${actorId} where d.id=${targetId} for update of d`)[0];
  if(!target||!target.active||!target.profile_active||target.role!=='admin')
   return error(404,'Appareil administrateur introuvable ou inactif.');
+ if(!target.actor_profile_id||target.profile_id===target.actor_profile_id)
+  return error(403,'Demandez la réinitialisation à un autre compte administrateur.');
  const row=await current(sql,targetId);
  if(!row)return error(404,'Ce compte n’a pas de code à réinitialiser.');
  await sql`update pikeo_private.admin_pins set requires_reset=true,unlocked_until=null,locked_until=null,

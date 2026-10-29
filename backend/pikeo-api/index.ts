@@ -36,7 +36,9 @@ async function handle(req){
     if(!profile.active)reject(403,'Ce compte est suspendu. Contactez Étienne.');
     const existing=(await sql`select * from pikeo_private.devices where id=${p.deviceId} for update`)[0];
     if(existing&&(!existing.active||existing.profile_id!==profile.id||existing.signing_key.x!==signing.x||existing.signing_key.y!==signing.y||existing.encryption_key.x!==encryption.x||existing.encryption_key.y!==encryption.y))reject(403,'Cet appareil ne correspond pas à ce profil.');
-    await sql`insert into pikeo_private.devices(id,profile_id,signing_key,encryption_key,role) values(${p.deviceId},${profile.id},${sql.json(signing)},${sql.json(encryption)},${validOwner?'admin':profile.default_role}) on conflict(id) do update set last_seen=now()`;
+    // A declared name must never grant administrator status to a new device.
+    const initialRole=validOwner?'admin':profile.default_role==='viewer'?'viewer':'operator';
+    await sql`insert into pikeo_private.devices(id,profile_id,signing_key,encryption_key,role) values(${p.deviceId},${profile.id},${sql.json(signing)},${sql.json(encryption)},${initialRole}) on conflict(id) do update set last_seen=now()`;
     const replay=await sql`insert into pikeo_private.nonces(device_id,nonce) values(${p.deviceId},${p.nonce}) on conflict do nothing returning nonce`;if(!replay.length)reject(409,'Cette demande a déjà été traitée.');
     if(validOwner){await sql`update pikeo_private.devices set role='admin',permissions=null where id=${p.deviceId}`;await audit(sql,p.deviceId,p.deviceId,'owner-activation');}
     const device=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId}`)[0];return {session:view(device)};
@@ -71,7 +73,7 @@ async function handle(req){
      if(p.action==='admin-pin-peers'){
       const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;
       return {peers:await sql`select d.id,p.name from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id
-       where d.role='admin' and d.active and p.active and d.id<>${fresh.id} order by p.name,d.created_at`};
+       where d.role='admin' and d.active and p.active and d.profile_id<>${fresh.profile_id} order by p.name,d.created_at`};
      }
      if(p.action==='admin-pin-reset'){
       if(!uuid(p.target))reject(400,'Appareil invalide.');
@@ -96,17 +98,17 @@ async function handle(req){
     }
     if(p.action==='user-update'){
      owner();if(!uuid(p.target)||typeof p.active!=='boolean'||!Number.isInteger(p.version))reject(400,'Compte invalide.');
-     const row=await sql`update pikeo_private.profiles set active=${p.active},access_version=access_version+1 where id=${p.target} and not is_owner and access_version=${p.version} returning id`;if(!row.length)reject(409,'Le compte a changé ou appartient au propriétaire. Actualisez la liste.');await audit(sql,fresh.id,p.target,p.active?'user-enabled':'user-suspended');return {saved:true};
+     const row=await sql`update pikeo_private.profiles set active=${p.active},access_version=access_version+1 where id=${p.target} and not is_owner and access_version=${p.version} returning id`;if(!row.length)reject(409,'Le compte a changé ou appartient au propriétaire. Actualisez la liste.');await Pin.lockProfile(sql,p.target);await audit(sql,fresh.id,p.target,p.active?'user-enabled':'user-suspended');return {saved:true};
     }
     if(p.action==='set-access'){
      owner();if(!uuid(p.target)||!['operator','admin','viewer','revoked'].includes(p.role)||!validPermissions(p.permissions)||!Number.isInteger(p.version))reject(400,'Droits invalides.');
-     const row=await sql`update pikeo_private.devices d set role=${p.role==='revoked'?'viewer':p.role},permissions=${sql.json(p.permissions)},active=${p.role!=='revoked'},access_version=d.access_version+1 from pikeo_private.profiles p where d.id=${p.target} and p.id=d.profile_id and (not p.is_owner or (d.role<>'admin' and ${p.role}<>'admin')) and d.access_version=${p.version} returning d.id`;if(!row.length)reject(409,'Cet accès a changé ou nécessite le fichier privé propriétaire. Actualisez la liste.');await audit(sql,fresh.id,p.target,'device-access',{role:p.role,permissions:p.permissions});return {saved:true};
+     const row=await sql`update pikeo_private.devices d set role=${p.role==='revoked'?'viewer':p.role},permissions=${sql.json(p.permissions)},active=${p.role!=='revoked'},access_version=d.access_version+1 from pikeo_private.profiles p where d.id=${p.target} and p.id=d.profile_id and (not p.is_owner or (d.role<>'admin' and ${p.role}<>'admin')) and d.access_version=${p.version} returning d.id`;if(!row.length)reject(409,'Cet accès a changé ou nécessite le fichier privé propriétaire. Actualisez la liste.');await Pin.lock(sql,p.target);await audit(sql,fresh.id,p.target,'device-access',{role:p.role,permissions:p.permissions});return {saved:true};
     }
     if(p.action==='devices'){owner();return {devices:await sql`select d.id,d.profile_id,p.name,d.role,p.is_owner,d.active,d.last_seen,d.permissions from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id order by p.name,d.created_at`};}
     if(p.action==='set-role'){
      if(!(fresh.is_owner&&fresh.role==='admin'))reject(403,'Seul Étienne peut attribuer les habilitations.');if(!uuid(p.target)||!['operator','admin','revoked'].includes(p.role))reject(400,'Habilitation invalide.');
      const target=(await sql`select d.*,p.is_owner from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.target}`)[0];if(!target||target.is_owner)reject(403,'L’accès propriétaire est conservé.');
-     await sql`update pikeo_private.devices set role=${p.role==='admin'?'admin':'operator'},permissions=null,active=${p.role!=='revoked'},access_version=access_version+1 where id=${p.target}`;await audit(sql,fresh.id,p.target,'device-access',{role:p.role});return {saved:true};
+     await sql`update pikeo_private.devices set role=${p.role==='admin'?'admin':'operator'},permissions=null,active=${p.role!=='revoked'},access_version=access_version+1 where id=${p.target}`;await Pin.lock(sql,p.target);await audit(sql,fresh.id,p.target,'device-access',{role:p.role});return {saved:true};
     }
     if(p.action==='config-get')return (await sql`select version,data from pikeo_private.shared_config where id=true`)[0];
     if(p.action==='config-put'){

@@ -11,8 +11,9 @@ La version publique de Pikéo reste accessible avec son authentification actuell
 - Déverrouillage des actions administrateur pour **10 minutes**, lié à l'appareil enregistré ; verrouillage immédiat sur demande.
 - Routes signées **admin-pin-status, admin-pin-enroll, admin-pin-unlock, admin-pin-lock, admin-pin-peers, admin-pin-reset, admin-pin-recover**.
 - Protection serveur des opérations sur les comptes, habilitations et appareils, **ainsi que de la publication de la configuration partagée** lorsqu'elle est réalisée par un administrateur.
-- Réinitialisation du code d'un *autre* administrateur depuis une session administrateur déverrouillée ; récupération propriétaire par le fichier privé original, contrôlé sur le serveur.
+- Réinitialisation du code d'un *autre compte* administrateur (jamais entre deux appareils du même compte) depuis une session administrateur déverrouillée ; récupération propriétaire par le fichier privé original, contrôlé sur le serveur.
 - Interface de saisie, confirmation, verrouillage, récupération et réinitialisation développée pour l'écran d'administration ; saisie masquée et aucun PIN conservé en local.
+- Une modification des habilitations ou une suspension/réactivation retire le déverrouillage existant sans effacer les empreintes PIN. Les réponses tardives de l’interface ne sont pas reprises dans une autre session.
 - Migration **additive** `backend/admin-pin-schema.sql` : nouvelle table privée, aucune suppression des fiches métier existantes.
 
 ## Conditions impératives AVANT mise en service

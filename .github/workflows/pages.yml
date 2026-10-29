@@ -131,9 +131,33 @@ jobs:
         with:
           name: diagnostic-ui-checks
           path: test-results
+  security-db:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: pikeo_pin_test
+          POSTGRES_PASSWORD: synthetic-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d pikeo_pin_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false postgres@3.4.9
+      - run: node tools/admin-pin-db-contract.mjs
+        env:
+          PIKEO_CONTRACT_DB_URL: postgres://postgres:synthetic-ci-only@127.0.0.1:5432/pikeo_pin_test
   deploy:
     if: github.ref == 'refs/heads/main'
-    needs: [verify, sessions, updates, enfs, webtools, ergonomics, diagnostics]
+    needs: [verify, sessions, updates, enfs, webtools, ergonomics, diagnostics, security-db]
     runs-on: ubuntu-24.04
     environment:
       name: github-pages

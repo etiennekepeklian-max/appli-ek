@@ -295,3 +295,18 @@ Le service de reconnaissance vocale dépend du navigateur et peut utiliser Inter
 Validation : 209 tests métier réussis. Le parcours photos-voice-smoke couvre confirmation/cancel, retrait des seules dates choisies, protection des brouillons/produits/autres dates/voix, suppression des copies et restauration sans réapparition des images supprimées, garde de concurrence dans le formulaire et dans le stockage, date corrigée conservée après abandon, dictée avec emplacement automatique, saisie concurrente, résultat après fermeture, secours sans reconnaissance et validation finale réelle. Aide et contraste à 320/390 px en clair/sombre contrôlés. Les parcours day-management, day-independent, day-restart, diagnostic, ui et update ont aussi réussi localement. Le diagnostic intégré exerce les deux nouveaux helpers avec des données fictives ; la nouvelle suite est imposée dans GitHub Actions.
 
 Aide revue et mise à jour : nouveau parcours Photos par journée, Manquants et sa fenêtre de saisie, suppression confirmée, Espace et sauvegardes et FAQ. Les captures de contrôle de la confirmation et du formulaire vocal ont été inspectées. Aucun fichier réel ni numéro de travail n’est ajouté aux fixtures ou au dépôt.
+
+
+## Reprise du 29 octobre 2026 — sécurité PIN, sans migration Android
+
+Base publique conservée : 1.17.10. Les correctifs PIN restent sur la PR brouillon #27 et ne modifient aucun compte réel ni les données du téléphone. Aucun secret serveur n’a été créé ni publié.
+
+Corrections : refus de la réinitialisation entre deux appareils du même compte ; liste des pairs limitée aux autres comptes ; verrouillage des PIN lors d’un changement d’habilitations, d’une suspension ou d’une réactivation ; rôle initial restreint pour les nouveaux signataires ; réponse PIN liée à l’identité courante, saisies sensibles effacées après traitement et expiration transmise par le serveur.
+
+Le schéma de référence est remis en cohérence avec les colonnes d’administration déjà présentes dans la base déployée. Ce fichier décrit une installation neuve ; il n’est pas rejoué sur la production. La migration PIN reste additive et séparée.
+
+Vérifications : les 240 tests unitaires existants sont conservés. Le nouveau job security-db soumet des requêtes réellement signées au gestionnaire de l’API avec PostgreSQL 17 isolé : transactions, blocage durable et concurrent, expiration, récupération, profils, changements périmés, permissions navigateur et RLS. Les parcours bureau exercent aussi verrouillage, code incorrect, déverrouillage, changement de code et sortie de session. Les résultats du dernier workflow de la branche font foi.
+
+Aide revue : administration, session, formulaire de code et page Aide. Aucun PIN, fichier propriétaire, photo ou contenu métier réel n’est ajouté aux tests.
+
+Limites d’activation inchangées : secret PIKEO_PIN_PEPPER de production non configuré, table admin_pins non appliquée, PIN personnel à choisir par le propriétaire dans l’interface. Les comptes réels et le service public ne sont pas utilisés comme terrain d’essai.
