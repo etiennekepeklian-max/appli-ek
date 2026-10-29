@@ -27,7 +27,7 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.56.1
           google-chrome --version
       - name: Verifier les parcours mobiles
-        run: node tools/ui-smoke.mjs && node tools/workflow-smoke.mjs && node tools/document-day-smoke.mjs && node tools/day-restart-smoke.mjs && node tools/undo-choice-smoke.mjs && node tools/day-tools-smoke.mjs && node tools/workbench-smoke.mjs && node tools/cloud-smoke.mjs && node tools/catalogue-photo-smoke.mjs && node tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs && node tools/media-smoke.mjs
+        run: node tools/media-smoke.mjs && node tools/ui-smoke.mjs && node tools/workflow-smoke.mjs && node tools/document-day-smoke.mjs && node tools/day-restart-smoke.mjs && node tools/undo-choice-smoke.mjs && node tools/day-tools-smoke.mjs && node tools/workbench-smoke.mjs && node tools/cloud-smoke.mjs && node tools/catalogue-photo-smoke.mjs && node tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
