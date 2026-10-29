@@ -1,3 +1,7 @@
+## Pikéo 1.18.3 — Verrouillage complet du Bureau
+
+Le verrouillage masque également les notifications et actions flottantes. Les champs et données sous-jacents sont conservés. Le service d’autorisation reste en version 1.18.2.
+
 ## Pikéo 1.18.2 — Bureau réservé aux administrateurs
 
 Le lien Bureau de Tous mes outils et du guide apparaît après vérification en ligne d’une session administrateur active sur cet appareil. Le mode personnel, les opérateurs et la consultation n’y ont pas accès ; choisir le nom Étienne ne donne pas de privilège.
