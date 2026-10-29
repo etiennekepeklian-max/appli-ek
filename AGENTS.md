@@ -14,3 +14,6 @@
 - Les repères privés de workbench-store (ressenti, entraide, préférences, photos de reprise) ne rejoignent pas la synchronisation métier. Les comptes et autorisations doivent être imposés par un service authentifié ; ne pas présenter un masque de boutons comme une protection.
 
 - Décision d’Étienne du 27 octobre : le suivi picking utilise les chiffres journaliers saisis à partir des managers, modifiables après sauvegarde et visibles en graphiques. Retirer les invitations à photographier/analyser les commandes de ce parcours. Préserver les anciens bilans et photos, leur nettoyage explicite et la compatibilité des sauvegardes.
+
+- Décision d’Étienne du 29 octobre : recherche Internet automatique lors de la lecture d’une référence ou d’un code-barres inconnu, ambigu ou associé à un nom à confirmer. Afficher les sources et les incertitudes ; tout ajout ou modification exige la relecture et Enregistrer. Aucun emplacement ni conditionnement n’est déduit du Web.
+- Minimiser les manipulations d’Étienne. La publication et l’activation du PIN sont demandées : poursuivre leur préparation et résoudre les prérequis serveur. Seule la migration Android reste reportée.

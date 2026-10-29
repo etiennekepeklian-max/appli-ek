@@ -296,6 +296,20 @@ Validation : 209 tests métier réussis. Le parcours photos-voice-smoke couvre c
 
 Aide revue et mise à jour : nouveau parcours Photos par journée, Manquants et sa fenêtre de saisie, suppression confirmée, Espace et sauvegardes et FAQ. Les captures de contrôle de la confirmation et du formulaire vocal ont été inspectées. Aucun fichier réel ni numéro de travail n’est ajouté aux fixtures ou au dépôt.
 
+## 29 octobre 2026 — recherche produit web 1.17.11
+
+Le scanner, la lecture photo et la recherche par code partagent la recherche automatique des codes absents, des correspondances multiples et des noms non confirmés. Un code connu unique reste local. Le relais lit les fiches publiques Draeger puis UPCitemdb pour les GTIN valides ; JWT conservé à la passerelle, clé anon publique côté client, aucune connexion à la base de données et aucune écriture serveur. Corps et réponses sont bornés, origines des liens validées, quotas externes et indisponibilités signalés ; aucune clé privée ni donnée de compte n'est transmise aux sources.
+
+Les propositions ne rejoignent le catalogue qu'après relecture du formulaire et Enregistrer. Les valeurs de la fiche existante, ses emplacements et ses règles de prise sont conservés. Les nouveaux conflits de références/EAN sont refusés ; une ambiguïté persistante ne classe pas le code comme identifié. Les permissions de configuration s'appliquent aux boutons et à l'enregistrement. Les retours tardifs, le changement de code/espace et la navigation sont protégés ; la recherche ne bloque plus le formulaire de saisie d'un autre code. Le retour du réseau relance la recherche affichée hors connexion.
+
+Aide revue : scanner, recherche de produit, proposition dans la fiche et FAQ. Les tests utilisent uniquement des références fictives et des sources simulées. La suite product-lookup-smoke complète les suites existantes avec confirmation, abandon, provenance, doublons, variantes, droits, réponses tardives, hors ligne, mobile/bureau et contraste. Les résultats GitHub font foi avant publication. PIN et Android ne sont pas activés par cette version.
+
+Validation locale : 245 tests métier réussis, syntaxe et dépendances, empreintes fournisseur, références, familles, versions et ressources hors ligne vérifiés. Le parcours navigateur est imposé avant publication. Le catalogue public et les familles du dépôt restent strictement inchangés ; le compactage se fait uniquement pendant la préparation du site.
+
+### Maintien du résultat lors du réaffichage
+
+Le rendu général restaure désormais le résultat de recherche courant (y compris chargement ou erreur) et ne relance pas la caméra après lecture. La restauration ne refait ni requête ni écriture et refuse un autre espace. Le parcours navigateur attend la fermeture effective de la prise en main initiale et vérifie qu’un réaffichage conserve la proposition sans nouvelle requête ni ajout. L’aide reste adaptée : aucun geste utilisateur ne change. L’activation du PIN est un chantier actif demandé par Étienne ; Android reste reporté.
+
 
 ## Reprise du 29 octobre 2026 — sécurité PIN, sans migration Android
 
@@ -323,3 +337,8 @@ Publication autorisée indépendamment d’Android. Les huit repères de version
 L’activation serveur reste conditionnée au secret PIKEO_PIN_PEPPER, à la migration additive, au maintien de la récupération propriétaire et à la vérification après déploiement. La session navigateur du tableau de bord exige une connexion ; aucun PIN personnel n’est créé par l’assistant. La suite PostgreSQL isolée et les parcours web sont relancés sur cette version avant intégration.
 
 Validation locale de la version de publication : 240 tests réussis, 151 modules et 788 dépendances vérifiés, 28 empreintes fournisseur, versions et ressources hors ligne cohérents. Le code serveur actuellement déployé et ses deux dépendances correspondent à la sauvegarde GitHub v3. Le serveur conserve un fichier de récupération propriétaire actif ; aucune clé n’a été remplacée et aucun appareil n’a reçu de droit supplémentaire.
+
+
+Intégration du PIN sur la recherche produit publiée 1.17.11 et le maintien du résultat au réaffichage. Les routes, sources publiques, confirmations, doublons et droits du catalogue sont conservés. Android reste reporté. La configuration du secret serveur précède le déploiement du PIN.
+
+Intégration locale validée : 251 tests réussis, 158 modules et 818 dépendances contrôlés, 28 empreintes fournisseur, cache et versions cohérents. La suite SQL isolée et les parcours complets sont relancés sur le commit réconcilié avant activation du PIN.

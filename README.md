@@ -7,6 +7,14 @@
 - Récupération du propriétaire avec son fichier privé existant et réinitialisation par un autre compte administrateur déverrouillé. Le code personnel se choisit dans Pikéo et ne se communique pas dans une conversation.
 - Publication web autorisée le 29 octobre 2026. Mise en service après configuration du secret serveur et migration additive ; les identités, données et mémos sont conservés. Android reste reporté.
 
+
+## Version 1.17.11 — recherche Internet des codes inconnus ou ambigus
+
+- Le scanner, la lecture photo et la recherche par code consultent automatiquement les fiches publiques si le catalogue ne donne pas de correspondance certaine. Draeger est prioritaire ; une base externe complète les EAN valides.
+- Les propositions affichent source, référence et code-barres, avec une distinction entre correspondance et piste. Vérifier avant ajout ouvre une fiche à relire ; Enregistrer confirme. Une fiche existante est proposée à la place d’un doublon.
+- Les résultats restent temporaires avant validation. Les adresses, conditionnements, mémos et autres données de travail ne sont pas envoyés aux moteurs de recherche. Seul le code demandé est transmis au relais et aux sources concernées. Les sources externes conservent leurs quotas et leur disponibilité.
+- Hors ligne et en cas d’erreur, le code reste à identifier. Le retour du réseau relance la recherche hors ligne affichée. La navigation et les nouvelles recherches restent disponibles.
+
 ## Version 1.17.0 — suivi picking manuel
 
 - Ma journée propose la saisie par date des chiffres communiqués par les managers : pickings, et facultativement commandes, colis, palettes, poids, source et note. Sauvegarder applique les modifications, y compris pour un jour passé.

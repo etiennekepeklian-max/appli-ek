@@ -21,7 +21,11 @@ export async function resolveUnknownLocations(location){
  if(rows.length)await Store.saveBatch(rows.map(r=>({type:'unknowns',record:{...r,status:'resolved',location}})),'Code identifié comme emplacement',{undoable:false});
 }
 export async function resolveUnknowns(product){
-  const rows=Store.list('unknowns').filter(r=>r.status!=='resolved'&&[refKey(product.sku),refKey(product.barcode)].includes(refKey(r.code)));
+  const rows=Store.list('unknowns').filter(r=>{
+    if(r.status==='resolved'||![refKey(product.sku),refKey(product.barcode)].includes(refKey(r.code)))return false;
+    const found=findProducts(r.code);
+    return found.length===1&&found[0].id===product.id&&!found[0].namePending&&String(found[0].name||'').trim();
+  });
   if(rows.length)await Store.saveBatch(rows.map(r=>({type:'unknowns',record:{...r,status:'resolved',productId:product.id}})),'Code identifié',{undoable:false});
 }
 

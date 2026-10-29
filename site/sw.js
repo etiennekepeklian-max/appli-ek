@@ -1,7 +1,7 @@
 import {writeAlertAcks} from './js/alert-acks.js';
 import {redundantOCRAsset} from './js/offline-core.js';
 const APP_VERSION='1.18.0';
-const SHELL='ek-shell-v1-unified-loading-11710';
+const SHELL='ek-shell-v1-a4958a7f1102';
 const LARGE='ek-large-assets-v1';
 const root=new URL('./',self.location).href;
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(SHELL);const url=new URL('data/offline-assets.json',root);const r=await fetch(url,{cache:'reload'});if(!r.ok)throw Error('Manifest hors ligne indisponible');const files=await r.clone().json();await cache.addAll(files.filter(p=>!p.includes('vendor/ocr/')).map(p=>new Request(new URL(p,root).href,{cache:'reload'})));await cache.put(url,r);})());});
@@ -22,6 +22,5 @@ self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(ev
     const response=await fetch(event.request);if(response.ok&&!url.pathname.endsWith('/sw.js')){const cache=await caches.open(url.pathname.includes('/vendor/ocr/')?LARGE:SHELL);await cache.put(event.request,response.clone());}return response;
   })());
 });
-
 
 
