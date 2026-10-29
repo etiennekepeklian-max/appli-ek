@@ -37,7 +37,8 @@ try{
  assert.ok(cronMarker>0); // The Supabase retention scheduler is outside this local contract.
  await db.unsafe(schema.slice(0,cronMarker));
  const pinSchema=await readFile(new URL('../backend/admin-pin-schema.sql',import.meta.url),'utf8');
- await db.unsafe(pinSchema);await db.unsafe(pinSchema);
+ const migration=await db.reserve();
+ try{await migration.unsafe(pinSchema);await migration.unsafe(pinSchema);}finally{migration.release();}
  await db`insert into pikeo_private.owner_keys(token_hash) values(${await hash(ownerSecret)})`;
  const entry=new URL('../backend/pikeo-api/index.ts',import.meta.url);
  const source=(await readFile(entry,'utf8'))

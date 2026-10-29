@@ -17,7 +17,7 @@ Ne pas fusionner ce dossier directement dans `main` sans réconciliation avec la
 ## Prérequis d'activation
 
 1. Vérifier une copie de récupération des données locales **de chaque appareil** et une sauvegarde de la base Supabase. Ne jamais effacer le stockage navigateur pendant les tests.
-2. Réconcilier le code administrateur actuellement basé sur la branche bureau 1.18.0 avec la version principale actuelle, **sans écraser les changements 1.17.3–1.17.9**.
+2. Base réconciliée avec main 1.17.10 : contrôler que les changements publiés sur les messages, manquants, ENF, import photo et comptes restent conservés avant toute activation.
 3. Exécuter toutes les suites de tests, dont ENF, OCR catalogue, suppression des manquants, raccourci d'accueil, sessions, stockage et bureau.
 4. Générer un secret aléatoire serveur de 32 octets minimum et le configurer dans Supabase comme `PIKEO_PIN_PEPPER`. **Ne jamais placer ce secret dans GitHub ou dans une conversation.**
 5. Appliquer la migration SQL **additive** `backend/admin-pin-schema.sql`, sans supprimer aucune table existante. Contrôler RLS et les rôles de la connexion d'API.
