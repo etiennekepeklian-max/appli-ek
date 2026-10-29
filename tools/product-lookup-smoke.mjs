@@ -41,7 +41,7 @@ try{
   assert.match(await page.locator('#help-dialog').innerText(),/Internet|Web/);
   await page.getByRole('button',{name:'Reprendre',exact:true}).click();
   assert.equal(await page.locator('#dialog [name=sku]').inputValue(),'000WEB1');
-  await page.locator('#dialog [data-action=close-dialog]').click();assert.equal((await rows()).length,0);
+  await page.locator('#dialog .dialog-top [data-action=close-dialog]').click();assert.equal((await rows()).length,0);
   await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).click();
   await page.locator('#dialog [data-form=product] [type=submit]').click();await page.locator('#dialog').waitFor({state:'hidden'});
   const saved=(await rows()).find(r=>r.sku==='000WEB1');assert.ok(saved);assert.equal(saved.sourceUrl,'https://fr.checkout.draegerparis.com/products/fixture');assert.ok(saved.lookupValidatedAt);
