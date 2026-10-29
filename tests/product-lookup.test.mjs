@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {localLookupStatus,isGTIN,sameBarcode,normalizeCandidate,candidateMatches,productIdentityConflict} from '../site/js/product-lookup-core.js';
+import {localLookupStatus,isGTIN,sameBarcode,normalizeCandidate,candidateMatches,productIdentityConflict,safeProductImageURL} from '../site/js/product-lookup-core.js';
 import {createProductLookup} from '../backend/product-lookup/search.mjs';
 const barcode='4006381333931';
 const candidate={name:'Carte de test',sku:'000123',barcode,sourceKind:'draeger',sourceUrl:'https://fr.checkout.draegerparis.com/products/test',retrievedAt:'2026-10-29T09:00:00Z'};
@@ -65,4 +65,25 @@ test('relais : les réponses démesurées sont interrompues et signalées',async
  const handle=createProductLookup({fetcher:async()=>json({padding:'x'.repeat(512001)})});
  const data=await(await handle(request('SYNTHETIC'))).json();assert.equal(data.status,'partial');assert.deepEqual(data.candidates,[]);
  assert.equal(normalizeCandidate({...candidate,sourceUrl:'https://fr.checkout.draegerparis.com:8443/products/test'},'000123'),null);
+});
+
+test('photos publiques : HTTPS, adresses publiques et miniatures Shopify bornées',()=>{
+ const url=safeProductImageURL('//cdn.shopify.com/s/files/1/test.jpg?v=1&width=2400&crop=center#fragment');
+ assert.equal(new URL(url).searchParams.get('width'),'480');assert.equal(new URL(url).searchParams.get('height'),'480');
+ assert.equal(new URL(url).searchParams.has('crop'),false);assert.equal(new URL(url).hash,'');
+ assert.equal(safeProductImageURL(url),url);
+ for(const image of ['data:image/png;base64,abc','javascript:alert(1)','http://images.example.com/a.jpg','https://localhost/a','https://127.0.0.1/a','https://[::1]/a','https://router.lan/a','https://user:secret@images.example.com/a','https://images.example.com:8443/a'])
+  assert.equal(safeProductImageURL(image),'');
+ assert.equal(normalizeCandidate({...candidate,imageUrl:url},'000123').imageUrl,url);
+ assert.equal(normalizeCandidate({...candidate,imageUrl:'javascript:alert(1)'},'000123').imageUrl,'');
+});
+test('photo de variante prioritaire et photo du produit conservée en repli',async()=>{
+ const make=featured=>createProductLookup({fetcher:async url=>url.includes('suggest.json')?json({resources:{results:{products:[{handle:'photo-test'}]}}}):json({title:'Carte photographiée',featured_image:'//cdn.shopify.com/s/files/1/common.jpg',variants:[{sku:'000123',barcode,featured_image:featured}]})});
+ const variant=await(await make({src:'//cdn.shopify.com/s/files/1/variant.jpg'})(request('000123'))).json();
+ assert.match(variant.candidates[0].imageUrl,/variant\.jpg/);assert.equal(new URL(variant.candidates[0].imageUrl).searchParams.get('width'),'480');
+ const common=await(await make(null)(request('000123'))).json();assert.match(common.candidates[0].imageUrl,/common\.jpg/);
+});
+test('photo externe optionnelle : la première adresse sûre est retenue sans téléchargement par le relais',async()=>{
+ const urls=[];const handle=createProductLookup({fetcher:async url=>{urls.push(url);return url.includes('suggest.json')?json({resources:{results:{products:[]}}}):json({items:[{ean:barcode,title:'Produit externe',images:['javascript:alert(1)','https://images.example.com/product.jpg']}]});}});
+ const data=await(await handle(request(barcode))).json();assert.equal(data.candidates[0].imageUrl,'https://images.example.com/product.jpg');assert.equal(urls.length,2);
 });

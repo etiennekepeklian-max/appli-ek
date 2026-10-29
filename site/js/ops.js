@@ -1,4 +1,5 @@
 import * as Store from './storage.js';
+import {publicProductPhoto} from './product-image.js';
 import {state,esc,btn,field,check,modal,modalForm,closeModal,onModalClose,toast,download,pdfReport,dateLabel,fmt,formError} from './ui.js';
 import {products,findProducts,productName} from './model.js';
 import {refKey,localDate,uid,toCSV} from './core.js';
@@ -66,7 +67,7 @@ export function enhanceOps(root,route){
   }
   if(route==='stock')for(const card of root.querySelectorAll('.product-record')){
     const p=products().find(p=>p.id===card.querySelector('[data-action="edit-product"]')?.dataset.id);if(!p)continue;
-    if(p.photoId)card.insertAdjacentHTML('afterbegin',`<img class="product-photo" data-product-photo="${esc(p.photoId)}" alt="${esc(p.name)}" hidden>`);
+    if(p.photoId)card.insertAdjacentHTML('afterbegin',`<img class="product-photo" data-product-photo="${esc(p.photoId)}" alt="${esc(p.name)}" hidden>`);else if(p.lookupImageUrl)card.insertAdjacentHTML('afterbegin',publicProductPhoto(p.lookupImageUrl,p.name));
     if(productLocations(p).length)card.insertAdjacentHTML('beforeend',`<p class="hint section-gap">Emplacements : ${esc(productLocations(p).join(' · '))}</p>`);
   }
   if(route==='history')root.insertAdjacentHTML('beforeend',`<div class="actions section-gap">${opsButton('Annuler la dernière action','undo')}</div>`);

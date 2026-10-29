@@ -70,6 +70,7 @@
   "js/photo-viewer.js",
   "js/picking-core.js",
   "js/picking.js",
+  "js/product-image.js",
   "js/product-lookup-client.js",
   "js/product-lookup-core.js",
   "js/product-lookup.js",

@@ -1,4 +1,5 @@
-import {validLookupCode,isGTIN,normalizeCandidate} from '../../site/js/product-lookup-core.js';
+import {validLookupCode,isGTIN,normalizeCandidate,safeProductImageURL} from '../../site/js/product-lookup-core.js';
+const imageFor=(...values)=>values.flat().slice(0,12).map(v=>typeof v==='string'?v:v?.src||v?.url||'').map(safeProductImageURL).find(Boolean)||'';
 const OFFICIAL='https://fr.checkout.draegerparis.com';
 const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store'};
 const reply=(status,data)=>new Response(JSON.stringify(data),{status,headers});
@@ -23,7 +24,7 @@ export function createProductLookup({fetcher=fetch,now=Date.now}={}){
       for(let i=0;i<details.length;i++){
         const result=details[i];if(result.status!=='fulfilled'){warnings.push('Une fiche Draeger n’a pas pu être vérifiée.');continue;}
         const product=result.value,variants=Array.isArray(product.variants)?product.variants:[];
-        const rows=variants.map(v=>normalizeCandidate({name:String(product.title||'')+(v.title&&v.title!=='Default Title'?' — '+v.title:''),sku:v.sku,barcode:v.barcode,sourceKind:'draeger',sourceUrl:OFFICIAL+'/products/'+handles[i]+(v.id?'?variant='+encodeURIComponent(v.id):''),brand:product.vendor,retrievedAt},code)).filter(Boolean);
+        const rows=variants.map(v=>normalizeCandidate({name:String(product.title||'')+(v.title&&v.title!=='Default Title'?' — '+v.title:''),sku:v.sku,barcode:v.barcode,sourceKind:'draeger',sourceUrl:OFFICIAL+'/products/'+handles[i]+(v.id?'?variant='+encodeURIComponent(v.id):''),brand:product.vendor,imageUrl:imageFor(v.featured_image,v.image,product.featured_image,Array.isArray(product.images)?product.images:[]),retrievedAt},code)).filter(Boolean);
         const exact=rows.filter(p=>p.exact);candidates.push(...(exact.length?exact:rows.slice(0,3)));
       }
     }catch{warnings.push('La recherche Draeger est momentanément indisponible.');}
@@ -34,7 +35,7 @@ export function createProductLookup({fetcher=fetch,now=Date.now}={}){
         for(const item of (Array.isArray(data.items)?data.items:[]).slice(0,5)){
           const barcode=[item.ean,item.upc,item.gtin].find(v=>isGTIN(v)&&v.padStart(14,'0')===code.padStart(14,'0'));
           if(!barcode)continue;
-          const p=normalizeCandidate({name:item.title,sku:'',barcode,brand:item.brand,sourceKind:'upcitemdb',sourceUrl:'https://www.upcitemdb.com/upc/'+encodeURIComponent(barcode),retrievedAt},code);if(p)candidates.push(p);
+          const p=normalizeCandidate({name:item.title,sku:'',barcode,brand:item.brand,imageUrl:imageFor(Array.isArray(item.images)?item.images:[]),sourceKind:'upcitemdb',sourceUrl:'https://www.upcitemdb.com/upc/'+encodeURIComponent(barcode),retrievedAt},code);if(p)candidates.push(p);
         }
       }catch(error){if(error.status===429)upcBlockedUntil=error.retryAt;if(error.status!==404)warnings.push(error.status===429?'La limite de recherche externe est atteinte. Réessayez plus tard.':'La base externe est momentanément indisponible.');}
     }
@@ -43,7 +44,7 @@ export function createProductLookup({fetcher=fetch,now=Date.now}={}){
   }
   return async req=>{
     if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
-    if(req.method==='GET')return reply(200,{app:'Pikeo product lookup',version:'1.17.11',status:'ready'});
+    if(req.method==='GET')return reply(200,{app:'Pikeo product lookup',version:'1.18.1',status:'ready'});
     if(req.method!=='POST')return reply(405,{error:'Méthode non autorisée.'});
     let code;
     try{

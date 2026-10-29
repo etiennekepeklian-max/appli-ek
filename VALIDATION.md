@@ -348,3 +348,11 @@ Intégration locale validée : 251 tests réussis, 158 modules et 818 dépendanc
 Le point de santé GET du serveur indique uniquement si le secret PIN est configuré avec la longueur minimale requise. Aucune valeur, empreinte ou longueur du secret n’est renvoyée. Ce contrôle permet de vérifier la configuration après le déploiement, sans créer de compte ni choisir le PIN personnel du propriétaire. Le contrat PostgreSQL isolé vérifie le secret présent, absent et trop court ; la récupération et les quinze scénarios existants sont conservés. Aucun parcours utilisateur ne change ; aide PIN et administration inchangée après relecture.
 
 Le job security-db vérifie aussi le serveur réellement publié avant intégration et publication de main : version 1.18.0 et disponibilité du secret via un booléen, sans lire sa valeur. Le déploiement Pages vérifie ensuite release.json et le module PIN sur le site public. Ces contrôles sont en lecture seule ; les contrats de comptes et de PIN restent confinés au PostgreSQL de test.
+
+## 29 octobre 2026 — recherche automatique et photos publiques
+
+Le relais transmet la photo de variante Draeger lorsqu’elle existe, sinon celle du produit ; UPCitemdb peut fournir une photo externe. Les adresses d’images sont contrôlées en HTTPS, les adresses locales et actives refusées, et les miniatures Shopify bornées à 480 × 480 pixels. Le relais ne télécharge aucune image et ne reçoit toujours que le code cherché.
+
+Le scanner, la proposition et la fiche affichent la photo avec ses proportions, dans 220 × 220 pixels au maximum ; un échec d’image laisse les autres informations disponibles. Le lien n’est conservé qu’après Enregistrer ; les photos personnelles restent prioritaires. La réutilisation d’un résultat récent vérifie aussi que la fiche locale n’a pas changé.
+
+Aide revue pour Scanner, Compléter une référence, la proposition et la FAQ. Tests ajoutés : adresses d’images, priorité de variante et repli, source externe, absence de téléchargement par le relais, résultat automatique, validation, répétition du code après modification, photo personnelle, échec image, mobile 320/390 px, bureau et thèmes clair/sombre. Android reste reporté.
