@@ -346,3 +346,5 @@ Intégration locale validée : 251 tests réussis, 158 modules et 818 dépendanc
 ## 29 octobre 2026 — contrôle de disponibilité du secret PIN
 
 Le point de santé GET du serveur indique uniquement si le secret PIN est configuré avec la longueur minimale requise. Aucune valeur, empreinte ou longueur du secret n’est renvoyée. Ce contrôle permet de vérifier la configuration après le déploiement, sans créer de compte ni choisir le PIN personnel du propriétaire. Le contrat PostgreSQL isolé vérifie le secret présent, absent et trop court ; la récupération et les quinze scénarios existants sont conservés. Aucun parcours utilisateur ne change ; aide PIN et administration inchangée après relecture.
+
+Le job security-db vérifie aussi le serveur réellement publié avant intégration et publication de main : version 1.18.0 et disponibilité du secret via un booléen, sans lire sa valeur. Le déploiement Pages vérifie ensuite release.json et le module PIN sur le site public. Ces contrôles sont en lecture seule ; les contrats de comptes et de PIN restent confinés au PostgreSQL de test.

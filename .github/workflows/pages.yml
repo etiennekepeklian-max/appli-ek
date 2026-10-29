@@ -155,6 +155,20 @@ jobs:
       - run: node tools/admin-pin-db-contract.mjs
         env:
           PIKEO_CONTRACT_DB_URL: postgres://postgres:synthetic-ci-only@127.0.0.1:5432/pikeo_pin_test
+      - name: Vérifier le serveur PIN publié
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/security/pin-admin-web-reconcilie-20261028'
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const response=await fetch('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',{signal:AbortSignal.timeout(20000),headers:{'Cache-Control':'no-cache'}});
+          assert.equal(response.status,200,'Le serveur doit répondre avant publication.');
+          const health=await response.json();
+          assert.equal(health.app,'Pikeo');
+          assert.equal(health.version,'1.18.0');
+          assert.equal(health.status,'ready');
+          assert.equal(health.adminPinReady,true,'Le secret serveur PIN doit être configuré.');
+          console.log('Serveur PIN 1.18.0 disponible ; configuration du secret validée sans lire sa valeur.');
+          NODE
   deploy:
     if: github.ref == 'refs/heads/main'
     needs: [verify, sessions, updates, enfs, webtools, ergonomics, diagnostics, security-db]
@@ -173,4 +187,30 @@ jobs:
       - name: Publier
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Vérifier la version web publiée
+        env:
+          PIKEO_PUBLISHED_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const base=process.env.PIKEO_PUBLISHED_URL;
+          assert.ok(base?.startsWith('https://etiennekepeklian-max.github.io/'));
+          let verified=false;
+          for(let attempt=0;attempt<6;attempt++){
+            try{
+              const release=await fetch(new URL('release.json?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});
+              assert.equal(release.status,200);
+              assert.equal((await release.json()).version,'1.18.0');
+              const module=await fetch(new URL('js/admin-pin-ui.js?publication='+Date.now(),base),{signal:AbortSignal.timeout(15000)});
+              assert.equal(module.status,200);
+              assert.ok((await module.text()).includes("API.request('admin-pin-enroll'"));
+              verified=true;break;
+            }catch(error){
+              if(attempt===5)throw error;
+              await new Promise(resolve=>setTimeout(resolve,5000));
+            }
+          }
+          assert.ok(verified);
+          console.log('Pikéo web 1.18.0 et interface PIN vérifiés sur le site public.');
+          NODE
 
