@@ -18,6 +18,7 @@
   "guide-google.html",
   "index.html",
   "js/access-ui.js",
+  "js/admin-pin-ui.js",
   "js/administration.js",
   "js/alert-acks.js",
   "js/app.js",

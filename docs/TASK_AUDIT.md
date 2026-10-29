@@ -1,3 +1,15 @@
+# État de reprise — 29 octobre 2026
+
+La version publique vérifiée est **Pikéo 1.17.10**. Elle comprend l’interface bureau, les comptes et habilitations, les ENF manuels et leur détail, l’import photo de références/adresses avec relecture, les codes inconnus produit/emplacement, les messages et relances de réassort, les appels/SMS préparés, la quantité de manquant avec casier facultatif, la suppression confirmée et annulable, le picking journalier manuel, les sauvegardes et la mascotte originale choisie. Les anciens chiffres et photos sont conservés.
+
+Le chantier web restant est la sécurité PIN, suivie en PR **#27**, sans activation de production tant que le secret serveur, la migration additive et la récupération propriétaire ne sont pas opérationnels. Le contrat PostgreSQL isolé et les parcours navigateur servent à vérifier le code avant cette activation. Les noms de sessions restent déclaratifs ; ils ne prouvent jamais à eux seuls l’identité d’un administrateur.
+
+À valider en situation : documents réels, appels et permissions caméra/microphone, vibration sur le téléphone, données et synchronisation entre les appareils de l’utilisateur. Les photos de listes ENF déjà remises ne sont pas importées silencieusement. Aucun résultat physique n’est déduit des essais simulés.
+
+Android/Capacitor, APK et widget natif restent reportés. Le jeu conserve son statut de projet distinct en attente d’une demande dédiée. Le tableau historique ci-dessous ne décrit pas à lui seul l’état actuel : les décisions ultérieures sur le picking, les messages, les quantités et la mascotte le remplacent.
+
+---
+
 > État actualisé en 1.15 : navigation et recherche globales, contraste sombre, caméra continue, retour pendant OCR, regroupement commande/enregistrement, reprise d’une journée, annulation persistante et diagnostic sont intégrés. Une mascotte générique est animée à l’ouverture et pendant les opérations ; la mascotte personnelle s’importe localement. Les essais matériels et la calibration des règles privées restent à finaliser. Les lignes historiques ci-dessous décrivent aussi les états antérieurs. Android et jeu restent reportés.
 
 # Complément de l’audit — 1.12

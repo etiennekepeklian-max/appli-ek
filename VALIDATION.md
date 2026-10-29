@@ -309,3 +309,42 @@ Validation locale : 245 tests métier réussis, syntaxe et dépendances, emprein
 ### Maintien du résultat lors du réaffichage
 
 Le rendu général restaure désormais le résultat de recherche courant (y compris chargement ou erreur) et ne relance pas la caméra après lecture. La restauration ne refait ni requête ni écriture et refuse un autre espace. Le parcours navigateur attend la fermeture effective de la prise en main initiale et vérifie qu’un réaffichage conserve la proposition sans nouvelle requête ni ajout. L’aide reste adaptée : aucun geste utilisateur ne change. L’activation du PIN est un chantier actif demandé par Étienne ; Android reste reporté.
+
+
+## Reprise du 29 octobre 2026 — sécurité PIN, sans migration Android
+
+Base publique conservée : 1.17.10. Les correctifs PIN restent sur la PR brouillon #27 et ne modifient aucun compte réel ni les données du téléphone. Aucun secret serveur n’a été créé ni publié.
+
+Corrections : refus de la réinitialisation entre deux appareils du même compte ; liste des pairs limitée aux autres comptes ; verrouillage des PIN lors d’un changement d’habilitations, d’une suspension ou d’une réactivation ; rôle initial restreint pour les nouveaux signataires ; réponse PIN liée à l’identité courante, saisies sensibles effacées après traitement et expiration transmise par le serveur.
+
+Le schéma de référence est remis en cohérence avec les colonnes d’administration déjà présentes dans la base déployée. Ce fichier décrit une installation neuve ; il n’est pas rejoué sur la production. La migration PIN reste additive et séparée.
+
+Vérifications : les 240 tests unitaires existants sont conservés. Le nouveau job security-db soumet des requêtes réellement signées au gestionnaire de l’API avec PostgreSQL 17 isolé : transactions, blocage durable et concurrent, expiration, récupération, profils, changements périmés, permissions navigateur et RLS. Les parcours bureau exercent aussi verrouillage, code incorrect, déverrouillage, changement de code et sortie de session. Les résultats du dernier workflow de la branche font foi.
+
+Aide revue : administration, session, formulaire de code et page Aide. Aucun PIN, fichier propriétaire, photo ou contenu métier réel n’est ajouté aux tests.
+
+Limites d’activation inchangées : secret PIKEO_PIN_PEPPER de production non configuré, table admin_pins non appliquée, PIN personnel à choisir par le propriétaire dans l’interface. Les comptes réels et le service public ne sont pas utilisés comme terrain d’essai.
+
+
+Le contrat PostgreSQL a reproduit un interblocage réel entre l’écriture des nonces et la prise des verrous d’appareils lors de tentatives simultanées. Les profils concernés sont maintenant verrouillés par ordre stable avant les écritures. Les réinitialisations croisées, changements d’habilitation et ouvertures de session suivent le même ordre ; un enregistrement concurrent ne peut pas réutiliser l’identifiant d’un autre signataire. Ces cas sont ajoutés au contrat de base isolée.
+
+
+
+## 29 octobre 2026 — préparation de la publication PIN web 1.18.0
+
+Publication autorisée indépendamment d’Android. Les huit repères de version web passent à 1.18.0 pour renouveler les ressources mises en cache sans changer l’identité PWA, les clés de stockage, les comptes ou les données métier. Aide des écrans et formulaires PIN relue : création/confirmation, verrouillage, récupération et réinitialisation restent décrits dans help-core.js et la page Aide. Le README distingue les sessions ordinaires du déverrouillage administrateur.
+
+L’activation serveur reste conditionnée au secret PIKEO_PIN_PEPPER, à la migration additive, au maintien de la récupération propriétaire et à la vérification après déploiement. La session navigateur du tableau de bord exige une connexion ; aucun PIN personnel n’est créé par l’assistant. La suite PostgreSQL isolée et les parcours web sont relancés sur cette version avant intégration.
+
+Validation locale de la version de publication : 240 tests réussis, 151 modules et 788 dépendances vérifiés, 28 empreintes fournisseur, versions et ressources hors ligne cohérents. Le code serveur actuellement déployé et ses deux dépendances correspondent à la sauvegarde GitHub v3. Le serveur conserve un fichier de récupération propriétaire actif ; aucune clé n’a été remplacée et aucun appareil n’a reçu de droit supplémentaire.
+
+
+Intégration du PIN sur la recherche produit publiée 1.17.11 et le maintien du résultat au réaffichage. Les routes, sources publiques, confirmations, doublons et droits du catalogue sont conservés. Android reste reporté. La configuration du secret serveur précède le déploiement du PIN.
+
+Intégration locale validée : 251 tests réussis, 158 modules et 818 dépendances contrôlés, 28 empreintes fournisseur, cache et versions cohérents. La suite SQL isolée et les parcours complets sont relancés sur le commit réconcilié avant activation du PIN.
+
+## 29 octobre 2026 — contrôle de disponibilité du secret PIN
+
+Le point de santé GET du serveur indique uniquement si le secret PIN est configuré avec la longueur minimale requise. Aucune valeur, empreinte ou longueur du secret n’est renvoyée. Ce contrôle permet de vérifier la configuration après le déploiement, sans créer de compte ni choisir le PIN personnel du propriétaire. Le contrat PostgreSQL isolé vérifie le secret présent, absent et trop court ; la récupération et les quinze scénarios existants sont conservés. Aucun parcours utilisateur ne change ; aide PIN et administration inchangée après relecture.
+
+Le job security-db vérifie aussi le serveur réellement publié avant intégration et publication de main : version 1.18.0 et disponibilité du secret via un booléen, sans lire sa valeur. Le déploiement Pages vérifie ensuite release.json et le module PIN sur le site public. Ces contrôles sont en lecture seule ; les contrats de comptes et de PIN restent confinés au PostgreSQL de test.
