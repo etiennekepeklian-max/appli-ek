@@ -1,3 +1,13 @@
+## 29 octobre 2026 — 1.18.2, Bureau administrateur
+
+- Modification limitée à la version web, entrée Bureau et service d’autorisation existant ; aucune migration ni changement de rôle réel. La version 1.18.1 reste dans l’historique Git comme retour arrière ; le service PIN v5 est sauvegardé par son code identique sur main avant modification.
+- Aide de Tous mes outils / recherche de fonction vérifiée et actualisée ; contexte `bureau-access` ajouté à la porte d’entrée avec bouton ? sans remplacement de saisie ; FAQ de la page Aide et guide Bureau actualisés (fin de l’ancien texte « PIN en cours »).
+- `npm test` : 260 tests métier réussis. `npm run check` : syntaxe, dépendances, versions et empreintes fournisseur. Les scénarios navigateur et le contrat PostgreSQL sont exécutés sur la branche par GitHub Actions avant publication.
+- Parcours Bureau : personnel, opérateur nommé Étienne, consultation, administrateur ; liens masqués dans les outils et le guide ; aucun import de l’application avant autorisation ; rôle local/owner falsifié refusé ; attente du serveur, perte réseau, retour, rétrogradation, retrait de l’appareil, suspension du profil et panne du service. Aide, saisie picking non sauvegardée et fiche locale préservées ; contraste clair/sombre et largeur 320 px.
+- Contrat API/SQL isolé : 18 scénarios, dont deux pour Bureau (rôle serveur, configure insuffisant, compte/appareil actifs, nom et permissions déclarés ignorés, expiration courte, signature modifiée, anti-rejeu et révocation). Aucun appel de test ne crée d’identité en production.
+- Parcours existants d’administration/PIN et de photo après scan adaptés à l’entrée réservée, avec comptes et données exclusivement synthétiques. Hors ligne, Bureau se verrouille ; l’entrée mobile conserve la recherche locale et les fiches.
+- Le HTML et les modules de GitHub Pages restent publics : la restriction concerne l’ouverture et l’utilisation du Bureau, sans promesse de confidentialité du code source. Les données et les opérations serveur conservent leurs protections propres.
+
 # Version 1.17.1 · animation d'ouverture Pikéo n°1 (28 octobre 2026)
 
 Mise à jour **web uniquement**, issue du choix explicite de la proposition n°1 « Contraste terrain ».

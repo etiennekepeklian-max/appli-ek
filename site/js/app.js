@@ -299,6 +299,10 @@ async function start(){
 installMobileViewport();
 installCacheCleanup();
 export const ready=start();
+export async function pauseBureau(){
+ Features.stopCamera();Features.stopDictation();
+ await Voice.stopAndSave();await Day.flush();await Training.flush();await Enf.flush();await Ops.persistDraft();
+}
 export async function prepareUpdate(){
  await Training.flush();
  await Enf.flush();await Voice.stopAndSave();await Ops.persistDraft();

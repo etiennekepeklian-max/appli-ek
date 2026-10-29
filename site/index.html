@@ -29,8 +29,8 @@
   <noscript>Activez JavaScript pour utiliser Pikéo.</noscript>
   <script src="js/opening.js" defer></script><script src="vendor/jsbarcode.min.js" defer></script><script src="vendor/jspdf.umd.min.js" defer></script>
   <script type="module">
-import {launch} from './js/updates.js?pikeo-v=1.18.1';
-launch(version=>import('./js/app.js'+(version?'?pikeo-v='+version:'')),'1.18.1').catch(error=>{const main=document.getElementById('main');main.replaceChildren();const p=document.createElement('p');p.textContent='Ouverture interrompue : '+error.message;const link=document.createElement('a');link.href='actualiser.html';link.textContent='Actualiser Pikéo sans effacer mes données';main.append(p,link);});
+import {launch} from './js/updates.js?pikeo-v=1.18.2';
+launch(version=>import('./js/app.js'+(version?'?pikeo-v='+version:'')),'1.18.2').catch(error=>{const main=document.getElementById('main');main.replaceChildren();const p=document.createElement('p');p.textContent='Ouverture interrompue : '+error.message;const link=document.createElement('a');link.href='actualiser.html';link.textContent='Actualiser Pikéo sans effacer mes données';main.append(p,link);});
 </script>
 </body>
 </html>

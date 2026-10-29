@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
+import {bureauFixture,seedBureauSession} from './bureau-fixture.mjs';
 import {auditContrast} from './contrast-audit.mjs';
 const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe','inherit']});
 await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Serveur indisponible')),15000);server.stdout.on('data',data=>{if(String(data).includes('http://')){clearTimeout(timer);resolve();}});server.on('error',reject);});
@@ -23,7 +24,8 @@ try{
    const candidates=body.code==='000WEB1'?[candidate('000WEB1','4006381333931')]:body.code==='012345678905'?[candidate('AMB-1','012345678905')]:body.code==='OFFLINE-LOOKUP'?[candidate('OFFLINE-LOOKUP')]:body.code==='BROKEN-PHOTO'?[candidate('BROKEN-PHOTO')]:[];
    await route.fulfill({json:{candidates,warnings:[]}}).catch(()=>{});
   });
-  page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  if(desktop)await bureauFixture(context);
+  page=await context.newPage();if(desktop)await seedBureauSession(page);page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://localhost:8765/'+(desktop?'bureau.html':'')+'#scan');
   await page.getByRole('button',{name:'Commencer',exact:true}).click();
   await page.locator('#dialog').waitFor({state:'hidden'});
@@ -67,8 +69,13 @@ try{
   await lookup('SLOW-LOOKUP');await page.locator('[data-web-lookup]').getByRole('heading',{name:'Recherche Internet en cours…',exact:true}).waitFor();
   await lookup('QUOTA-LOOKUP');await page.getByText('Quota de test atteint',{exact:true}).waitFor();release?.();release=null;
   assert.equal(await page.locator('#scan-result .mono').first().innerText(),'QUOTA-LOOKUP');
-  await context.setOffline(true);const offlineCalls=requests.length;await lookup('OFFLINE-LOOKUP');await page.getByText(/Hors connexion : le code reste/).waitFor();assert.equal(requests.length,offlineCalls);
-  await context.setOffline(false);await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).waitFor();assert.equal(requests.at(-1),'OFFLINE-LOOKUP');
+  if(desktop){
+   await context.setOffline(true);await page.locator('#bureau-access-gate').waitFor({state:'visible'});assert.equal(await page.locator('.app-shell').isVisible(),false);
+   await context.setOffline(false);await page.locator('#bureau-access-gate').waitFor({state:'hidden'});await lookup('OFFLINE-LOOKUP');await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).waitFor();
+  }else{
+   await context.setOffline(true);const offlineCalls=requests.length;await lookup('OFFLINE-LOOKUP');await page.getByText(/Hors connexion : le code reste/).waitFor();assert.equal(requests.length,offlineCalls);
+   await context.setOffline(false);await page.getByRole('button',{name:'Vérifier avant ajout',exact:true}).waitFor();assert.equal(requests.at(-1),'OFFLINE-LOOKUP');
+  }
   const staleKey=await page.locator('[data-action=review-web-product]').first().getAttribute('data-lookup-key');await lookup('QUOTA-LOOKUP');await page.getByText('Quota de test atteint',{exact:true}).waitFor();
   assert.equal(await page.evaluate(async key=>{const p=await import('./js/product-lookup.js');try{p.webProductProposal(0,null,key);return false;}catch{return true;}},staleKey),true);
   for(const theme of ['light','dark']){
