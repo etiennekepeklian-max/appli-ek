@@ -1,5 +1,5 @@
-import {lookupScannedProduct,cancelProductLookup} from './product-lookup.js';
-export {cancelProductLookup};
+import {lookupScannedProduct,cancelProductLookup,renderProductLookup} from './product-lookup.js';
+export {cancelProductLookup,renderProductLookup};
 import * as Mascot from './mascot.js';
 import {layoutText} from './ocr-layout-core.js';
 import * as Store from './storage.js';

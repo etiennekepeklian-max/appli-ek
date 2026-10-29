@@ -32,6 +32,7 @@ function render(result){
  const el=document.querySelector('#scan-result');if(!el||!el.isConnected)return false;
  el.innerHTML=localHTML(result)+webHTML(result);guard(el);void hydratePhotos();return true;
 }
+export function renderProductLookup(){return state.scanResult?render(state.scanResult):false;}
 export async function lookupScannedProduct(raw,{retry=false}={}){
  const code=String(raw??'').trim();if(!code)throw Error('Saisissez un code.');
  const previous=state.scanResult;
