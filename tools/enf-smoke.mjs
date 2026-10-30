@@ -6,7 +6,7 @@ try{
  const c=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await c.newPage();page.on('pageerror',e=>errors.push(e.message));
  await page.goto(base);await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
  await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.saveBatch([{type:'products',record:{id:'enf-prod-a',sku:'001234',name:'Carte test'}},{type:'products',record:{id:'enf-prod-b',sku:'009876',name:'Autre carte test'}}],'Catalogue ENF de test');});
- await page.getByRole('button',{name:'ENF — références et quantités',exact:true}).click();await page.getByRole('heading',{name:'ENF',exact:true}).waitFor();
+ await page.locator('.simple-action-grid [data-nav=enfs]').click();await page.getByRole('heading',{name:'ENF',exact:true}).waitFor();
  await page.getByRole('button',{name:'Photographier une feuille ENF',exact:true}).click();
  const data=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=1800;c.height=800;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#111';x.font='bold 58px Arial';x.fillText('ENF : 000042',80,110);x.font='44px Arial';x.fillText('REFERENCE',80,220);x.fillText('QUANTITE',1250,220);x.font='54px Arial';x.fillText('001234',80,350);x.fillText('4',1310,350);x.fillText('009876',80,490);x.fillText('12',1310,490);return c.toDataURL('image/png').split(',')[1];});
  const file={name:'enf-000042.png',mimeType:'image/png',buffer:Buffer.from(data,'base64')};

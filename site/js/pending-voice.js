@@ -1,6 +1,6 @@
 import * as Store from './storage.js';
 import {parsePendingVoice} from './pending-voice-core.js';
-import {onModalClose} from './ui.js';
+import {onModalClose,icon} from './ui.js';
 import {stopDictation} from './features.js';
 import {persistDraft} from './ops.js';
 
@@ -9,7 +9,7 @@ export function stopPendingVoice(){
  const current=active;active=null;if(!current)return;clearTimeout(current.timer);try{current.recognition.abort();}catch{}
  current.button.classList.remove('listening');current.button.setAttribute('aria-pressed','false');current.button.textContent='Dicter commande et référence';
 }
-export const controls=()=>`<section class="full pending-voice"><button type="button" class="btn primary full" data-pending-voice="listen" aria-pressed="false">Dicter commande et référence</button><p class="hint section-gap">Dites « commande … référence … », chiffre par chiffre. Relisez avant d’enregistrer.</p><p class="hint">Dictée du navigateur : Internet possible, aucun audio conservé par Pikéo.</p><p data-pending-voice-status role="status" aria-live="polite"></p><details class="section-gap"><summary>Texte dicté ou saisie de secours</summary><label class="field"><span>Commande et référence dictées</span><textarea data-pending-voice-text rows="3" placeholder="Commande 0000123 référence 001234"></textarea></label><button type="button" class="btn full section-gap" data-pending-voice="apply">Remplir les champs depuis ce texte</button></details></section>`;
+export const controls=()=>`<section class="full pending-voice"><button type="button" class="btn full" data-pending-voice="listen" aria-pressed="false">${icon('mic')}Dicter commande et référence</button><p data-pending-voice-status role="status" aria-live="polite"></p><details class="section-gap"><summary>Conseils et saisie de secours</summary><p class="hint">Dites « commande … référence … », chiffre par chiffre. Relisez avant d’enregistrer. La dictée du navigateur peut utiliser Internet ; Pikéo ne conserve aucun audio.</p><label class="field"><span>Commande et référence dictées</span><textarea data-pending-voice-text rows="3" placeholder="Commande 0000123 référence 001234"></textarea></label><button type="button" class="btn full section-gap" data-pending-voice="apply">Remplir les champs depuis ce texte</button></details></section>`;
 function apply(form,text,before){
  if(!form.isConnected)return;const result=parsePendingVoice(text),warnings=[...result.warnings];
  for(const name of ['orderNumber','sku'])if(result[name]){
@@ -22,7 +22,7 @@ function apply(form,text,before){
 function listen(button){
  if(active){stopPendingVoice();return;}
  const form=button.closest('[data-form=pending]'),status=form.querySelector('[data-pending-voice-status]'),Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Recognition){status.textContent='Dictée indisponible ici. Utilisez le micro du clavier dans Texte dicté ou saisie de secours, puis Remplir les champs.';form.querySelector('details').open=true;form.querySelector('[data-pending-voice-text]').focus();return;}
+ if(!Recognition){status.textContent='Dictée indisponible ici. Utilisez le micro du clavier dans Conseils et saisie de secours, puis Remplir les champs.';form.querySelector('.pending-voice details').open=true;form.querySelector('[data-pending-voice-text]').focus();return;}
  stopDictation();const recognition=new Recognition(),before={orderNumber:form.elements.orderNumber.value,sku:form.elements.sku.value},space=Store.scope();
  const current={recognition,button};active=current;recognition.lang='fr-FR';recognition.continuous=false;recognition.interimResults=false;
  const valid=()=>active===current&&form.isConnected&&Store.scope()===space;
