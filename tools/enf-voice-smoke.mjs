@@ -21,6 +21,7 @@ try{
  });
  page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
  await page.goto('http://localhost:8765/');await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});
+ await page.locator('#pikeo-opening').waitFor({state:'hidden'});
  await page.evaluate(async()=>{const store=await import('./js/storage.js');await store.saveBatch([{type:'enfs',record:{id:'voice-enf-a',code:'001234B',name:'Concept étagère-atelier',lines:[{sku:'009911',quantity:2,role:'mere'}]}},{type:'enfs',record:{id:'voice-enf-b',code:'009999',name:'Autre concept fictif',lines:[{sku:'001234B',quantity:1,role:'fille'}]}}],'Exemples fictifs de recherche');});
  await page.locator('.simple-action-grid [data-nav=enfs]').click();await page.locator('#enf-search').waitFor();
  const initial=await page.evaluate(async()=>{const store=await import('./js/storage.js');return {events:store.allEvents().length,records:store.list('enfs')};});
@@ -60,7 +61,9 @@ try{
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);
   const rects=await page.locator('[data-enf-voice=reference],[data-enf-voice=name]').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect();return {width:r.width,height:r.height};}));assert.ok(rects.every(r=>r.width>=44&&r.height>=44));
  }
+ await page.locator('#mascot-status').waitFor({state:'hidden'});await page.locator('#toast').waitFor({state:'hidden'});
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/enf-voice-mobile-dark.png',fullPage:true});
+ await page.evaluate(()=>document.documentElement.dataset.theme='light');await reference().click();await page.screenshot({path:'test-results/enf-voice-listening-light.png',fullPage:true});await page.getByRole('button',{name:'Arrêter la dictée',exact:true}).click();
  await context.setOffline(false);
  const after=await page.evaluate(async()=>{const store=await import('./js/storage.js');return {events:store.allEvents().length,records:store.list('enfs')};});assert.deepEqual(after,initial);
  // A result delivered after a change of storage scope is ignored.
