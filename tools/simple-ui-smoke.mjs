@@ -69,6 +69,8 @@ try{
  for(const theme of ['light','dark'])for(const width of [320,390]){
   await page.evaluate(async theme=>{const s=await import('./js/storage.js');await s.save('preferences',{...s.settings(),id:'main',theme});},theme);await page.setViewportSize({width,height:844});
   await go('home');
+  const dismiss=page.locator('#undo-bar [data-ops-action=hide-undo]');if(await dismiss.isVisible())await dismiss.click();
+  await page.locator('#toast').waitFor({state:'hidden'});await page.locator('#main').focus();
   const boxes=await page.locator('.simple-action-grid button').evaluateAll(rows=>rows.map(r=>{const b=r.getBoundingClientRect();return {width:b.width,height:b.height};}));assert.ok(boxes.every(b=>b.width>=120&&b.height>=160));
   assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

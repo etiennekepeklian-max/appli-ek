@@ -14,7 +14,7 @@ try{
   await context.addInitScript(()=>localStorage.setItem('ek-work-schedule-live',JSON.stringify({enabled:false})));
   page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
   await page.goto('http://localhost:8765/');await page.getByRole('button',{name:'Commencer',exact:true}).click();
-  await page.getByRole('button',{name:'Renseigner mes chiffres',exact:true}).click();await page.locator('[data-form=picking-day]').waitFor();
+  await page.locator('.simple-action-grid [data-action=new-order]').click();await page.locator('[data-form=picking-day]').waitFor();
   assert.equal(await page.locator('#dialog').getAttribute('open'),null);assert.equal(await page.locator('[data-day-action=camera],#batch-gallery').count(),0);
   const select=async date=>{await page.locator('#day-select').fill(date);await page.locator('#day-select').dispatchEvent('change');await page.waitForFunction(date=>document.querySelector('[data-form=picking-day] [name=date]')?.value===date,date);};
   const fill=async(name,value)=>page.locator('[data-form=picking-day] [name='+name+']').fill(value);

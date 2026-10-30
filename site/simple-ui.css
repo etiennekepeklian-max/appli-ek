@@ -75,4 +75,5 @@ details[open]>.simple-tool-category>.icon{transform:rotate(90deg)}
 .desktop .simple-action{min-height:166px}.desktop .simple-home-details{max-width:900px}
 @media(max-width:359px){.quick-grid.simple-action-grid{gap:10px}.simple-action,[data-theme=dark] .simple-action{padding:13px 10px;min-height:172px}.simple-action strong{font-size:15px}.simple-action small{font-size:12px}.simple-picto{width:52px;height:52px}.simple-route-guide>summary>span{display:block;margin-left:18px}.simple-waiting-link{gap:8px;padding:12px;font-size:14px}.simple-waiting-link>.icon{width:18px}}
 @media(prefers-reduced-motion:reduce){.simple-tool-category>.icon{transition:none}.simple-action:active{transform:none}}
+@media(max-width:359px){#main[data-view=home] .wb-home .actions{display:flex;flex-direction:column}#main[data-view=home] .wb-home .actions>.btn{width:100%;min-width:0;word-break:normal}}
 @media print{.simple-route-guide,.simple-essentials,.simple-home-actions,.simple-first-time{display:none!important}}

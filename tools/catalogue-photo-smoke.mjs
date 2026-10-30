@@ -29,6 +29,7 @@ try{
  // Catalogue photo review, not write on OCR alone.
  await page.goto(base+'#stock');
  await page.goto(base+'#more');
+ await page.getByText('Produits et emplacements',{exact:true}).click();
  await page.locator('[data-action="import-catalogue-photo"]').click();
  await page.locator('[data-photo-catalogue-text]').fill('Référence;Nom;Emplacement\n001234;Carte test;PAC001-A\n009876;Carnet test;RES002-B');
  await page.getByRole('button',{name:'Vérifier les lignes'}).click();
