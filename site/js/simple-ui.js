@@ -13,7 +13,7 @@ export const HOME_ACTIONS=[
 ];
 export function pictogram(id,glyph='box'){
  const cell=cells[id];
- return cell===undefined?`<span class="simple-picto simple-picto-fallback" aria-hidden="true">${icon(glyph)}</span>`:`<svg class="simple-picto simple-picto-${cell}" viewBox="${cell%3} ${Math.floor(cell/3)} 1 1" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><image href="assets/pikeo-actions-canva.png" width="3" height="3"/></svg>`;
+ return cell===undefined?`<span class="simple-picto simple-picto-fallback" aria-hidden="true">${icon(glyph)}</span>`:`<svg class="simple-picto simple-picto-${cell}" viewBox="0 0 1 1" preserveAspectRatio="xMidYMin meet" aria-hidden="true" focusable="false"><svg width="1" height="1" viewBox="${cell%3} ${Math.floor(cell/3)} 1 1" overflow="hidden"><image href="assets/pikeo-actions-canva.png" width="3" height="3"/></svg></svg>`;
 }
 function actionTile([id,title,hint,glyph,action=false],kind=''){
  return `<button type="button" class="quick simple-action illustrated-tile ${kind}" ${action?'data-action':'data-nav'}="${esc(id)}">${pictogram(id,glyph)}<span class="simple-action-copy simple-tile-caption"><strong>${esc(title)}</strong><small>${esc(hint)}</small></span></button>`;

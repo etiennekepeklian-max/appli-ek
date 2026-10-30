@@ -6,6 +6,6 @@ Source Canva : https://www.canva.com/M/MAHZewzRdoY?utm_source=OC-AaBlKrqBJJNF&ut
 
 Ordre conservé : scanner, manquant, ENF ; code-barres, produit, picking ; mémo vocal, horaires, aide.
 
-La copie PNG fournie par Canva est conservée localement dans `pikeo-actions-canva.png` et dans le cache hors connexion. Un cadrage SVG isole chaque case et conserve ses proportions quand elle remplit un bouton. Le titre et son explication restent du texte HTML superposé dans la partie basse, sur une surface jaune opaque pour le contraste, y compris en mode sombre. Aucun texte n’est incorporé à l’image.
+Le PNG original de 1 264 × 1 264 pixels téléchargé depuis Canva est conservée localement dans `pikeo-actions-canva.png` et dans le cache hors connexion. Un cadrage SVG isole chaque case et conserve le dessin entier et ses proportions sur toute la largeur du bouton. Le titre et son explication restent du texte HTML superposé dans la partie basse, sur une surface jaune opaque pour le contraste, y compris en mode sombre. Aucun texte n’est incorporé à l’image.
 
 La planche initiale reste dans l’historique Git : https://www.canva.com/M/MAHZdpnGZco. Les illustrations sont décoratives ; chaque bouton garde son libellé accessible. Le logo et la mascotte Pikéo restent conservés.
