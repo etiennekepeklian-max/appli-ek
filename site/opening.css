@@ -15,8 +15,6 @@
  animation:pk-intro-box 2.4s step-end infinite
 }
 #pikeo-opening .pk-intro-character{animation-iteration-count:1}
-.pk-intro-character::after,#mascot-status .mascot-sprite::after,.pk-dialog-loading .mascot-sprite::after{content:"👍";position:absolute;right:-4%;top:23%;font-size:clamp(36px,8vw,62px);opacity:0;transform:translateY(9px);animation:pk-intro-thumb 2.4s ease-out infinite}
-#pikeo-opening .pk-intro-character::after{animation-iteration-count:1}
 #mascot-status .pk-load-label,.pk-dialog-loading .pk-load-label{margin:0;max-width:min(90vw,620px);font-size:clamp(14px,3.5vw,20px);font-weight:700;line-height:1.4;overflow-wrap:anywhere}
 #mascot-status[hidden]{display:none!important}
 body:has(dialog[open]) #mascot-status,body:has(dialog[open]) #pikeo-opening{display:none!important}
@@ -25,8 +23,7 @@ body:has(dialog[open]) #mascot-status,body:has(dialog[open]) #pikeo-opening{disp
 #main .loading .loader{width:min(68vw,37dvh,330px)}
 #main .barcode-stage .loader{width:min(52vw,26dvh,220px)}
 @keyframes pk-intro-box{0%,19%{background-position:0 0}20%,44%{background-position:33.333333% 0}45%,69%{background-position:66.666667% 0}70%,100%{background-position:100% 0}}
-@keyframes pk-intro-thumb{0%,76%{opacity:0;transform:translateY(9px)}85%,100%{opacity:1;transform:translateY(0)}}
 @keyframes pk-intro-hide{0%,89%{visibility:visible;opacity:1}100%{visibility:hidden;opacity:0}}
 @media(max-height:560px){.pk-intro-stage{gap:6px}.pk-intro-title{font-size:clamp(28px,6vw,44px)}.pk-intro-character,#mascot-status .mascot-sprite,.pk-dialog-loading .mascot-sprite{width:min(70vw,37dvh,290px)}}
-@media(prefers-reduced-motion:reduce){#pikeo-opening{display:none!important;animation:none!important}.pk-intro-character,#mascot-status .mascot-sprite,.pk-dialog-loading .mascot-sprite,.loader{animation:none!important;background-position:0 0}.pk-intro-character::after,#mascot-status .mascot-sprite::after,.pk-dialog-loading .mascot-sprite::after{animation:none!important;opacity:0}}
+@media(prefers-reduced-motion:reduce){#pikeo-opening{display:none!important;animation:none!important}.pk-intro-character,#mascot-status .mascot-sprite,.pk-dialog-loading .mascot-sprite,.loader{animation:none!important;background-position:0 0}}
 @media print{#pikeo-opening,#mascot-status,.pk-dialog-loading{display:none!important}}
