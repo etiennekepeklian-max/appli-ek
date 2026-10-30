@@ -78,7 +78,7 @@ try{
   }));
   assert.equal(illustrations.length,9);assert.ok(illustrations.every(r=>r.coverage>.95&&r.bottom<=2&&r.lowerHalf&&r.captionFits),'Chaque illustration doit couvrir le bouton et porter son texte dans la partie basse.');
   assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});
-  assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(width=>document.documentElement.scrollWidth<=width+1,width),'L’accueil doit tenir dans la largeur physique demandée, sans agrandir le viewport mobile.');
   await page.screenshot({path:`test-results/simple-home-${theme}-${width}.png`,fullPage:true});
   await go('more');for(const summary of await page.locator('[data-tool-group] > summary').all())await summary.click();
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
