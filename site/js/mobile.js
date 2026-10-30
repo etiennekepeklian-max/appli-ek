@@ -1,4 +1,5 @@
 import {icon} from './icons.js';
+import {homeActions,customActions,enhanceSimpleUI} from './simple-ui.js';
 
 // The same phone interface is used at every screen width.
 export function renderMobileNav(route, pendingCount=0){
@@ -79,16 +80,15 @@ export function enhanceMobileView(root,route,customShortcuts){
     nav.append(label,select);tabs.replaceWith(nav);
   }
   enhanceMobileTables(root,route);
+  enhanceSimpleUI(root,route);
   if(route==='home'){
     root.querySelector('.hero')?.remove();
     const quick=root.querySelector('.quick-grid')?.closest('section');
     if(quick){
       quick.classList.add('mobile-quick-card');
-      quick.querySelector('h2').textContent='Que voulez-vous faire ?';
-      const shortcuts=customShortcuts?.length?customShortcuts:[['codes','barcode','Créer un code','Saisir ou dicter'],['scan','scan','Scanner','Caméra ou photo'],['new-order','chart','Ma journée','Chiffres et graphiques'],['new-pending','clock','Un manquant','Suivre le réassort']];
-      quick.querySelector('.quick-grid').innerHTML=shortcuts.map(([action,glyph,title,hint])=>`<button class="quick" ${['enfs','codes','scan','stock','locations','unknowns','journal'].includes(action)?`data-nav="${action}"`:`data-action="${action}"`}><span class="quick-icon">${icon(glyph)}</span><span>${title}<small>${hint}</small></span></button>`).join('');
-      root.insertBefore(quick,root.querySelector('.common-search'));
-      quick.insertAdjacentHTML('afterend','<div class="home-enf-link"><button type="button" class="btn" data-nav="enfs">'+icon('layers')+'ENF — références et quantités</button></div>');
+      quick.querySelector('.quick-grid').innerHTML=homeActions();
+      const custom=root.querySelector('[data-home-custom]');
+      if(custom)custom.innerHTML=customActions(customShortcuts);
     }
   }
 }

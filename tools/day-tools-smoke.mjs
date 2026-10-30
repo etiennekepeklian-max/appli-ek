@@ -18,7 +18,7 @@ try{
  page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!r.url().startsWith(base))outbound.push(r.url());});
  const go=async route=>{await page.goto(base+'#'+route);await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);};
  await go('home');await page.getByRole('button',{name:'Commencer',exact:true}).click();
- await page.locator('[data-nav=more]').click();await page.getByRole('button',{name:/Horaires et alertes/}).click();
+ await page.locator('#mobile-nav [data-nav=more]').click();await page.getByText('Mon poste et mon équipe',{exact:true}).click();await page.getByRole('button',{name:/Horaires et alertes/}).click();
  assert.deepEqual(await page.locator('.reminder-time').allTextContents(),['07:52Rappel','10:07Rappel','10:22Rappel','12:22Rappel','13:07Rappel','15:52Rappel']);
  await page.getByRole('button',{name:'Tester une alerte et l’arrêt'}).click();await page.locator('#work-alert').waitFor();
  await page.locator('#mobile-nav [data-nav=home]').click();assert.equal(await page.locator('#work-alert').isVisible(),true);

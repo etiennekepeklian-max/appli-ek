@@ -90,11 +90,15 @@ export function installFields(){
     if(el.name==='barcodeLocationType'){state.codeLocationType=el.value;previewBarcode(form);}
     if(el.name==='format'&&form?.dataset.form==='barcode'){state.codeFormat=el.value;const group=form.querySelector('#code-stars')?.closest('.field');if(group)group.hidden=el.value==='CODE39';}
     if(el.name==='locationType'&&form?.elements.location){delete form.elements.location.dataset.autoSku;refreshLocation(form);void persistDraft();}
-    if(el.name==='allowDuplicate'&&el.checked){form.querySelector('.pending-detail').open=true;}
+    if(el.name==='allowDuplicate'&&el.checked){form.querySelector('.pending-detail').open=true;form.querySelector('.pending-optional').open=true;}
     if(el.matches('[data-reference-location]')){setLocation(form,el.value,form.elements.sku.value.trim().toUpperCase());void persistDraft();}
   });
   document.addEventListener('click',e=>{const b=e.target.closest('[data-reference-id]');if(!b)return;e.preventDefault();const form=b.closest('form'),p=products().find(p=>p.id===b.dataset.referenceId);if(!p)return;form.elements.sku.value=p.sku;form.dataset.selectedProductId=p.id;renderReference(form);void persistDraft();});
   new MutationObserver(()=>{const form=document.querySelector('[data-form=pending]');if(form&&!form.querySelector('#pending-reference-result')){const container=form.elements.sku.closest('.field');container.insertAdjacentHTML('afterend','<div id="pending-reference-result" class="full" role="status" aria-live="polite"></div>');renderReference(form);}}).observe(document.querySelector('#dialog-body'),{childList:true,subtree:true});
-  window.addEventListener('ek-draft-restored',refreshPendingReference);
+  window.addEventListener('ek-draft-restored',()=>{
+    refreshPendingReference();
+    const form=document.querySelector('[data-form=pending]'),optional=form?.querySelector('.pending-optional');
+    if(optional&&(form.elements.location.value||form.elements.priority.value==='urgent'))optional.open=true;
+  });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);applyTheme();
 }

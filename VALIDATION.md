@@ -1,3 +1,12 @@
+## 30 octobre 2026 — 1.19.0, interface simplifiée et pictogrammes Canva
+
+- Accueil : six grandes actions libellées et illustrées, suivi des manquants et accès directs aux mémos, horaires et aide. Recherche, raccourcis personnalisés et bilan/sauvegarde se déplient séparément ; les choix et leur ordre restent conservés. Le résumé de sauvegarde reste visible.
+- Tous mes outils : inventaire des fonctions inchangé, six catégories dépliables avec illustrations, résultats de recherche directement ouverts. Aucun outil, rôle, identifiant de stockage, fichier utilisateur ou fiche ENF supprimé.
+- Manquant : commande, référence et quantité en premier ; casier et priorité dans les champs facultatifs. Les valeurs présentes, brouillons, aide, scanner, dictée et trois états de suivi restent compatibles.
+- Canva : neuf pictogrammes créés pour Pikéo, copiés en ressource locale de navigation et inclus au cache hors ligne ; aucun chargement tiers nécessaire pour afficher les boutons. Logo terrain jaune et mascotte originale conservés.
+- Aides revues et actualisées : Accueil, Tous mes outils, Réglages, fenêtre de manquant ; nouveau contexte « Les trois gestes essentiels » ; aide locale dépliable sur les huit parcours principaux ; FAQ Aide et guide Bureau actualisés.
+- Validation locale : 263 tests métier réussis ; 169 modules, 890 dépendances et 28 empreintes fournisseur vérifiés ; cache hors connexion préparé avec 133 ressources. Le parcours simple-ui-smoke vérifie les six entrées, le brouillon de manquant et ses détails restaurés, l’aide sans perte de saisie, tous les outils par catégorie/recherche, le clavier, les deux thèmes à 320/390 px et un rechargement réellement hors connexion avec les illustrations. Les huit contrôles GitHub restent nécessaires avant publication.
+
 ## 30 octobre 2026 — 1.18.4, mascotte sans pouce
 
 Suppression de l’emoji pouce superposé à la mascotte à l’ouverture, pendant le chargement plein écran et dans les fenêtres de traitement. Les règles du pseudo-élément et son animation dédiée sont retirées du style partagé. La planche originale, ses images, son rythme et la préférence de réduction des animations restent identiques.

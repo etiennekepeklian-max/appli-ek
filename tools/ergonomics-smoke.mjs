@@ -35,8 +35,9 @@ try{
  await page.locator('[data-tool-results] [data-nav=personal]').click();
  await page.locator('[name=theme]').selectOption('dark');await page.locator('[data-wb-form=preferences] [type=submit]').click();await page.waitForFunction(()=>document.documentElement.dataset.theme==='dark');
  await go('home');assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
- assert.equal(await page.locator('.quick-grid button').count(),4);
- assert.ok(await page.locator('.home-enf-link [data-nav=enfs]').isVisible());
+ assert.equal(await page.locator('.quick-grid button').count(),6);
+ assert.ok(await page.locator('.simple-action-grid [data-nav=enfs]').isVisible());
+ await page.locator('.simple-search-details > summary').click();
  assert.ok((await page.locator('.quick-grid').boundingBox()).y<(await page.locator('.common-search').boundingBox()).y);
  console.log('OK accueil compact, ENF visible, recherche globale et aide sans perte de saisie');
 

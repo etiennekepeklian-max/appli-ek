@@ -14,6 +14,7 @@ export async function refreshBackup(){
   const runtime=Sync.activity(),pending=Store.pendingEvents().length,documents=Store.list('documents').filter(d=>!d.driveId).length;
   const info={demo:namespace,online:navigator.onLine,configured:!!sheet,connected:Sync.connected(),busy:runtime.busy,error:runtime.error,pending,documents,lastSync:lastSheet===sheet?lastSync:null};
   const display=backupPresentation(info),action={configure:['Configurer','google-settings'],connect:['Connecter mon compte','connect-google'],retry:[Sync.connected()?'Réessayer':'Reconnecter mon compte',Sync.connected()?'sync':'connect-google'],sync:['Synchroniser maintenant','sync']}[display.action];
+  for(const summary of document.querySelectorAll('[data-backup-summary]'))summary.textContent=display.title;
   for(const slot of document.querySelectorAll('[data-backup-status]')){
     slot.dataset.backupKind=display.kind;
     slot.innerHTML=`<p><strong>${esc(display.title)}</strong></p>${!namespace?`<p class="hint section-gap">${pending} modification(s) et ${documents} document(s) à envoyer.<br>Dernière sauvegarde réussie pour cette base : ${info.lastSync?esc(timestampLabel(info.lastSync)):'aucune sur cet appareil'}.</p>${runtime.error?`<p class="error-message section-gap">${esc(runtime.error)}</p>`:''}${action&&!slot.closest('#google-settings')?`<div class="actions section-gap">${btn(action[0],action[1],'sync','primary small')}</div>`:''}`:'<p class="hint">Les exemples ne sont pas envoyés sur Google.</p>'}`;

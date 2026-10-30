@@ -1,15 +1,22 @@
 import {TOOL_GROUPS,searchTools} from './navigation-core.js';
 import {esc,icon,modal} from './ui.js';
 import {bureauLinks,installBureauLinks} from './bureau-links.js';
+import {pictogram} from './simple-ui.js';
 
-const row=t=>`<button type="button" ${t.action?'data-action':'data-nav'}="${esc(t.id)}" class="tool-row"><span class="tool-icon">${icon(t.glyph)}</span><span><strong>${esc(t.title)}</strong><small>${esc(t.description)}</small></span>${icon('arrowright')}</button>`;
+const row=t=>`<button type="button" ${t.action?'data-action':'data-nav'}="${esc(t.id)}" class="tool-row"><span class="tool-icon">${pictogram(t.id,t.glyph)}</span><span><strong>${esc(t.title)}</strong><small>${esc(t.description)}</small></span>${icon('arrowright')}</button>`;
+const categories=[['scan','Codes, manquants, ENF et mémos'],['schedule','Horaires, consignes et collègues'],['stock','Catalogue, casiers et imports'],['orders','Chiffres, progrès et rapports'],['help','Apparence, comptes et sauvegardes'],['pending','Transferts, comptages et incidents']];
 const results=(query,compact=false)=>{
  const found=searchTools(query),shown=compact&&!query.trim()?found.slice(0,8):found;
  if(!found.length)return '<div class="empty"><h3>Aucun outil trouvé</h3><p>Essayez « ENF », « manquant », « photo » ou « sombre ».</p></div>';
- return TOOL_GROUPS.map(([group])=>{const rows=shown.filter(t=>t.group===group);return rows.length?`<section class="tool-section"><h2>${esc(group)}</h2><div class="tool-list">${rows.map(row).join('')}</div></section>`:'';}).join('');
+ return TOOL_GROUPS.map(([group],index)=>{
+  const rows=shown.filter(t=>t.group===group);if(!rows.length)return '';
+  if(query.trim()||compact)return `<section class="tool-section"><h2>${esc(group)}</h2><div class="tool-list">${rows.map(row).join('')}</div></section>`;
+  const [picture,hint]=categories[index];
+  return `<details class="tool-section" data-tool-group><summary class="simple-tool-category">${pictogram(picture)}<span><strong>${esc(group)}</strong><small>${esc(hint)} · ${rows.length} fonctions</small></span>${icon('arrowright')}</summary><div class="tool-list">${rows.map(row).join('')}</div></details>`;
+ }).join('');
 };
-function searchInput(id){return `<div class="field tool-finder-search"><label for="${id}">Que voulez-vous faire ?</label><div class="search-box">${icon('search')}<input id="${id}" type="search" data-tool-search placeholder="Ex. ENF, manquant, photo, sombre…" autocomplete="off" spellcheck="false" aria-controls="${id}-results"></div><p class="hint" data-tool-count role="status" aria-live="polite">Les fonctions du quotidien sont présentées en premier.</p></div>`;}
-export function directory(){return `<div class="page-heading"><div><div class="eyebrow">Tout retrouver au même endroit</div><h1>Tous mes outils</h1><p>Cherchez un geste avec vos mots.</p><p>${bureauLinks()}</p></div></div><div data-tool-directory>${searchInput('tools-search')}<div id="tools-search-results" data-tool-results>${results('')}</div></div>`;}
+function searchInput(id){return `<div class="field tool-finder-search"><label for="${id}">Que voulez-vous faire ?</label><div class="search-box">${icon('search')}<input id="${id}" type="search" data-tool-search placeholder="Ex. ENF, manquant, photo, sombre…" autocomplete="off" spellcheck="false" aria-controls="${id}-results"></div><p class="hint" data-tool-count role="status" aria-live="polite">Tapez votre besoin ou ouvrez une catégorie.</p></div>`;}
+export function directory(){return `<div class="page-heading"><div><div class="eyebrow">Tout retrouver au même endroit</div><h1>Tous mes outils</h1><p>Ouvrez une catégorie ou cherchez avec vos mots.</p><p>${bureauLinks()}</p></div></div><div data-tool-directory>${searchInput('tools-search')}<div id="tools-search-results" data-tool-results>${results('')}</div></div>`;}
 export function openFinder(){
  modal('Trouver une fonction',`<div data-tool-directory data-tool-compact>${searchInput('global-tools-search')}<div id="global-tools-search-results" data-tool-results>${results('',true)}</div><div class="form-actions"><button type="button" class="btn" data-nav="more">Voir tous mes outils</button></div></div>`);
  document.querySelector('#dialog').dataset.helpContext='tool-finder';
@@ -21,6 +28,6 @@ export function install(){
   if(!event.target.matches('[data-tool-search]'))return;
   const root=event.target.closest('[data-tool-directory]'),query=event.target.value;
   root.querySelector('[data-tool-results]').innerHTML=results(query,root.hasAttribute('data-tool-compact'));
-  root.querySelector('[data-tool-count]').textContent=query.trim()?`${searchTools(query).length} fonction(s) trouvée(s).`:'Les fonctions du quotidien sont présentées en premier.';
+  root.querySelector('[data-tool-count]').textContent=query.trim()?`${searchTools(query).length} fonction(s) trouvée(s).`:'Ouvrez une catégorie pour voir ses boutons.';
  });
 }

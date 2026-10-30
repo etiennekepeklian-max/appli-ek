@@ -20,7 +20,7 @@ try{
   await p.saveSnapshot({id:'photo-test',version:'test',createdAt:'2026-01-07T12:00:00Z',eventCount:data.events.length,fileCount:data.files.length,reason:'Test',data,personal:p.localData()});
   return {ids,files:(await s.files()).length,events:s.allEvents().length};
  });
- await page.locator('[data-nav=more]').last().click();await page.getByRole('button',{name:/Supprimer des photos par date/}).first().click();await page.locator('[data-photo-date="2026-01-05"]').waitFor();
+ await page.locator('#mobile-nav [data-nav=more]').click();await page.getByText('Préférences et sauvegardes',{exact:true}).click();await page.getByRole('button',{name:/Supprimer des photos par date/}).first().click();await page.locator('[data-photo-date="2026-01-05"]').waitFor();
  await page.locator('[data-photo-date="2026-01-05"]').check();await page.getByRole('button',{name:'Supprimer les photos sélectionnées',exact:true}).click();await page.getByRole('heading',{name:'Supprimer définitivement ces photos ?',exact:true}).waitFor();
  assert.match(await page.locator('#dialog-body').innerText(),/2 photo\(s\).*2 copie\(s\)/);await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/photo-delete-confirm.png'});
  await page.getByRole('button',{name:'Conserver mes photos',exact:true}).click();assert.equal(await page.evaluate(async()=>(await(await import('./js/storage.js')).files()).length),initial.files);
