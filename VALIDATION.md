@@ -1,3 +1,9 @@
+## 30 octobre 2026 — 1.18.4, mascotte sans pouce
+
+Suppression de l’emoji pouce superposé à la mascotte à l’ouverture, pendant le chargement plein écran et dans les fenêtres de traitement. Les règles du pseudo-élément et son animation dédiée sont retirées du style partagé. La planche originale, ses images, son rythme et la préférence de réduction des animations restent identiques.
+
+Aide Mes préférences / Ma mascotte, action d’import de mascotte et page Aide revérifiées : aucune ne décrit le pouce ajouté ; aucun texte ne nécessite de changement. Vérification avec les tests existants d’ouverture, les tests métier, le contrôle du projet et les parcours navigateur avant publication. Aucune modification des données, de leurs copies ou du serveur.
+
 ## 29 octobre 2026 — 1.18.3, écran Bureau verrouillé
 
 La revue de la capture navigateur a révélé la notification Annuler sous la porte d’accès. Tous les éléments de l’application en dehors de cette porte sont désormais masqués pendant le verrouillage, y compris les notifications ajoutées après le chargement. Le scénario navigateur vérifie aussi l’absence d’action Annuler visible. Aides de l’entrée, FAQ et guide revérifiés : le parcours et la saisie conservée restent identiques. Aucun changement du serveur ni des données.
