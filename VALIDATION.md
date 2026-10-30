@@ -384,3 +384,15 @@ Une synchronisation Google terminée, sans modification restante, peut proposer 
 Le contrôle vérifie encore la session, la feuille, l’état de sauvegarde et le réseau lors de la confirmation. Une saisie, une fenêtre ouverte ou un champ actif retarde la proposition. Un cache identique déjà proposé n’est pas reproposé pendant la session. La fenêtre prévient que les fichiers techniques hors connexion devront être téléchargés de nouveau et son aide conserve la proposition.
 
 Six tests de cache couvrent les octets UTF-8, le périmètre, le plan confirmé, les nouveaux fichiers, une annulation, un échec partiel et une API absente. Le parcours navigateur utilise de vraies entrées CacheStorage et des sauvegardes Google fictives : échec sans proposition, saisie conservée, estimation, annulation, aide, absence de réseau, confirmation et conservation réelle des fiches, d’une photo, d’un brouillon, d’un mémo audio et des préférences, en clair/sombre à 320/390 px. Aucun cache ni donnée d’utilisateur réel n’est effacé par ces tests.
+
+## 1.18.5 — ENF par REF concept
+
+La recherche ENF accepte la REF concept, le nom et chaque référence du contenu, avec priorité au code exact. Les compositions distinguent Meuble, Réf mère et Réf fille et conservent les quantités pour un ENF. Une quantité de deux sur la mère est affichée telle quelle. Toutes les filles sont conservées, y compris une colonne sans intitulé. Une même référence en mère et en fille garde ses deux rôles ; seul un doublon dans le même rôle est refusé ou regroupé explicitement. Les anciennes lignes sans type restent lisibles.
+
+Les sessions authentifiées actualisent les compositions privées en ouvrant ENF, y compris les administrateurs. Le chargement est regroupé et limité à une fois par minute ; un bouton permet de réessayer. Les données reçues restent consultables hors ligne. Une réponse de paramètres arrivée après un changement d’identité ou d’espace n’est pas appliquée à la nouvelle session. La démonstration reste séparée.
+
+Les 27 compositions relues avec Étienne ont été validées en mémoire contre le schéma et les recherches, avec contrôle des six filles de la dernière ligne et de la mère en quantité deux. L’ajout serveur doit être atomique et conservateur : aucun remplacement d’un code déjà présent, aucun changement des autres paramètres. Références réelles et photo restent hors du dépôt public ; seules des compositions fictives sont utilisées dans les tests.
+
+Aide revue et mise à jour : écran ENF, fenêtre de contenu, formulaire de modification et sélecteur de type dans help-core.js ; FAQ de la page Aide ; guide Bureau. La saisie et le brouillon sont conservés pendant l’aide. Aucun identifiant PWA ou de stockage ne change.
+
+Validation locale : 263 tests métier réussis ; syntaxe, dépendances, empreintes et versions cohérentes. Le parcours enf-smoke vérifie aussi les types, la mère en quantité deux, les six filles, la modification, les sauvegardes, le chargement privé opérateur et la consultation hors ligne. Les huit contrôles GitHub restent bloquants avant publication.

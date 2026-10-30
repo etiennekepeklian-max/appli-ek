@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {parseEnfText,validateEnf,combineEnfLines} from '../site/js/enf-core.js';
+import {parseEnfText,validateEnf,combineEnfLines,searchEnfs} from '../site/js/enf-core.js';
 import {makeEvent,rowForEvent,eventFromRow,SHEETS,SHEET_TABS} from '../site/js/core.js';
 import {mergeSharedEnfs} from '../backend/pikeo-api/core.mjs';
 const catalogue=[{sku:'001234',name:'Carte',barcode:'0001112223333'},{sku:'009876',name:'Autre carte'}];
@@ -11,3 +11,19 @@ test('ENF : valeurs invalides refusées, quantité vide jamais remplacée par un
 test('ENF : une révision Google reste lisible dans produit sans cinquième onglet',()=>{const e=makeEvent('enfs',{id:'enf-1',...validateEnf({code:'000042',lines:[{sku:'001234',quantity:4}]})},'ENF vérifié','Test','test-device');assert.equal(SHEETS.enfs,'produit');assert.equal(SHEET_TABS.length,4);const got=eventFromRow(rowForEvent(e));assert.equal(got.type,'enfs');assert.deepEqual(got.record.lines,[{sku:'001234',quantity:4}]);});
 test('ENF partagé : une ancienne publication ne retire pas une nouvelle composition',()=>{const enf={type:'enfs',record:{id:'enf-1',code:'000042',lines:[{sku:'001234',quantity:4}]}},current={records:[enf]},incoming={records:[{type:'products',record:{id:'p1'}}]};const r=mergeSharedEnfs(incoming,current);assert.deepEqual(r.records,[incoming.records[0],enf]);assert.equal(incoming.records.length,1);});
 test('ENF partagé : une révision ou un retrait explicite remplace la version précédente',()=>{const previous={type:'enfs',record:{id:'enf-1',code:'000042'}},next={type:'enfs',record:{id:'enf-1',deleted:true}};assert.deepEqual(mergeSharedEnfs({records:[next]},{records:[previous]}).records,[next]);});
+test('ENF concept : meuble, mère en deux exemplaires et toutes les filles conservent leur rôle',()=>{
+ const lines=[{sku:'00880000',quantity:1,role:'meuble'},{sku:'001234',quantity:2,role:'mere'},...['000001','000002','000003','000004','000005','000006'].map(sku=>({sku,quantity:1,role:'fille'}))];
+ const clean=validateEnf({code:'C-001',name:'Concept test',lines});assert.deepEqual(clean.lines,lines);
+ assert.deepEqual(eventFromRow(rowForEvent(makeEvent('enfs',{id:'concept-test',...clean},'Test','Test','device'))).record.lines,lines);
+});
+test('ENF concept : même référence en mère et en fille conservée, répétition du même rôle refusée',()=>{
+ const lines=[{sku:'001234',quantity:1,role:'mere'},{sku:'001234',quantity:1,role:'fille'}];
+ assert.deepEqual(validateEnf({code:'C-001',lines}).lines,lines);
+ assert.throws(()=>validateEnf({code:'C-001',lines:[...lines,lines[1]]}),/répétée/);
+ assert.deepEqual(combineEnfLines([...lines,{sku:'001234',quantity:2,role:'fille'}]),[lines[0],{sku:'001234',quantity:3,role:'fille'}]);
+ assert.throws(()=>validateEnf({code:'C-001',lines:[{sku:'001234',quantity:1,role:'autre'}]}),/type de référence/);
+});
+test('ENF concept : recherche par concept, nom ou dernière fille, code exact prioritaire',()=>{
+ const rows=[{id:'a',code:'C-000',name:'Autre',lines:[{sku:'C-001'}]},{id:'b',code:'C-001',name:'Concept Test',lines:[{sku:'000006'}]},{id:'c',code:'C-002',deleted:true,lines:[{sku:'000006'}]}];
+ assert.deepEqual(searchEnfs(rows,'C-001').map(r=>r.id),['b','a']);assert.deepEqual(searchEnfs(rows,'000006').map(r=>r.id),['b']);assert.deepEqual(searchEnfs(rows,'concept test').map(r=>r.id),['b']);assert.equal(searchEnfs(rows,'inconnu').length,0);
+});
