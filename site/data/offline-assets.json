@@ -44,6 +44,7 @@
   "js/diagnostic.js",
   "js/document-camera.js",
   "js/enf-core.js",
+  "js/enf-voice.js",
   "js/enf.js",
   "js/features.js",
   "js/feedback.js",

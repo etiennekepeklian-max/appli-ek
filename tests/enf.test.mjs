@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {parseEnfText,validateEnf,combineEnfLines,searchEnfs} from '../site/js/enf-core.js';
+import {parseEnfText,validateEnf,combineEnfLines,searchEnfs,enfVoiceQuery} from '../site/js/enf-core.js';
 import {makeEvent,rowForEvent,eventFromRow,SHEETS,SHEET_TABS} from '../site/js/core.js';
 import {mergeSharedEnfs} from '../backend/pikeo-api/core.mjs';
 const catalogue=[{sku:'001234',name:'Carte',barcode:'0001112223333'},{sku:'009876',name:'Autre carte'}];
@@ -26,4 +26,18 @@ test('ENF concept : même référence en mère et en fille conservée, répétit
 test('ENF concept : recherche par concept, nom ou dernière fille, code exact prioritaire',()=>{
  const rows=[{id:'a',code:'C-000',name:'Autre',lines:[{sku:'C-001'}]},{id:'b',code:'C-001',name:'Concept Test',lines:[{sku:'000006'}]},{id:'c',code:'C-002',deleted:true,lines:[{sku:'000006'}]}];
  assert.deepEqual(searchEnfs(rows,'C-001').map(r=>r.id),['b','a']);assert.deepEqual(searchEnfs(rows,'000006').map(r=>r.id),['b']);assert.deepEqual(searchEnfs(rows,'concept test').map(r=>r.id),['b']);assert.equal(searchEnfs(rows,'inconnu').length,0);
+});
+test('Recherche vocale ENF : référence dictée, zéros et suffixe lettre conservés',()=>{
+ for(const text of ['zéro zéro un deux trois quatre bé','référence du concept zéro zéro un deux trois quatre bé.','00 12 34 B'])assert.equal(enfVoiceQuery(text,'reference'),'001234B');
+ assert.equal(enfVoiceQuery('REF001234','reference'),'REF001234');
+ assert.equal(enfVoiceQuery('code concept zéro zéro neuf tiret cé','reference'),'009-C');
+ for(const text of ['','vingt trois','cent vingt quatre'])assert.throws(()=>enfVoiceQuery(text,'reference'));
+});
+test('Recherche vocale ENF : nom conservé et retrouvé malgré accents ou ponctuation',()=>{
+ const rows=[{id:'name',code:'C-008',name:'Concept étagère-atelier',lines:[]},{id:'other',code:'C-009',name:'Autre',lines:[]}];
+ const name=enfVoiceQuery('nom du concept Concept etagere atelier.','name');assert.equal(name,'Concept etagere atelier');
+ assert.deepEqual(searchEnfs(rows,name).map(r=>r.id),['name']);
+ assert.equal(enfVoiceQuery('Concept un deux trois','name'),'Concept un deux trois');
+ assert.throws(()=>enfVoiceQuery('nom du concept','name'));
+ assert.throws(()=>enfVoiceQuery('x'.repeat(141),'name'));
 });

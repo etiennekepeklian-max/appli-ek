@@ -5,3 +5,4 @@
 @media(max-width:380px){.enf-edit-line{grid-template-columns:minmax(0,1fr) 76px 44px}}
 
 .enf-edit-line select{margin-bottom:6px}
+.enf-voice{max-width:640px}.enf-voice-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.enf-voice-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.enf-voice-actions .btn{min-width:0;min-height:52px;white-space:normal;text-align:left;overflow-wrap:anywhere}.enf-voice-actions .icon{flex-shrink:0}

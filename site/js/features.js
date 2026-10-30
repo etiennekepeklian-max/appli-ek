@@ -25,6 +25,7 @@ export function loadScript(path){
 }
 let recognition;
 export function dictate(button){
+  window.dispatchEvent(new Event('pikeo-stop-enf-voice'));
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!Recognition){toast('La dictée n’est pas disponible dans ce navigateur. Utilisez le micro du clavier de votre téléphone ou saisissez le texte.',true);return;}
   const input=document.getElementById(button.dataset.target);if(!input)return;
@@ -35,7 +36,7 @@ export function dictate(button){
   recognition.onerror=e=>{toast(e.error==='not-allowed'?'Autorisez le microphone dans les réglages du navigateur.':'La dictée n’a pas abouti. Vous pouvez réessayer ou saisir le texte.',true);};
   recognition.onend=()=>{recognition=null;button.classList.remove('listening');button.setAttribute('aria-label','Dicter');};recognition.start();
 }
-export function stopDictation(){recognition?.stop();recognition=null;}
+export function stopDictation(){recognition?.stop();recognition=null;window.dispatchEvent(new Event('pikeo-stop-enf-voice'));}
 export function barcodeSVG(value,format='CODE128',stars=false){
   const payload=stars&&format==='CODE128'?`*${value}*`:value;
   validBarcode(payload,format);if(!window.JsBarcode)throw Error('Le générateur de codes-barres n’est pas chargé.');
