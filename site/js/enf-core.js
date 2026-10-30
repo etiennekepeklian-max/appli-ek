@@ -1,9 +1,22 @@
-import {refKey} from './core.js';
+import {refKey,voiceCode} from './core.js';
 const codeOK=s=>/^[A-Z0-9][A-Z0-9._/-]{0,59}$/i.test(s);
 export const ENF_ROLES={meuble:'Meuble',mere:'Réf mère',fille:'Réf fille'};
 const lineKey=row=>refKey(row.sku)+'|'+(row.role||'');
+const nameKey=value=>refKey(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,' ').trim();
+export function enfVoiceQuery(text,mode){
+ let value=String(text||'').normalize('NFKC').trim().replace(/[.,!?;:]+$/g,'').trim();
+ if(mode==='reference'){
+  value=value.replace(/^(?:(?:r[ée]f[ée]rence|r[ée]f)(?:\s+(?:du\s+)?concept)?|code\s+(?:du\s+)?concept)\b\s*:?\s*/i,'');
+  if(/\b(?:dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|quarante|cinquante|soixante|cent|cents|mille)\b/i.test(value))throw Error('Dictez la référence chiffre par chiffre, y compris les zéros, ou corrigez-la au clavier.');
+  value=voiceCode(value).value;
+  if(!codeOK(value))throw Error('Référence non comprise. Dictez les chiffres et les lettres séparément, ou utilisez le clavier.');
+ }else if(mode==='name')value=value.replace(/^nom\s+(?:du\s+)?concept\b\s*:?\s*/i,'').trim();
+ else throw Error('Choisissez la dictée par référence ou par nom.');
+ if(!value||value.length>140)throw Error('Aucun concept compris. Réessayez ou saisissez la recherche au clavier.');
+ return value;
+}
 export function searchEnfs(records,query=''){
- const key=refKey(query),matches=records.filter(r=>!r.deleted&&refKey([r.code,r.name,...(r.lines||[]).map(l=>l.sku)].join(' ')).includes(key));
+ const key=refKey(query),name=nameKey(query),matches=records.filter(r=>!r.deleted&&([r.code,...(r.lines||[]).map(l=>l.sku)].some(value=>refKey(value).includes(key))||name&&nameKey(r.name).includes(name)));
  return matches.sort((a,b)=>Number(refKey(b.code)===key)-Number(refKey(a.code)===key)||String(a.code).localeCompare(String(b.code),'fr',{numeric:true}));
 }
 export function parseEnfText(text,catalogue=[]){

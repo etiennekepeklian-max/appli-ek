@@ -6,6 +6,7 @@ import {parseEnfText,validateEnf,combineEnfLines,ENF_ROLES,searchEnfs} from './e
 import * as API from './session-api.js';
 import {applyShared} from './sessions.js';
 import {recognizePhoto} from './features.js';
+import * as SearchVoice from './enf-voice.js';
 import {state,esc,nav,pageHeading,field,check,modal,closeModal,onModalClose,toast,formError} from './ui.js';
 export const ROUTES={enfs:'ENF'};
 let app,draft,draftScope,busy=false,queue=Promise.resolve();
@@ -29,7 +30,7 @@ function results(){
  return '<p class="hint" role="status">'+rows.length+' ENF trouvé(s)</p><div class="record-list section-gap">'+rows.map(r=>'<article class="card"><p class="hint">REF concept / code ENF</p><h2 class="mono">'+esc(r.code)+'</h2>'+hint(esc(r.name||'')+(r.name?' · ':'')+(r.lines?.length||0)+' ligne(s) à prélever')+button('Voir le contenu','view',r.id)+'</article>').join('')+'</div>'+(!rows.length?'<section class="card section-gap"><p>Aucun ENF trouvé.</p>'+hint(canEdit()?'Photographiez sa feuille, vérifiez les références et quantités, puis enregistrez.':'Les compositions publiées par un administrateur apparaîtront ici.')+'</section>':'');
 }
 export function render(){
- return pageHeading('ENF','Cherchez une REF concept pour retrouver le meuble, la REF mère et toutes les REF filles.',canEdit()?button('Photographier une feuille ENF','new','','primary'):'')+'<div class="actions section-gap">'+nav('Catalogue produits','stock','box')+(API.current()&&!Store.isDemo()?button('Actualiser les ENF','refresh'):'')+'</div><div data-enf-draft></div><p data-enf-refresh class="hint" role="status"></p><label class="field section-gap"><span>Rechercher un ENF par REF concept</span><input type="search" id="enf-search" data-filter-search value="'+esc(state.query)+'" placeholder="REF concept, nom ou référence à prélever"></label><div data-enf-results class="section-gap">'+results()+'</div>';
+ return pageHeading('ENF','Cherchez par référence ou nom du concept pour retrouver le meuble, la REF mère et toutes les REF filles.',canEdit()?button('Photographier une feuille ENF','new','','primary'):'')+'<div class="actions section-gap">'+nav('Catalogue produits','stock','box')+(API.current()&&!Store.isDemo()?button('Actualiser les ENF','refresh'):'')+'</div><div data-enf-draft></div><p data-enf-refresh class="hint" role="status"></p><label class="field section-gap"><span>Rechercher un ENF par référence ou nom du concept</span><input type="search" id="enf-search" data-filter-search value="'+esc(state.query)+'" placeholder="REF concept, nom ou référence à prélever"></label>'+SearchVoice.controls()+'<div data-enf-results class="section-gap">'+results()+'</div>';
 }
 async function refreshShared(root,force=false){
  if(Store.isDemo()||!API.current())return;
@@ -94,6 +95,7 @@ async function action(node){
  drawLines(form);await persist();
 }
 export function install(callbacks){
+ SearchVoice.install();
  app=callbacks;document.addEventListener('click',e=>{const b=e.target.closest('[data-enf-action]');if(!b||b.disabled)return;e.preventDefault();void action(b).catch(err=>toast(err.message,true));});
  document.addEventListener('input',e=>{const form=e.target.closest('[data-enf-form]');if(!form||busy)return;capture(form);if(e.target.matches('[data-enf-sku]')){const product=products().find(p=>refKey(p.sku)===refKey(e.target.value));e.target.closest('[data-enf-row]').querySelector('small').textContent=product?.name||'Référence à vérifier';}if(e.target.name!=='reviewed')invalidate(form);void persist().catch(err=>toast(err.message,true));});
  document.addEventListener('change',e=>{if(!e.target.matches('[data-enf-photos]'))return;const files=[...e.target.files];e.target.value='';if(files.length)void addPhotos(files).catch(err=>toast(err.message,true));});
