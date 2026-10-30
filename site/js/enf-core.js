@@ -1,5 +1,11 @@
 import {refKey} from './core.js';
 const codeOK=s=>/^[A-Z0-9][A-Z0-9._/-]{0,59}$/i.test(s);
+export const ENF_ROLES={meuble:'Meuble',mere:'Réf mère',fille:'Réf fille'};
+const lineKey=row=>refKey(row.sku)+'|'+(row.role||'');
+export function searchEnfs(records,query=''){
+ const key=refKey(query),matches=records.filter(r=>!r.deleted&&refKey([r.code,r.name,...(r.lines||[]).map(l=>l.sku)].join(' ')).includes(key));
+ return matches.sort((a,b)=>Number(refKey(b.code)===key)-Number(refKey(a.code)===key)||String(a.code).localeCompare(String(b.code),'fr',{numeric:true}));
+}
 export function parseEnfText(text,catalogue=[]){
  const raw=String(text||'').replace(/\u00a0/g,' '),found=raw.match(/(?:code\s+enf|r[ée]f[ée]rence\s+enf|\benf\b)(?:\s*[:#]\s*|\s+)(?:n[°o]\s*)?([A-Z0-9][A-Z0-9._/-]{1,59})/i);
  let code=found&&/\d/.test(found[1])?found[1]:'';
@@ -23,9 +29,9 @@ export function validateEnf(data){
  const code=String(data?.code||'').trim();if(!codeOK(code))throw Error('Renseignez le code ENF avec ses lettres, chiffres et zéros.');
  if(!Array.isArray(data.lines)||!data.lines.length||data.lines.length>300)throw Error('Renseignez entre 1 et 300 références.');
  const seen=new Set(),lines=[];
- for(const row of data.lines){const sku=String(row.sku||'').trim(),quantity=Number(String(row.quantity??'').replace(',','.'));if(!codeOK(sku))throw Error('Une référence est vide ou invalide.');if(!Number.isInteger(quantity)||quantity<1||quantity>1000000)throw Error('Chaque quantité doit être un entier positif, sans valeur devinée.');if(seen.has(refKey(sku)))throw Error('Une référence est répétée. Vérifiez puis regroupez les lignes concernées.');seen.add(refKey(sku));lines.push({sku,quantity});}
+ for(const row of data.lines){const sku=String(row.sku||'').trim(),quantity=Number(String(row.quantity??'').replace(',','.')),role=row.role||'';if(!codeOK(sku))throw Error('Une référence est vide ou invalide.');if(role&&!Object.hasOwn(ENF_ROLES,role))throw Error('Choisissez Meuble, Réf mère ou Réf fille pour le type de référence.');if(!Number.isInteger(quantity)||quantity<1||quantity>1000000)throw Error('Chaque quantité doit être un entier positif, sans valeur devinée.');const key=lineKey({sku,role});if(seen.has(key))throw Error('Une référence est répétée dans le même type. Vérifiez puis regroupez les lignes concernées.');seen.add(key);lines.push({sku,quantity,...(role?{role}:{})});}
  return {code,name:String(data.name||'').trim().slice(0,140),notes:String(data.notes||'').trim().slice(0,2000),lines};
 }
 export function combineEnfLines(rows){
- const map=new Map();for(const row of rows){const quantity=Number(String(row.quantity??'').replace(',','.'));if(!Number.isInteger(quantity)||quantity<1)throw Error('Corrigez les quantités avant de regrouper.');const key=refKey(row.sku);if(!key)throw Error('Corrigez les références avant de regrouper.');const old=map.get(key);if(old)old.quantity+=quantity;else map.set(key,{...row,quantity});}return [...map.values()];
+ const map=new Map();for(const row of rows){const quantity=Number(String(row.quantity??'').replace(',','.'));if(!Number.isInteger(quantity)||quantity<1)throw Error('Corrigez les quantités avant de regrouper.');if(!refKey(row.sku))throw Error('Corrigez les références avant de regrouper.');const key=lineKey(row),old=map.get(key);if(old)old.quantity+=quantity;else map.set(key,{...row,quantity});}return [...map.values()];
 }

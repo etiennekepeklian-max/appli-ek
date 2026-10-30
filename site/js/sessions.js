@@ -23,7 +23,15 @@ export function mount(root,route){const token=++paint;if(lastIdentity!==API.curr
  if(route==='chat'&&API.current())void Chat.sync().catch(()=>{}).then(()=>drawChat(root,token)).catch(e=>toast(e.message,true));
  if(route==='team'&&API.current())void drawTeam(root).catch(e=>toast(e.message,true));
 }
-export async function applyShared(){const r=await API.request('config-get');configVersion=r.version;const old=await Store.meta('shared-config-version');if(old===r.version||!r.data?.records?.length)return r.version;const now=new Date().toISOString();await Store.merge(r.data.records.map(item=>({id:'shared-'+r.version+'-'+item.type+'-'+item.record.id,type:item.type,record:item.record,updatedAt:now,actor:'Paramètres partagés',action:'Paramètres de l’équipe',synced:true})));await Store.setMeta('shared-config-version',r.version);return r.version;}
+export async function applyShared(){
+ const scope=Store.scope(),identity=API.current()?.id;if(Store.isDemo()||!identity)return;
+ const same=()=>scope===Store.scope()&&identity===API.current()?.id;
+ const r=await API.request('config-get');if(!same())throw Error('La session a changé. Actualisez les paramètres dans votre session.');
+ configVersion=r.version;const old=await Store.meta('shared-config-version');if(!same())return;
+ if(old===r.version||!r.data?.records?.length)return r.version;
+ const now=new Date().toISOString();await Store.merge(r.data.records.map(item=>({id:'shared-'+r.version+'-'+item.type+'-'+item.record.id,type:item.type,record:item.record,updatedAt:now,actor:'Paramètres partagés',action:'Paramètres de l’équipe',synced:true})));
+ if(same())await Store.setMeta('shared-config-version',r.version);return r.version;
+}
 async function perform(button){const a=button.dataset.sessionAction,id=button.dataset.id;
  if(a==='personal'){await switchUser(()=>API.personal());return;}
  if(a==='activate'){await switchUser(()=>API.activate(id));return;}

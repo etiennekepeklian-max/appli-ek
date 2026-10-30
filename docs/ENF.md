@@ -13,4 +13,12 @@ Le sigle est conservé tel qu’Étienne l’utilise ; son développement intern
 - Les administrateurs modifient les compositions et peuvent les publier pour les opérateurs. Les photos sources ne sont pas transférées avec les paramètres d’équipe. Une ancienne publication de paramètres préserve les ENF inconnus de cet ancien client.
 - Utiliser la version 1.11 ou suivante sur tous les appareils qui consultent une base contenant des ENF.
 
-Limite : faute d’une feuille réelle fournie, la reconnaissance est vérifiée sur des feuilles synthétiques et du texte représentatif. La relecture reste nécessaire pour les mises en page, chiffres ou photos ambigus.
+## Recherche d’une REF concept
+
+La REF concept de la commande sert de code ENF. Sa composition contient le meuble, la REF mère et toutes les REF filles, y compris les colonnes sans intitulé. Chaque ligne conserve son type (`meuble`, `mere`, `fille`) et sa quantité. Une mention ×2 sur la mère signifie une quantité de deux pour cette mère. Une référence identique en mère et en fille reste présente dans les deux rôles ; le regroupement ne fusionne que les références de même rôle. Les anciennes lignes sans type restent compatibles.
+
+La recherche accepte le code, le nom et chaque référence du contenu. Le code exact est classé en premier. Les sessions authentifiées actualisent les ENF depuis les paramètres privés à l’ouverture de cet écran, avec un bouton pour réessayer. Les compositions chargées restent disponibles hors ligne. Un changement de session interrompt l’application d’une réponse tardive.
+
+Les compositions de la feuille expliquée par Étienne sont conservées uniquement dans les paramètres privés du serveur ; aucune référence réelle ni photo n’est ajoutée au dépôt public. L’ajout conserve les autres paramètres. Utiliser la version 1.18.5 ou suivante pour modifier les lignes typées.
+
+Limite : la nouvelle composition a été retranscrite puis relue à partir de la photo et des explications d’Étienne. La lecture OCR automatique de ce tableau à plusieurs colonnes reste à vérifier ; elle n’est pas utilisée pour cet ajout. Les tests du dépôt emploient uniquement des exemples fictifs.

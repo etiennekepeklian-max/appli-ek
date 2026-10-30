@@ -1,5 +1,7 @@
 
 .enf-edit-line{display:grid;grid-template-columns:minmax(0,1fr) 90px 44px;gap:8px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border)}
-.enf-edit-line .field{min-width:0}.enf-edit-line input{min-width:0;width:100%}.enf-edit-line .icon-button{margin-top:24px;min-width:44px;min-height:44px}
+.enf-edit-line .field{min-width:0}.enf-edit-line input,.enf-edit-line select{min-width:0;width:100%}.enf-edit-line .icon-button{margin-top:24px;min-width:44px;min-height:44px}
 .enf-line-source{grid-column:1/-1;overflow-wrap:anywhere}.enf-edit-line small{overflow-wrap:anywhere}
 @media(max-width:380px){.enf-edit-line{grid-template-columns:minmax(0,1fr) 76px 44px}}
+
+.enf-edit-line select{margin-bottom:6px}
