@@ -1,3 +1,11 @@
+## 30 octobre 2026 — 1.19.1, illustrations jaunes sur toute la surface des boutons
+
+Les neuf illustrations ont été adaptées dans Canva à la palette jaune/noir de Pikéo. Les grandes actions, les trois accès mémos/horaires/aide et les raccourcis personnels utilisent désormais un fond illustré couvrant toute la surface du bouton. Le titre et son explication sont superposés dans la partie basse sur un fond jaune opaque ; ils restent du texte accessible. La planche source Canva de 1 264 × 1 264 pixels remplace l’aperçu de 200 pixels. Le cadrage SVG conserve les dessins entiers et leurs proportions, sans révéler une illustration voisine. Les dimensions sont bornées à la largeur réelle du téléphone, y compris lorsque le navigateur mobile élargirait autrement son viewport. Les petites illustrations des listes reprennent la même planche jaune.
+
+Actions, navigation, ordre des raccourcis, données, identifiants PWA/stockage et protections Bureau restent conservés. Aides Accueil, prise en main, FAQ Aide et guide Bureau relus ; les textes de l’accueil et des trois gestes décrivent le nouveau repère visuel. La version renouvelle le cache et conserve les dessins hors connexion.
+
+Validation locale : 263 tests métier réussis, 169 modules et 889 dépendances contrôlés, 28 empreintes fournisseur et cache de 133 ressources cohérents. Parcours navigateur requis : parcours des neuf accès, couverture du bouton et superposition réelle des textes, contraste en clair/sombre à 320/390 px, gros caractères, raccourcis, bureau, aide, état sans image et rechargement hors connexion. Les huit contrôles GitHub restent requis avant publication.
+
 ## 30 octobre 2026 — 1.19.0, interface simplifiée et pictogrammes Canva
 
 - Accueil : six grandes actions libellées et illustrées, suivi des manquants et accès directs aux mémos, horaires et aide. Recherche, raccourcis personnalisés et bilan/sauvegarde se déplient séparément ; les choix et leur ordre restent conservés. Le résumé de sauvegarde reste visible.
