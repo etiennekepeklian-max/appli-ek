@@ -72,6 +72,11 @@ try{
   const dismiss=page.locator('#undo-bar [data-ops-action=hide-undo]');if(await dismiss.isVisible())await dismiss.click();
   await page.locator('#toast').waitFor({state:'hidden'});await page.locator('#main').focus();
   const boxes=await page.locator('.simple-action-grid button').evaluateAll(rows=>rows.map(r=>{const b=r.getBoundingClientRect();return {width:b.width,height:b.height};}));assert.ok(boxes.every(b=>b.width>=120&&b.height>=160));
+  const illustrations=await page.locator('.simple-action-grid .illustrated-tile,.simple-essentials .illustrated-tile').evaluateAll(rows=>rows.map(button=>{
+   const b=button.getBoundingClientRect(),art=button.querySelector('.simple-picto').getBoundingClientRect(),caption=button.querySelector('.simple-tile-caption'),c=caption.getBoundingClientRect();
+   return {coverage:art.width*art.height/(b.width*b.height),bottom:Math.abs(c.bottom-b.bottom),lowerHalf:c.top>=b.top+b.height*.4,captionFits:c.height<=b.height*.6&&caption.scrollWidth<=caption.clientWidth+1};
+  }));
+  assert.equal(illustrations.length,9);assert.ok(illustrations.every(r=>r.coverage>.95&&r.bottom<=2&&r.lowerHalf&&r.captionFits),'Chaque illustration doit couvrir le bouton et porter son texte dans la partie basse.');
   assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.screenshot({path:`test-results/simple-home-${theme}-${width}.png`,fullPage:true});
@@ -79,15 +84,27 @@ try{
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.screenshot({path:`test-results/simple-tools-${theme}-${width}.png`,fullPage:true});
  }
- console.log('Outils : inventaire intégral conservé, six catégories au clavier, recherche directe ; gros boutons, contrastes et absence de débordement vérifiés à 320/390 px dans les deux thèmes.');
+ console.log('Outils : inventaire intégral conservé, six catégories au clavier, recherche directe ; neuf illustrations couvrant les boutons, texte superposé en bas, contrastes et absence de débordement vérifiés à 320/390 px dans les deux thèmes.');
+
+ await go('personal');await page.locator('[name=textSize]').selectOption('large');await page.locator('[data-wb-form=preferences] [type=submit]').click();await page.waitForFunction(()=>document.documentElement.dataset.textSize==='large');
+ await page.setViewportSize({width:320,height:844});await go('home');
+ assert.ok(await page.locator('.illustrated-tile').evaluateAll(rows=>rows.every(button=>{const b=button.getBoundingClientRect(),c=button.querySelector('.simple-tile-caption').getBoundingClientRect();return c.top>=b.top&&c.bottom<=b.bottom+1;})));
+ assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);await page.screenshot({path:'test-results/simple-yellow-large-text.png',fullPage:true});
+ await go('personal');await page.locator('[name=textSize]').selectOption('normal');await page.locator('[data-wb-form=preferences] [type=submit]').click();await page.waitForFunction(()=>document.documentElement.dataset.textSize==='normal');
 
  await go('home');await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
- const picture=await page.evaluate(async()=>{const image=new Image();image.src='assets/pikeo-actions-canva.png';await image.decode();return [image.naturalWidth,image.naturalHeight];});assert.ok(picture.every(n=>n>=200));
+ const picture=await page.evaluate(async()=>{const image=new Image();image.src='assets/pikeo-actions-canva.png';await image.decode();const canvas=document.createElement('canvas');canvas.width=1;canvas.height=1;canvas.getContext('2d').drawImage(image,0,0);return {size:[image.naturalWidth,image.naturalHeight],yellow:[...canvas.getContext('2d').getImageData(0,0,1,1).data]};});assert.ok(picture.size.every(n=>n>=200));assert.ok(picture.yellow[0]>190&&picture.yellow[1]>140&&picture.yellow[2]<150,'Le fond de la planche Canva doit être jaune.');
  await context.setOffline(true);await page.reload();await page.locator('.simple-action-grid button').first().waitFor();assert.equal(await page.locator('.simple-action-grid button').count(),6);
  await page.evaluate(async()=>{const image=new Image();image.src='assets/pikeo-actions-canva.png';await image.decode();});
  assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>document.querySelector('[data-backup-summary]')?.textContent.toLowerCase().includes('hors'));
  await context.setOffline(false);assert.deepEqual(errors,[]);
  console.log('Hors connexion réel : accueil, illustrations locales et état de sauvegarde disponibles après rechargement, données conservées.');
+ const noImage=await browser.newContext({viewport:{width:320,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+ await noImage.route('**/assets/pikeo-actions-canva.png',route=>route.abort());
+ const fallback=await noImage.newPage();fallback.on('pageerror',error=>errors.push(error.message));await fallback.goto(base);await fallback.getByRole('button',{name:'Commencer',exact:true}).click();await fallback.locator('#dialog').waitFor({state:'hidden'});
+ assert.equal(await fallback.locator('.simple-action-grid button').count(),6);for(const label of await fallback.locator('.simple-action-grid .simple-tile-caption').all())assert.ok(await label.isVisible());
+ assert.deepEqual((await fallback.evaluate(auditContrast)).failures,[]);await noImage.close();assert.deepEqual(errors,[]);
+ console.log('Image indisponible : les boutons gardent leurs textes et un contraste lisible.');
 }catch(error){
  await page?.screenshot({path:'test-results/simple-ui-failure.png',fullPage:true}).catch(()=>{});console.error(await page?.locator('body').innerText().catch(()=>''));throw error;
 }finally{await browser?.close();server.kill();}
