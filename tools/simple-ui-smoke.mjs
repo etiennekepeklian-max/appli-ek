@@ -51,7 +51,7 @@ try{
  await go('home');await homeButton('enfs').click();await page.locator('#enf-search').fill('UI-CONCEPT');await page.getByRole('button',{name:'Voir le contenu',exact:true}).click();
  assert.match(await page.locator('#dialog').innerText(),/UI-MEUBLE[\s\S]*UI-MERE[\s\S]*2[\s\S]*UI-FILLE/);await close();
  await go('home');await homeButton('codes').click();await page.locator('[name=value]').fill('000007');await page.locator('[data-form=barcode] [type=submit]').click();
- await page.locator('#barcode-stage svg').waitFor();assert.match(await page.locator('#barcode-stage').innerText(),/000007/);
+ await page.locator('#barcode-stage').filter({hasText:'000007'}).waitFor();assert.match(await page.locator('#barcode-stage').innerText(),/000007/);
  await go('home');await homeButton('stock').click();await page.locator('[data-filter-search]').fill('UI-REF-001');await page.locator('.product-record').filter({hasText:'Produit synthétique'}).waitFor();
  await go('home');await homeButton('new-order').click();await page.locator('#picking-total').fill('42');
  await page.locator('.simple-route-guide > summary').click();await page.locator('.simple-route-guide [data-action=quickhelp]').click();await page.getByRole('button',{name:'Reprendre',exact:true}).click();assert.equal(await page.locator('#picking-total').inputValue(),'42');
