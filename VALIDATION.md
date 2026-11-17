@@ -437,3 +437,10 @@ Validation locale : 265 tests métier réussis ; 171 modules, 901 dépendances, 
 Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios de création, confirmation, verrouillage, réinitialisation et isolation des appareils. Contrôle de syntaxe et des dépendances réussi. Vérification en lecture de la base existante : seuls les appareils du propriétaire ont le rôle administrateur ; secret PIN serveur déjà configuré.
 
 Validation mobile préparée dans `tools/user-pin-smoke.mjs`, mais non exécutée jusqu’au bout : le navigateur fourni refuse de démarrer car la création de son socket est interdite (`Operation not permitted`). Aucun changement n’est activé en production tant que ce parcours et le contrat SQL sur une base de test ne sont pas validés. Les tables et la fonction de production sont inchangées.
+
+
+## Mention de propriété intellectuelle — 17 novembre 2026
+
+- Mention exacte « Pikéo — Propriété intellectuelle d’Étienne Képéklian » dans le pied de page mobile et Bureau, visible aussi sur la connexion. Retour à la ligne adapté aux petits écrans.
+- Mention reprise dans la page Aide, avec maintien explicite des licences des composants tiers. Aide de l’écran relue ainsi que `help-core.js` ; aucun nouveau formulaire ni aucune action, donc aucun contexte d’aide supplémentaire nécessaire. Le texte de la page Aide relatif aux codes et à l’unique administrateur a été aligné sur la modification déjà préparée.
+- Modification ajoutée à la branche de préparation ; aucune publication ni activation de la connexion en production.
