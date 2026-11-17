@@ -29,9 +29,10 @@ try{
   else if(p.action==='team')data={achievements:[]};
   await route.fulfill({headers,status,json:data});
  });
+ await context.route('**/qa-activity.html',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Synthetic activity test</title>'}));
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://localhost:8765/');
- await page.evaluate(async()=>{const a=await import('/js/session-api.js');await a.login('Étienne',{ownerSecret:'synthetic-only'});const s=await import('/js/storage.js');await s.save('preferences',{...s.settings(),id:'main',welcomed:true});});
+ await page.goto('http://localhost:8765/qa-activity.html');
+ await page.evaluate(async()=>{const a=await import('/js/session-api.js');await a.login('Étienne',{ownerSecret:'synthetic-only'});const s=await import('/js/storage.js');await s.openStore(false);await s.save('preferences',{...s.settings(),id:'main',welcomed:true});});
  await page.goto('http://localhost:8765/#administration');
  await page.getByRole('heading',{name:'Connexions et actions'}).waitFor();
  assert.match(await page.locator('#main').innerText(),/09:00:00/);
