@@ -65,7 +65,7 @@ function render(){
 }
 function queueRender(){if(['scan','voice'].includes(state.route)||renderPending)return;renderPending=true;queueMicrotask(()=>{renderPending=false;render();});}
 async function autoStartCamera(){try{await Features.startCamera();}catch(e){const container=document.querySelector('#camera-container');if(state.route==='scan'&&container){container.innerHTML=btn('Réessayer la caméra','start-camera','camera','primary')+'<p class="hint section-gap">'+esc(e.message)+'</p>';}}}
-function navigate(route,params={}){if(state.route!==route&&(route==='photo-cleanup'||state.route==='photo-cleanup'))PhotoCleanup.invalidate();if(state.route==='voice'&&route!=='voice')Voice.leaveVoice();void Ops.persistDraft();if(!titles[route])route='home';if(state.route!==route){clearTimeout(searchTimer);Features.stopCamera();Features.cancelProductLookup();Features.stopDictation();state.query='';state.filter='all';state.page=0;}state.route=route;if(params.value)state.codeValue=params.value;if(params.query!==undefined)state.query=params.query;if(location.hash!=='#'+route&&!params.preserveHash)history.pushState(null,'','#'+route);closeModal();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('#main').focus({preventScroll:true});}
+function navigate(route,params={}){if(state.route!==route)void Store.trackScreen(route).catch(()=>{});if(state.route!==route&&(route==='photo-cleanup'||state.route==='photo-cleanup'))PhotoCleanup.invalidate();if(state.route==='voice'&&route!=='voice')Voice.leaveVoice();void Ops.persistDraft();if(!titles[route])route='home';if(state.route!==route){clearTimeout(searchTimer);Features.stopCamera();Features.cancelProductLookup();Features.stopDictation();state.query='';state.filter='all';state.page=0;}state.route=route;if(params.value)state.codeValue=params.value;if(params.query!==undefined)state.query=params.query;if(location.hash!=='#'+route&&!params.preserveHash)history.pushState(null,'','#'+route);closeModal();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('#main').focus({preventScroll:true});}
 function openHashShortcut(){
   if(!SessionAPI.current()&&!Store.isDemo()){navigate('users');return;}
   if(Contacts.consumeLink()){navigate('pending');toast('Numéro de Serge enregistré sur cet appareil.');return;}
@@ -325,3 +325,8 @@ export async function prepareUpdate(){
 
 
 
+
+// Send committed local business actions in batches. Never uploads old history.
+setInterval(()=>void Store.flushActivity(SessionAPI),15000);
+window.addEventListener('online',()=>void Store.flushActivity(SessionAPI));
+window.addEventListener('pikeo-session',()=>void Store.flushActivity(SessionAPI));

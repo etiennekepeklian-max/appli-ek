@@ -1,3 +1,4 @@
+import {businessActivity,trackedScreens} from './activity-core.js';
 import {latestPickingDay,pickingDayRecord} from './picking-core.js';
 import {protectedFiles,hashBytes} from './archive-core.js';
 import {validateEnf} from './enf-core.js';
@@ -46,7 +47,9 @@ async function batch(items,action,{undoable=true,resolves=[],expectedScope,metad
   });
   if(!next.length&&!metadata.length)return [];
   const undo=undoable&&(snapshots.length||metadata.length)?{id:uid(),action,items:snapshots,metadata:structuredClone(metadata),at:new Date().toISOString()}:undefined;
-  await writeEvents(next,undo,metadata);return next.map(e=>e.record);
+  const actor=Identity.identity().id;
+  const audit=!isDemo()&&actor?businessActivity(next).map(value=>({key:'activity:'+value.eventId,value:{...value,deviceId:actor}})):[];
+  await writeEvents(next,undo,[...metadata,...audit]);return next.map(e=>e.record);
 }
 export function saveBatch(items,action='Modification groupée',options){return serial(()=>batch(items,action,options));}
 export function savePickingDay(input){return serial(async()=>{
@@ -218,4 +221,25 @@ export function restoreArchivedFiles(rows,expectedScope){
    t.oncomplete=()=>resolve(added);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('Import interrompu.'));
   });changed();return count;
  });
+}
+
+let activityBusy=false;
+export async function flushActivity(api){
+ if(activityBusy||!db||isDemo()||!navigator.onLine||!api.current())return;
+ activityBusy=true;
+ const target=db,actor=api.current().id;
+ try{
+  const rows=await request(target.transaction('meta').objectStore('meta').getAll());
+  const pending=rows.filter(r=>r.key.startsWith('activity:')&&r.value?.deviceId===actor).slice(0,100);
+  if(!pending.length||api.current()?.id!==actor)return;
+  await api.request('activity-batch',{events:pending.map(({value})=>{const {deviceId,...event}=value;return event;})});
+  await new Promise((resolve,reject)=>{const t=target.transaction('meta','readwrite');for(const r of pending)t.objectStore('meta').delete(r.key);t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});
+ }catch{ /* Durable outbox retries on the next tick or reconnect; never loses business data. */ }
+ finally{activityBusy=false;}
+}
+
+export async function trackScreen(route){
+ if(!db||isDemo()||!Identity.identity().id||!trackedScreens.has(route))return;
+ const eventId=uid();
+ await setMeta('activity:'+eventId,{eventId,action:'screen-open',resourceType:'screen',resourceId:route,occurredAt:new Date().toISOString(),deviceId:Identity.identity().id});
 }
