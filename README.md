@@ -1,3 +1,16 @@
+# Pikéo
+
+## Version 2.0.0 — Android et pilotage privé
+
+- APK Capacitor : IntroK.gif, identification personnelle à chaque lancement, caméra et audio déclarés, exports via le sélecteur Android. Une connexion Internet est nécessaire à l’ouverture.
+- Web opérationnel réservé au propriétaire vérifié. Les collègues disposent seulement de l’export de transition pour leurs données locales ; les anciens fichiers ne sont pas supprimés.
+- Nouvel appareil Android : signature AndroidKeyStore et autorisation explicite par Étienne. Les anciens droits et codes restent conservés.
+- Pilotage initialement réservé à Étienne : chronométrage par étapes, interruptions, estimations comparables, tâches, plan de charge, retours, stock saisonnier, décisions, procédures, KPI, équipe/intérim, heures/coûts/budgets, formations/échéances et contrôles/risques. Import CSV relu, exports, rapport PDF, justificatifs privés et délégations par module. Aucune donnée d’entreprise fictive préremplie.
+- Bouton Android flottant Lecture/Pause uniquement, après les permissions nécessaires. Rappels locaux des tâches et échéances.
+- Connexion Google maintenue dans le web administrateur. Les quatre onglets et les données restent conservés ; l’APK utilise les copies personnelles pour la transition. Le pilotage est sauvegardé séparément sur le serveur privé.
+
+Voir [le guide Android](docs/ANDROID_MIGRATION.md) et [les vérifications](VALIDATION.md). La recette physique reste nécessaire pour la caméra, le lecteur musical et les notifications selon le téléphone.
+
 ## Pikéo 1.18.3 — Verrouillage complet du Bureau
 
 Le verrouillage masque également les notifications et actions flottantes. Les champs et données sous-jacents sont conservés. Le service d’autorisation reste en version 1.18.2.
