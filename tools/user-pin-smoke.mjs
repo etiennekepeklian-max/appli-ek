@@ -5,7 +5,7 @@ const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe',
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);});
 let browser;
 try{
- browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.EK_TEST_BROWSER_EXECUTABLE}:{})});
+ browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{}),...(process.env.EK_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.EK_TEST_BROWSER_EXECUTABLE}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
  let configured=false,expectedPin='',resets=0,requests=[];
  await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',async route=>{

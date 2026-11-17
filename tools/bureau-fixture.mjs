@@ -5,7 +5,7 @@ import {permissionsFor} from '../site/js/permissions-core.js';
 export const sessionEndpoint='https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api';
 export async function bureauFixture(context,role='admin'){
  const state={role,active:true,profileActive:true,unavailable:false,requests:[],devices:new Map(),nonces:new Set(),hold:null};
- await context.route(sessionEndpoint,async route=>{
+ await context.route('**/js/session-pin-ui.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));await context.route(sessionEndpoint,async route=>{
   const request=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};
   if(request.method()==='OPTIONS')return route.fulfill({status:204,headers});
   const {payload:p,signature}=request.postDataJSON();state.requests.push(p.action);
@@ -18,8 +18,10 @@ export async function bureauFixture(context,role='admin'){
   else if(!state.active||!state.profileActive){status=401;data={error:'Cet accès a été retiré.'};}
   else{
    state.nonces.add(p.nonce);
-   if(p.action==='register'){d={name:p.name,key:p.signingKey};state.devices.set(p.deviceId,d);data={session:session()};}
-   else if(p.action==='session')data={session:session()};
+   if(p.action==='register'){d={name:p.name,key:p.signingKey};state.devices.set(p.deviceId,d);data={session:session(),pin:{configured:true,canEnroll:false}};}
+   else if(p.action==='user-pin-status')data={pin:{configured:true,canEnroll:false}};
+   else if(p.action==='user-pin-unlock')data={token:'a'.repeat(64)};
+   else if(p.action==='session')data={session:session(),pin:{configured:true,canEnroll:false}};
    else if(p.action==='bureau-access'){
     if(state.role!=='admin'){status=403;data={error:'Pikéo Bureau est réservé aux administrateurs.'};}
     else data={session:session(),expiresAt:new Date(Date.now()+60000).toISOString()};

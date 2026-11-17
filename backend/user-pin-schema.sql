@@ -12,10 +12,11 @@ create table if not exists pikeo_private.user_pins(
  check((salt_hex is null)=(verifier_hex is null))
 );
 create table if not exists pikeo_private.user_pin_sessions(
- device_id uuid primary key references pikeo_private.devices(id) on delete cascade,
+ device_id uuid not null references pikeo_private.devices(id) on delete cascade,
  profile_id uuid not null references pikeo_private.profiles(id) on delete cascade,
  token_hash text not null check(token_hash ~ '^[0-9a-f]{64}$'),
- expires_at timestamptz not null
+ expires_at timestamptz not null,
+ primary key(device_id,token_hash)
 );
 alter table pikeo_private.user_pins enable row level security;
 alter table pikeo_private.user_pin_sessions enable row level security;

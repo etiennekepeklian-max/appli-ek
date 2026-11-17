@@ -14,7 +14,8 @@ export async function prepare(sql,profileId,deviceId,eligible){
 async function issue(sql,profileId,deviceId){
  const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);
  const token=Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join(''),digest=await hash(token);
- await sql`insert into pikeo_private.user_pin_sessions(device_id,profile_id,token_hash,expires_at) values(${deviceId},${profileId},${digest},now()+interval '12 hours') on conflict(device_id) do update set token_hash=excluded.token_hash,expires_at=excluded.expires_at`;
+ await sql`delete from pikeo_private.user_pin_sessions where device_id=${deviceId} and expires_at<=now()`;
+ await sql`insert into pikeo_private.user_pin_sessions(device_id,profile_id,token_hash,expires_at) values(${deviceId},${profileId},${digest},now()+interval '12 hours')`;
  return {token,expiresInSeconds:43200};
 }
 export async function enroll(sql,profileId,deviceId,pin,confirmation,pepper){
