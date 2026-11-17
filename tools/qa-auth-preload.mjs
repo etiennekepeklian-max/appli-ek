@@ -18,14 +18,25 @@ function wrapRoutes(target){
   };return handler(route,request);
  }:handler,...rest);
 }
+const seededPages=new WeakSet();
+function seedNavigation(page){
+ if(seededPages.has(page))return;seededPages.add(page);const goto=page.goto.bind(page),origins=new Set();
+ page.goto=async(url,options)=>{
+  const u=new URL(url);
+  if(['localhost','127.0.0.1'].includes(u.hostname)&&!origins.has(u.origin)){
+   origins.add(u.origin);await goto(u.origin+'/qa-session.html');
+   await page.evaluate(async()=>{const api=await import('/js/session-api.js');await api.login('Étienne',{ownerSecret:'synthetic-fixture-only'});});
+  }
+  return goto(url,options);
+ };
+}
 const installed=new WeakSet();
 async function install(context){
  if(installed.has(context))return;installed.add(context);const devices=new Map();
  await context.addInitScript(()=>{const fill=()=>{const d=document.querySelector('.personal-pin-dialog');if(!d||d.dataset.fixtureFilled)return;d.dataset.fixtureFilled='1';for(const i of d.querySelectorAll('input[type=password]')){i.value='0042';i.dispatchEvent(new Event('input',{bubbles:true}));}d.querySelector('form')?.requestSubmit();};new MutationObserver(fill).observe(document,{childList:true,subtree:true});});
- context.on('page',page=>{wrapRoutes(page);page.on('pageerror',error=>console.error('QA page error',error.message));page.on('console',msg=>{if(msg.type()==='error')console.error('QA console',msg.text());});});
- await context.route('**/js/qa-session-bootstrap.js',route=>route.fulfill({contentType:'text/javascript',body:"import * as API from '/js/session-api.js';await API.login('Étienne',{ownerSecret:'synthetic-fixture-only'});"}));
+ context.on('page',page=>{wrapRoutes(page);seedNavigation(page);page.on('pageerror',error=>console.error('QA page error',error.message));page.on('console',msg=>{if(msg.type()==='error')console.error('QA console',msg.text());});});
+ await context.route('**/qa-session.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html><body>Compte synthétique de test</body></html>'}));
  await context.route('**/js/session-pin-ui.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));
- await context.route('**/js/app.js*',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:"import '/js/qa-session-bootstrap.js';\n"+await r.text()});});
  await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',async route=>{
   const req=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type'};
   if(req.method()==='OPTIONS')return route.fulfill({status:204,headers});
@@ -51,4 +62,4 @@ async function install(context){
  wrapRoutes(context);
 }
 const launch=chromium.launch.bind(chromium);
-chromium.launch=async(...args)=>{const browser=await launch(...args),newContext=browser.newContext.bind(browser),newPage=browser.newPage.bind(browser);browser.newContext=async(...args)=>{const c=await newContext(...args);await install(c);return c;};browser.newPage=async(...args)=>{const p=await newPage(...args);await install(p.context());return p;};return browser;};
+chromium.launch=async(...args)=>{const browser=await launch(...args),newContext=browser.newContext.bind(browser),newPage=browser.newPage.bind(browser);browser.newContext=async(...args)=>{const c=await newContext(...args);await install(c);return c;};browser.newPage=async(...args)=>{const p=await newPage(...args);await install(p.context());wrapRoutes(p);seedNavigation(p);return p;};return browser;};

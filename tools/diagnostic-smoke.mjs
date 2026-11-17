@@ -39,7 +39,7 @@ try{
 
  await page.locator('[data-action=cache-ocr]').click();await page.getByText('La lecture des photos est prête hors ligne.',{exact:true}).waitFor({timeout:120000});
  const assets=await page.evaluate(async()=>{const {OCR_ASSETS,redundantOCRAsset}=await import('./js/offline-core.js'),cache=await caches.open('ek-large-assets-v1'),keys=(await cache.keys()).map(r=>r.url);return {missing:OCR_ASSETS.filter(p=>!keys.includes(new URL(p,document.baseURI).href)),redundant:keys.filter(u=>redundantOCRAsset(new URL(u).pathname.slice(1)))};});assert.deepEqual(assets,{missing:[],redundant:[]});
- await context.setOffline(true);await page.reload();await page.locator('[data-wb-action=diagnostic]').waitFor();await run();assert.equal(await page.locator('[data-diagnostic-status=fail]').count(),0);assert.equal(await page.locator('[data-diagnostic-id=cache]').getAttribute('data-diagnostic-status'),'pass');
+ await page.reload();await page.locator('[data-wb-action=diagnostic]').waitFor();await context.setOffline(true);await run();assert.equal(await page.locator('[data-diagnostic-status=fail]').count(),0);assert.equal(await page.locator('[data-diagnostic-id=cache]').getAttribute('data-diagnostic-status'),'pass');
  const checkedAt=await page.evaluate(async()=>(await(await import('./js/workbench-store.js')).meta('application-diagnostic-v1')).at);
  await page.locator('[data-wb-action=diagnostic-ocr]').click();await finish();assert.equal(await page.locator('[data-diagnostic-id=ocr-live]').getAttribute('data-diagnostic-status'),'pass');
  const photoReport=await page.evaluate(async()=>(await import('./js/workbench-store.js')).meta('application-diagnostic-v1'));assert.equal(photoReport.at,checkedAt);assert.ok(photoReport.photoAt>=checkedAt);

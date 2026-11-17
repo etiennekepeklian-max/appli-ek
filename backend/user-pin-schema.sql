@@ -28,6 +28,6 @@ insert into pikeo_private.user_pins(profile_id,bootstrap_device_ids)
  where d.active and p.active and (not p.is_owner or d.role='admin') group by p.id
  on conflict(profile_id) do nothing;
 -- Only Étienne's privately activated owner devices can retain administrator rights.
-update pikeo_private.devices d set role='operator',permissions=null,access_version=access_version+1
+update pikeo_private.devices d set role='operator',permissions=null,access_version=d.access_version+1
  from pikeo_private.profiles p where p.id=d.profile_id and not p.is_owner and d.role='admin';
 commit;
