@@ -1,7 +1,7 @@
 name: Verifier et publier EK Logistique
 on:
   push:
-    branches: [main, codex/enf-voice-search-20261030, codex/yellow-buttons-20261030, codex/simple-ui-20261030, codex/enf-concepts-20261030, codex/mascot-no-thumb-20261030, codex/bureau-admin-20261029, codex/lookup-photos-cache-20261029, security/pin-admin-web-reconcilie-20261028, codex/pikeo-product-lookup-20261029, codex/pikeo-web-11710-admin-cache, codex/pikeo-administration-comptes-20261028, integration/web-sans-android-20261028, codex/pikeo-opening-1.17.1, codex/pikeo-unified-loading-1.17.2, codex/pikeo-manquant-raccourci-1173, codex/pikeo-contacts-reassort-prives, codex/pikeo-manquant-emplacement-facultatif-1176, codex/pikeo-message-reassort-modele-1-1177, codex/pikeo-supprimer-manquant-1178, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0]
+    branches: [main, feat/personal-pin, codex/enf-voice-search-20261030, codex/yellow-buttons-20261030, codex/simple-ui-20261030, codex/enf-concepts-20261030, codex/mascot-no-thumb-20261030, codex/bureau-admin-20261029, codex/lookup-photos-cache-20261029, security/pin-admin-web-reconcilie-20261028, codex/pikeo-product-lookup-20261029, codex/pikeo-web-11710-admin-cache, codex/pikeo-administration-comptes-20261028, integration/web-sans-android-20261028, codex/pikeo-opening-1.17.1, codex/pikeo-unified-loading-1.17.2, codex/pikeo-manquant-raccourci-1173, codex/pikeo-contacts-reassort-prives, codex/pikeo-manquant-emplacement-facultatif-1176, codex/pikeo-message-reassort-modele-1-1177, codex/pikeo-supprimer-manquant-1178, codex/terrain-v1.3, codex/mobile-v1.4, codex/mobile-v1.5, codex/ergonomie-v1.6, codex/web-v1.9, codex/sessions-v1.10, codex/update-v1.10.1, codex/enfs-v1.11, codex/web-finish-v1.12, codex/ux-v1.13, codex/day-v1.14, codex/undo-v1.14.1, codex/audit-v1.15, codex/order-ocr-v1.16, codex/day-independent-v1.16.2, codex/day-management-v1.16.3, codex/manual-picking-v1.17.0]
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,12 +27,12 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.56.1
           google-chrome --version
       - name: Verifier les parcours mobiles
-        run: node tools/product-lookup-smoke.mjs && node tools/cache-cleanup-smoke.mjs && node tools/ui-smoke.mjs && node tools/workflow-smoke.mjs && node tools/document-day-smoke.mjs && node tools/day-restart-smoke.mjs && node tools/undo-choice-smoke.mjs && node tools/day-tools-smoke.mjs && node tools/workbench-smoke.mjs && node tools/cloud-smoke.mjs && node tools/catalogue-photo-smoke.mjs && node tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs
+        run: node --import ./tools/qa-auth-preload.mjs tools/product-lookup-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/cache-cleanup-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/ui-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/workflow-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/document-day-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/day-restart-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/undo-choice-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/day-tools-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/workbench-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/cloud-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/catalogue-photo-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/desktop-smoke.mjs && node tools/desktop-public-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - name: Vérifier la recherche publique avec une photo
         if: github.ref == 'refs/heads/main'
-        run: node tools/product-lookup-live-smoke.mjs
+        run: node --import ./tools/qa-auth-preload.mjs tools/product-lookup-live-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -48,7 +48,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: node tools/sessions-smoke.mjs
+      - run: node tools/user-pin-smoke.mjs && node tools/sessions-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -64,7 +64,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: node tools/prepare.mjs && node tools/update-smoke.mjs
+      - run: node tools/prepare.mjs && node --import ./tools/qa-auth-preload.mjs tools/update-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -80,7 +80,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: node tools/prepare.mjs && node tools/enf-smoke.mjs && node tools/enf-voice-smoke.mjs
+      - run: node tools/prepare.mjs && node --import ./tools/qa-auth-preload.mjs tools/enf-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/enf-voice-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -96,7 +96,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: node tools/prepare.mjs && node tools/web-tools-smoke.mjs
+      - run: node tools/prepare.mjs && node --import ./tools/qa-auth-preload.mjs tools/web-tools-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -112,7 +112,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: node tools/prepare.mjs && node tools/simple-ui-smoke.mjs && node tools/ergonomics-smoke.mjs
+      - run: node tools/prepare.mjs && node --import ./tools/qa-auth-preload.mjs tools/simple-ui-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/ergonomics-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -128,7 +128,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: node tools/prepare.mjs && node tools/picking-smoke.mjs && node tools/diagnostic-smoke.mjs && node tools/order-ocr-smoke.mjs && node tools/photo-review-smoke.mjs && node tools/day-independent-smoke.mjs && node tools/day-management-smoke.mjs && node tools/photos-voice-smoke.mjs
+      - run: node tools/prepare.mjs && node --import ./tools/qa-auth-preload.mjs tools/picking-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/diagnostic-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/order-ocr-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/photo-review-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/day-independent-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/day-management-smoke.mjs && node --import ./tools/qa-auth-preload.mjs tools/photos-voice-smoke.mjs
         env:
           EK_TEST_BROWSER_CHANNEL: chrome
       - uses: actions/upload-artifact@v4
@@ -157,7 +157,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false postgres@3.4.9
-      - run: node tools/admin-pin-db-contract.mjs
+      - run: node tools/personal-pin-db-contract.mjs
         env:
           PIKEO_CONTRACT_DB_URL: postgres://postgres:synthetic-ci-only@127.0.0.1:5432/pikeo_pin_test
       - name: Vérifier le serveur PIN publié
@@ -169,11 +169,12 @@ jobs:
           assert.equal(response.status,200,'Le serveur doit répondre avant publication.');
           const health=await response.json();
           assert.equal(health.app,'Pikeo');
-          assert.equal(health.version,'1.18.2');
+          assert.equal(health.version,'1.20.0');
+          assert.equal(health.personalPinRequired,true);
           assert.equal(health.status,'ready');
           assert.equal(health.bureauAdminOnly,true);
           assert.equal(health.adminPinReady,true,'Le secret serveur PIN doit être configuré.');
-          console.log('Serveur PIN et Bureau 1.18.2 disponible ; configuration du secret validée sans lire sa valeur.');
+          console.log('Serveur PIN personnel et Bureau 1.20.0 disponible ; configuration du secret validée sans lire sa valeur.');
           NODE
   deploy:
     if: github.ref == 'refs/heads/main'

@@ -33,7 +33,7 @@ try{
  await page.waitForFunction(async()=>!(await caches.keys()).some(c=>c.startsWith('ek-shell-legacy')),{},{timeout:10000});
  const cacheProof=await page.evaluate(async()=>{const c=await caches.open('ek-large-assets-v1');return {redundant:!!await c.match(new URL('vendor/ocr/core/tesseract-core-lstm.wasm',document.baseURI)),kept:!!await c.match(new URL('vendor/ocr/lang/fra.traineddata.gz',document.baseURI))};});assert.deepEqual(cacheProof,{redundant:false,kept:true});assert.equal(retained.sku,'00999');assert.equal(retained.draft,'00777');assert.ok(retained.files.includes('octets conservés'));assert.equal(retained.voice,'audio synthétique');assert.equal(retained.pref,'oui');
  await page.locator('#check-update').click();await page.getByText('Pikéo '+VERSION+' est à jour sur cet appareil.').waitFor();
- await context.setOffline(true);await page.reload();await current(page,VERSION);assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.get('pending','update-test').sku;}),'00999');await context.setOffline(false);
+ await context.setOffline(true);await page.reload();await current(page,VERSION);assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.get('pending','update-test').sku;}),'00999');await context.setOffline(false);await page.reload();await current(page,VERSION);
  // A later publication must not reload or discard an open draft.
  advertised=VERSION.replace(/\d+$/,n=>String(Number(n)+1));await page.goto(base+'#pending');await current(page,VERSION);
  await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await page.locator('#dialog [name=sku]').fill('0000888');

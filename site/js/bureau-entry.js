@@ -7,7 +7,7 @@ const gate=document.querySelector('#bureau-access-gate');
 function lock(message){
  document.body.dataset.bureauLocked='1';gate.hidden=false;
  gate.querySelector('[data-bureau-status]').textContent=message;
- for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close();
+ for(const dialog of document.querySelectorAll('dialog[open]:not(.personal-pin-dialog)'))dialog.close();
  void app?.pauseBureau?.().catch(()=>{});
 }
 async function open(){
@@ -50,7 +50,7 @@ async function start(){
  // Block application shortcuts while the gate is shown; its own controls and
  // links remain available. Existing forms stay in the DOM, with their values.
  for(const name of ['click','submit','keydown'])document.addEventListener(name,event=>{
-  if(document.body.dataset.bureauLocked&& !gate.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}
+  if(document.body.dataset.bureauLocked&&!gate.contains(event.target)&&!event.target.closest('.personal-pin-dialog')){event.preventDefault();event.stopImmediatePropagation();}
  },true);
  gate.dataset.ready='1';
  try{await API.init();await verify();}catch(error){lock(error.message);}
