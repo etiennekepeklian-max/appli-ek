@@ -53,7 +53,7 @@ async function start(){
   if(document.body.dataset.bureauLocked&&!gate.contains(event.target)&&!event.target.closest('.personal-pin-dialog')){event.preventDefault();event.stopImmediatePropagation();}
  },true);
  gate.dataset.ready='1';
- try{await API.init();await verify();}catch(error){lock(error.message);}
+ try{await (await import('./entry.js')).authenticate({webOnly:true});await API.init();await verify();}catch(error){lock(error.message);}
 }
 export const ready=start();
 export async function prepareUpdate(){await app?.prepareUpdate?.();}

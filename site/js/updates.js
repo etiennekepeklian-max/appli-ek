@@ -52,6 +52,7 @@ async function applyUpdate(){
  }catch(e){applying=false;banner(e.message+' Les données sont conservées.',true);}
 }
 export async function launch(load,expected){
+ if(globalThis.PikeoNative){const module=await load(expected);await module.ready;return module;}
  let target=expected,ready=navigator.serviceWorker?.controller?.state==='activated'&&await workerVersion(navigator.serviceWorker.controller)===expected;
  if(!ready&&navigator.onLine){try{target=await latestVersion();}catch{}try{ready=await ensureWorker(target);}catch{}}
  // Before importing modules, activate a complete shell. A running form is never reloaded.

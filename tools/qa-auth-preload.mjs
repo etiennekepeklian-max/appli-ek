@@ -9,6 +9,7 @@ function wrapRoutes(target){
   if(!pattern.includes('pikeo-api'))return route.fallback();
   const req=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type'};
   const action=req.method()==='POST'?req.postDataJSON()?.payload?.action:null;
+  if(['web-access','native-access'].includes(action))return route.fulfill({headers,json:{allowed:true,approved:true}});if(action==='management-access')return route.fulfill({headers,json:{modules:[]}});
   if(action==='activity-list')return route.fulfill({headers,json:{events:[],next:null}});
   if(action==='activity-batch')return route.fulfill({headers,json:{saved:true}});
   if(action==='user-pin-status')return route.fulfill({headers,json:{pin:{configured:true,canEnroll:false}}});
@@ -37,6 +38,7 @@ async function install(context){
  if(installed.has(context))return;installed.add(context);const devices=new Map();
  await context.addInitScript(()=>{const fill=()=>{const d=document.querySelector('.personal-pin-dialog');if(!d||d.dataset.fixtureFilled)return;d.dataset.fixtureFilled='1';for(const i of d.querySelectorAll('input[type=password]')){i.value='0042';i.dispatchEvent(new Event('input',{bubbles:true}));}d.querySelector('form')?.requestSubmit();};new MutationObserver(fill).observe(document,{childList:true,subtree:true});});
  context.on('page',page=>{wrapRoutes(page);seedNavigation(page);page.on('pageerror',error=>console.error('QA page error',error.message));page.on('console',msg=>{if(msg.type()==='error')console.error('QA console',msg.text());});});
+ await context.route('**/js/entry.js',route=>route.fulfill({contentType:'text/javascript',body:"import * as API from '/js/session-api.js';export async function authenticate(){return API.init();}export async function boot(){const a=await import('/js/app.js');await a.ready;return a;}"}));
  await context.route('**/qa-session.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html><body>Compte synthétique de test</body></html>'}));
  await context.route('**/js/session-pin-ui.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));
  await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',async route=>{

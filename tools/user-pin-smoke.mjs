@@ -1,3 +1,4 @@
+import {installLegacyEntry} from './legacy-entry-fixture.mjs';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {chromium} from 'playwright';
@@ -8,7 +9,7 @@ try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{}),...(process.env.EK_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.EK_TEST_BROWSER_EXECUTABLE}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
  let configured=false,expectedPin='',resets=0,requests=[],bureauMode=false;
- await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',async route=>{
+ await installLegacyEntry(context);await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',async route=>{
   const req=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type'};
   if(req.method()==='OPTIONS')return route.fulfill({status:204,headers});
   const p=req.postDataJSON().payload;requests.push(p);let data={},status=200;

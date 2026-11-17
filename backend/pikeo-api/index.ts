@@ -4,8 +4,10 @@ import {hasPermission,validPermissions,permissionsFor} from './permissions-core.
 import * as Pin from './pin-service.mjs';
 import * as UserPin from './user-pin-service.mjs';
 import * as Activity from './activity-service.mjs';
+import * as Native from './native-service.mjs';
+import * as Management from './management-service.mjs';
 const db=postgres(Deno.env.get('SUPABASE_DB_URL'),{ssl:'require',prepare:false,max:1,idle_timeout:20,connect_timeout:10});
-const allowed=new Set(['https://etiennekepeklian-max.github.io','http://localhost:8765','http://127.0.0.1:8765']);
+const allowed=new Set(['https://etiennekepeklian-max.github.io','http://localhost:8765','http://127.0.0.1:8765','https://localhost']);
 class HttpError extends Error{constructor(status,message){super(message);this.status=status;}}
 const reject=(status,message)=>{throw new HttpError(status,message);};
 async function rate(sql,bucket,max,minutes=1){const r=await sql`insert into pikeo_private.rate_limits(bucket,hits,expires_at) values(${bucket},1,now()+(${minutes}*interval '1 minute')) on conflict(bucket) do update set hits=pikeo_private.rate_limits.hits+1 returning hits`;if(r[0].hits>max)reject(429,'Trop de demandes. Réessayez un peu plus tard.');}
@@ -21,7 +23,7 @@ async function handle(req){
  const origin=req.headers.get('origin');if(origin&&!allowed.has(origin))return new Response('Origine refusée',{status:403});
  const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origin||'https://etiennekepeklian-max.github.io','Access-Control-Allow-Headers':'content-type,apikey','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','Vary':'Origin'};
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
-  if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'1.21.0',activityLogReady:true,personalPinRequired:true,status:'ready',bureauAdminOnly:true,adminPinReady:(Deno.env.get('PIKEO_PIN_PEPPER')||'').length>=32}),{headers});
+  if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'2.0.0',nativeDeviceApproval:true,managementReady:true,activityLogReady:true,personalPinRequired:true,status:'ready',bureauAdminOnly:true,adminPinReady:(Deno.env.get('PIKEO_PIN_PEPPER')||'').length>=32}),{headers});
  try{
   if(req.method!=='POST')reject(405,'Méthode non autorisée.');
   const text=await req.text();if(text.length>2500000)reject(413,'Demande trop volumineuse.');
@@ -55,7 +57,7 @@ async function handle(req){
     if(!saved.length)reject(403,'Cet appareil ne correspond pas à ce profil.');
     const replay=await sql`insert into pikeo_private.nonces(device_id,nonce) values(${p.deviceId},${p.nonce}) on conflict do nothing returning nonce`;if(!replay.length)reject(409,'Cette demande a déjà été traitée.');
     if(validOwner){await sql`update pikeo_private.devices set role='admin',permissions=null where id=${p.deviceId}`;await audit(sql,p.deviceId,p.deviceId,'owner-activation');}
-    const device=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId}`)[0];const pin=await UserPin.prepare(sql,profile.id,p.deviceId,validOwner||!profile.is_owner&&priorDevices===0);
+    const device=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId}`)[0];await Native.register(sql,device,p,body.nativeSignature,validOwner);const pin=await UserPin.prepare(sql,profile.id,p.deviceId,validOwner||!profile.is_owner&&priorDevices===0);
     return {session:view(device),pin};
    });
   }else{
@@ -73,6 +75,7 @@ async function handle(req){
     const nonce=await sql`insert into pikeo_private.nonces(device_id,nonce) values(${p.deviceId},${p.nonce}) on conflict do nothing returning nonce`;if(!nonce.length)reject(409,'Cette demande a déjà été traitée.');
     await sql`update pikeo_private.devices set last_seen=now() where id=${p.deviceId}`;
     const fresh=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId} and d.active and p.active for update of d,p`)[0];if(!fresh)reject(401,'Cet accès a été retiré.');
+    const native=await Native.inspect(sql,fresh,p,body.nativeSignature);
     const dispatch=async()=>{
     const allow=key=>{if(!hasPermission(access(fresh),key))reject(403,'Votre accès ne permet pas cette action.');};
     const owner=()=>{if(!(fresh.is_owner&&fresh.role==='admin'))reject(403,'Seul Étienne peut gérer les utilisateurs et leurs droits.');};
@@ -87,6 +90,14 @@ async function handle(req){
      await UserPin.reset(sql,fresh.profile_id,fresh.id);await audit(sql,fresh.id,fresh.id,'personal-pin-owner-recovery');return {saved:true};
     }
     const loginDenied=await UserPin.assertSession(sql,fresh.profile_id,fresh.id,p.sessionToken);if(loginDenied)return loginDenied;
+    if(p.action==='native-access')return {approved:native.native&&native.approved,fingerprint:native.fingerprint||null,owner:fresh.is_owner&&fresh.role==='admin'};
+    if(p.action==='web-access'){owner();return {allowed:true,session:view(fresh)};}
+    if(p.action==='native-approve'||p.action==='native-revoke'){
+     owner();const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;
+     if(!uuid(p.target))reject(400,'Appareil invalide.');const rows=await sql`update pikeo_private.native_devices set approved=${p.action==='native-approve'},approved_at=now(),approved_by=${fresh.id} where device_id=${p.target} returning device_id`;if(!rows.length)reject(404,'L’appareil doit ouvrir une fois l’APK.');await audit(sql,fresh.id,p.target,p.action);return {saved:true};
+    }
+    if(p.action!=='user-pin-logout')await Native.requirePlatform(sql,fresh,native);
+    if(p.action?.startsWith('management-'))return Management.handle(sql,fresh,p);
     if(p.action==='user-pin-logout'){await sql`delete from pikeo_private.user_pin_sessions where device_id=${fresh.id}`;return {saved:true};}
     if(p.action==='user-pin-reset'){
      owner();const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;
@@ -146,7 +157,7 @@ async function handle(req){
     }
     if(p.action==='session')return {session:view(fresh)};
     if(p.action==='directory')return {profiles:await sql`select p.id,p.name,jsonb_agg(jsonb_build_object('id',d.id,'encryptionKey',d.encryption_key)) as devices from pikeo_private.profiles p join pikeo_private.devices d on d.profile_id=p.id and d.active group by p.id order by p.name`};
-    if(p.action==='users'){owner();return {users:await sql`select p.id,p.name,p.is_owner,p.active,p.default_role,p.access_version,p.created_at,coalesce((select jsonb_agg(jsonb_build_object('id',d.id,'role',d.role,'permissions',d.permissions,'active',d.active,'version',d.access_version,'lastSeen',d.last_seen) order by d.created_at) from pikeo_private.devices d where d.profile_id=p.id),'[]'::jsonb) as devices from pikeo_private.profiles p order by p.is_owner desc,p.name`,audit:await sql`select a.id,a.action,a.target,a.details,a.created_at,p.name as actor_name from pikeo_private.access_audit a left join pikeo_private.devices d on d.id=a.actor left join pikeo_private.profiles p on p.id=d.profile_id order by a.created_at desc limit 50`};}
+    if(p.action==='users'){owner();return {users:await sql`select p.id,p.name,p.is_owner,p.active,p.default_role,p.access_version,p.created_at,coalesce((select jsonb_agg(jsonb_build_object('id',d.id,'role',d.role,'permissions',d.permissions,'active',d.active,'version',d.access_version,'lastSeen',d.last_seen,'native', (select jsonb_build_object('approved',n.approved,'fingerprint',n.fingerprint) from pikeo_private.native_devices n where n.device_id=d.id)) order by d.created_at) from pikeo_private.devices d where d.profile_id=p.id),'[]'::jsonb) as devices from pikeo_private.profiles p order by p.is_owner desc,p.name`,audit:await sql`select a.id,a.action,a.target,a.details,a.created_at,p.name as actor_name from pikeo_private.access_audit a left join pikeo_private.devices d on d.id=a.actor left join pikeo_private.profiles p on p.id=d.profile_id order by a.created_at desc limit 50`};}
     if(p.action==='user-create'){
      owner();const name=cleanName(p.name),key=nameKey(name);if(!['operator','viewer'].includes(p.role))reject(400,'Profil invalide.');
      const count=await sql`select count(*)::int as n from pikeo_private.profiles`;if(count[0].n>=500)reject(429,'Limite de comptes atteinte.');
@@ -201,6 +212,6 @@ async function handle(req){
   }
   if(result?.__pinError)reject(result.status,result.message);
   return new Response(JSON.stringify(result),{headers});
- }catch(e){const status=e instanceof HttpError?e.status:400;if(!(e instanceof HttpError)&&!(e instanceof SyntaxError))console.error('pikeo-api failure',e.code||e.name);return new Response(JSON.stringify({error:e instanceof HttpError?e.message:'La demande ne peut pas être traitée. Réessayez.'}),{status,headers});}
+ }catch(e){const status=e instanceof HttpError||Number.isInteger(e.status)?e.status:400;if(!(e instanceof HttpError)&&!(e instanceof SyntaxError))console.error('pikeo-api failure',e.code||e.name);return new Response(JSON.stringify({error:e instanceof HttpError||Number.isInteger(e.status)?e.message:'La demande ne peut pas être traitée. Réessayez.'}),{status,headers});}
 }
 Deno.serve(handle);

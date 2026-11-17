@@ -1,5 +1,6 @@
 import {cp,mkdir,readFile,writeFile,rm,access} from 'node:fs/promises';
-import {build} from '../native/node_modules/esbuild/lib/main.js';
+import {createRequire} from 'node:module';
+const {build}=createRequire(new URL('../native/package.json',import.meta.url))('esbuild');
 const dir=new URL('../native/',import.meta.url),www=new URL('www/',dir);
 await rm(www,{recursive:true,force:true});await mkdir(www,{recursive:true});
 await cp(new URL('../site/',import.meta.url),www,{recursive:true});

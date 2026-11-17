@@ -1,3 +1,4 @@
+import {installLegacyEntry} from './legacy-entry-fixture.mjs';
 // Synthetic browser accounts and endpoint only; never touches production.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
@@ -10,7 +11,7 @@ let browser;
 try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{}),...(process.env.EK_TEST_BROWSER_EXECUTABLE?{executablePath:process.env.EK_TEST_BROWSER_EXECUTABLE}:{})});
  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),profileId=crypto.randomUUID(),uploads=[],filters=[],errors=[];let deviceId,failUpload=true;
- await context.route('**/js/session-pin-ui.js',r=>r.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));
+ await installLegacyEntry(context);await context.route('**/js/session-pin-ui.js',r=>r.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));
  await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',async route=>{
   const req=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type'};
   if(req.method()==='OPTIONS')return route.fulfill({status:204,headers});
