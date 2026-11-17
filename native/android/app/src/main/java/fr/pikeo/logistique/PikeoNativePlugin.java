@@ -21,7 +21,7 @@ import java.security.spec.ECGenParameterSpec;
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 
-@CapacitorPlugin(name="PikeoNative",permissions={@Permission(alias="notifications",strings={Manifest.permission.POST_NOTIFICATIONS})})
+@CapacitorPlugin(name="PikeoNative",permissions={@com.getcapacitor.annotation.Permission(alias="notifications",strings={Manifest.permission.POST_NOTIFICATIONS})})
 public class PikeoNativePlugin extends Plugin {
  private KeyStore keys() throws Exception {KeyStore s=KeyStore.getInstance("AndroidKeyStore");s.load(null);return s;}
  private KeyStore.PrivateKeyEntry identity() throws Exception {
