@@ -84,6 +84,7 @@ export function enhanceMobileView(root,route,customShortcuts){
   enhanceMobileTables(root,route);
   enhanceSimpleUI(root,route);
   if(route==='home'){
+    requestAnimationFrame(fitHomeDashboard);
     root.querySelector('.hero')?.remove();
     const quick=root.querySelector('.quick-grid')?.closest('section');
     if(quick){
@@ -93,8 +94,26 @@ export function enhanceMobileView(root,route,customShortcuts){
   }
 }
 
+let homeSizeObserver;
+const observedHomeBars=new WeakSet();
+function fitHomeDashboard(){
+ const main=document.querySelector('#main[data-view=home]'),dashboard=main?.querySelector('.home-dashboard');
+ if(!dashboard)return;
+ const viewport=window.visualViewport?.height||window.innerHeight;
+ const nav=document.querySelector('#mobile-nav'),undo=document.querySelector('#undo-bar');
+ if(undo&&homeSizeObserver&&!observedHomeBars.has(undo)){homeSizeObserver.observe(undo);observedHomeBars.add(undo);}
+ let bottom=viewport;
+ for(const el of [nav,undo])if(el&&!el.hidden&&getComputedStyle(el).display!=='none')bottom=Math.min(bottom,el.getBoundingClientRect().top);
+ const mainTop=main.getBoundingClientRect().top+window.scrollY,style=getComputedStyle(main);
+ let extras=0;
+ for(const el of main.children)if(el!==dashboard&&getComputedStyle(el).position!=='absolute'){const r=el.getBoundingClientRect(),css=getComputedStyle(el);extras+=r.height+parseFloat(css.marginTop||0)+parseFloat(css.marginBottom||0);}
+ const height=Math.max(0,Math.min(600,bottom-mainTop-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom)-extras-4));
+ const value=Math.floor(height)+'px';if(dashboard.style.getPropertyValue('--home-fit-height')!==value)dashboard.style.setProperty('--home-fit-height',value);
+}
+
 export function installMobileViewport(){
   const update=()=>{
+    requestAnimationFrame(fitHomeDashboard);
     const viewport=window.visualViewport;
     document.documentElement.style.setProperty('--visual-height',`${viewport?.height||window.innerHeight}px`);
     const typing=document.activeElement?.matches('input:not([type=checkbox]):not([type=radio]):not([type=file]),textarea');
@@ -104,6 +123,9 @@ export function installMobileViewport(){
   window.addEventListener('resize',update);
   document.addEventListener('focusin',update);
   document.addEventListener('focusout',()=>requestAnimationFrame(update));
+  const sizes=homeSizeObserver=new ResizeObserver(update);for(const el of document.querySelectorAll('.topbar,#main,#mobile-nav'))sizes.observe(el);
+  new MutationObserver(update).observe(document.body,{attributes:true,attributeFilter:['class'],childList:true});
+  new MutationObserver(update).observe(document.querySelector('#main'),{childList:true});
   update();
 }
 

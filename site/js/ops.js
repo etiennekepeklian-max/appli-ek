@@ -71,7 +71,7 @@ export function enhanceOps(root,route){
     if(productLocations(p).length)card.insertAdjacentHTML('beforeend',`<p class="hint section-gap">Emplacements : ${esc(productLocations(p).join(' · '))}</p>`);
   }
   if(route==='history')root.insertAdjacentHTML('beforeend',`<div class="actions section-gap">${opsButton('Annuler la dernière action','undo')}</div>`);
-  if(route==='home')void showDraftBanner(root);
+  if(['home','more'].includes(route))void showDraftBanner(root);
   void hydratePhotos();
 }
 const photoUrls=new Map();
@@ -170,7 +170,8 @@ export async function clearDraft(form){
   const key=draftKey(form);if(!key)return;form.dataset.draftComplete='1';await draftQueue.catch(()=>{});await Store.setMeta(key,null);currentDraftKey=null;state.draftPhotoIds=[];if(state.route==='home')app.render();
 }
 async function showDraftBanner(root){
-  const drafts=await Store.drafts();if(!root.isConnected||state.route!=='home'||!drafts.length)return;
+  const drafts=await Store.drafts();if(!root.isConnected||!['home','more'].includes(state.route)||!drafts.length)return;
+  if(state.route==='home'){root.insertAdjacentHTML('afterbegin',`<section class="draft-banner home-draft-banner"><span>${drafts.length} brouillon(s)</span>${opsButton('Reprendre','resume-draft',`data-key="${esc(drafts[0].key)}"`)}<button type="button" class="btn small" data-nav="more">Tous</button></section>`);return;}
   root.insertAdjacentHTML('afterbegin',`<section class="card draft-banner"><h2>${drafts.length} brouillon(s) disponible(s)</h2>${drafts.slice(0,5).map(d=>`<div class="actions section-gap"><span>${esc({order:'Commande',pending:'Manquant',product:'Produit',issue:'Incident',movement:'Transfert',count:'Comptage',replenishment:'Seuils'}[d.value.form])} · ${new Date(d.value.updatedAt).toLocaleString('fr-FR')}</span>${opsButton('Reprendre','resume-draft',`data-key="${esc(d.key)}"`)}${opsButton('Effacer','delete-draft',`data-key="${esc(d.key)}"`)}</div>`).join('')}</section>`);
 }
 export async function restoreDraft(key){

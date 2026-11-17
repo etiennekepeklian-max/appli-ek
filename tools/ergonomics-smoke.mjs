@@ -37,7 +37,7 @@ try{
  await go('home');assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
  assert.equal(await page.locator('.quick-grid button').count(),6);
  assert.ok(await page.locator('.simple-action-grid [data-nav=enfs]').isVisible());
- assert.equal(await page.locator('.simple-search-details,.simple-home-details,.page-heading').count(),0);
+ assert.equal(await page.locator('.simple-search-details,.simple-home-details,.wb-home,.page-heading').count(),0);
  await go('more');await page.locator('.simple-search-details > summary').click();assert.ok(await page.locator('.common-search').isVisible());
  console.log('OK accueil compact, ENF visible, recherche globale et aide sans perte de saisie');
 
