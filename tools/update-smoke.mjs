@@ -18,7 +18,7 @@ const server=createServer(async(req,res)=>{try{
  res.writeHead(200,{'Content-Type':({'.js':'text/javascript','.mjs':'text/javascript','.html':'text/html','.json':'application/json','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.png':'image/png','.wasm':'application/wasm'}[type]||'application/octet-stream'),'Cache-Control':'no-cache'});res.end(data);
  }catch{res.writeHead(404);res.end();}});
 await new Promise(r=>server.listen(8767,'127.0.0.1',r));
-async function current(page,version){await page.waitForFunction(v=>document.querySelector('#app-version')?.textContent===v,version,{timeout:45000});}
+async function current(page,version){await page.waitForFunction(v=>document.querySelector('#app-version')?.textContent===v&&!!document.querySelector('#main[data-view]'),version,{timeout:45000});}
 try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
  for(const old of ['1.5.0','1.7.0']){
