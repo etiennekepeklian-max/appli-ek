@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
+import {waitForState} from './poll.mjs';
 const server=spawn(process.execPath,['tools/serve.mjs'],{stdio:['ignore','pipe','inherit']});
 await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);});
 let browser;
@@ -30,7 +31,7 @@ try{
  });
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://localhost:8765/');
- await page.evaluate(async()=>{const a=await import('/js/session-api.js');await a.login('Étienne',{ownerSecret:'synthetic-only'});});
+ await page.evaluate(async()=>{const a=await import('/js/session-api.js');await a.login('Étienne',{ownerSecret:'synthetic-only'});const s=await import('/js/storage.js');await s.save('preferences',{...s.settings(),id:'main',welcomed:true});});
  await page.goto('http://localhost:8765/#administration');
  await page.getByRole('heading',{name:'Connexions et actions'}).waitFor();
  assert.match(await page.locator('#main').innerText(),/09:00:00/);
@@ -39,9 +40,9 @@ try{
  await page.waitForFunction(()=>document.querySelector('[data-activity-day]')?.value==='2026-11-17');
  await page.waitForTimeout(200);assert.equal(filters.at(-1).day,'2026-11-17');assert.equal(filters.at(-1).profileId,profileId);
  await context.setOffline(true);
- await page.evaluate(async()=>{const s=await import('/js/storage.js');await s.save('pending',{id:'audit-offline-test',name:'must-stay-local',quantity:2},'Private text must stay local');});
+ const eventId=await page.evaluate(async()=>{const s=await import('/js/storage.js');await s.save('pending',{id:'audit-offline-test',name:'must-stay-local',quantity:2},'Private text must stay local');return s.getEvents('pending','audit-offline-test')[0].id;});
  await context.setOffline(false);
- await page.evaluate(async()=>{const s=await import('/js/storage.js'),a=await import('/js/session-api.js');await s.flushActivity(a);await s.flushActivity(a);});
+ await waitForState(page,async id=>{const s=await import('/js/storage.js'),a=await import('/js/session-api.js');await s.flushActivity(a);return !await s.meta('activity:'+id);},eventId);
  assert.ok(uploads.length>=2);const attempts=uploads.flatMap(p=>p.events).filter(e=>e.resourceId==='audit-offline-test');assert.ok(attempts.length);assert.equal(new Set(attempts.map(e=>e.eventId)).size,1);assert.ok(!JSON.stringify(uploads).includes('must-stay-local'));assert.ok(!JSON.stringify(uploads).includes('Private text'));
  assert.deepEqual(errors,[]);await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/activity-mobile.png',fullPage:true});console.log('Journal admin, heure Paris, filtres, collecte hors ligne et reprise sans contenu privé validés.');
 }finally{await browser?.close();server.kill();}
