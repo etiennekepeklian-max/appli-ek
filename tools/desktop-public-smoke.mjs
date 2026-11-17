@@ -25,7 +25,7 @@ try{
   if(role!=='admin'){
    await page.getByRole('button',{name:'? Aide pour cet accès',exact:true}).click();await page.getByRole('heading',{name:'Accéder à Pikéo Bureau'}).waitFor();
    for(const theme of ['light','dark']){await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await page.setViewportSize({width:320,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);}
-   await more(page);if(await page.locator('[data-form=onboarding]').count()){await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});}
+   if(role==='personal'){await page.goto(base+'index.html#more');await page.locator('[name=username]').waitFor();assert.equal(await page.locator('#main').getAttribute('data-view'),'users');}else await more(page);if(await page.locator('[data-form=onboarding]').count()){await page.getByRole('button',{name:'Commencer',exact:true}).click();await page.locator('#dialog').waitFor({state:'hidden'});}
    await noLink(page);await page.goto(base+'aide-bureau.html');await page.getByRole('heading',{name:'Pikéo · Guide du bureau'}).waitFor();await noLink(page);
    if(role==='operator'){
     await page.evaluate(async()=>{const api=await import('./js/session-api.js');await api.init();const row=api.current();row.role='admin';row.owner=true;await (await import('./js/session-store.js')).saveIdentity(row);});
