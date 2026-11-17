@@ -87,3 +87,25 @@ details[open]>.simple-tool-category>.icon{transform:rotate(90deg)}
 @media(prefers-reduced-motion:reduce){.simple-tool-category>.icon{transition:none}.simple-action:active{transform:none}}
 @media(max-width:359px){#main[data-view=home] .wb-home .actions{display:flex;flex-direction:column}#main[data-view=home] .wb-home .actions>.btn{width:100%;min-width:0;word-break:normal}}
 @media print{.simple-route-guide,.simple-essentials,.simple-home-actions,.simple-first-time{display:none!important}}
+
+/* Home: nine direct actions within the usable viewport; only the legal/version footer follows. */
+#main[data-view=home],body.desktop #main[data-view=home]{padding:8px 10px;min-height:0;max-width:100%}
+#main[data-view=home] .home-dashboard{height:var(--home-fit-height,calc(100svh - 180px));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr)) 44px minmax(0,1fr);gap:8px;min-width:0}
+#main[data-view=home] .simple-home-actions,#main[data-view=home] .simple-action-grid,#main[data-view=home] .simple-essentials{display:contents}
+#main[data-view=home] .simple-home-actions .card-header{display:none}
+#main[data-view=home] .illustrated-tile{height:100%;min-height:44px;aspect-ratio:auto;margin:0;padding:0;border-radius:12px}
+#main[data-view=home] .simple-action small{display:none}
+#main[data-view=home] .simple-tile-caption{padding:5px 6px;font-size:13px;line-height:1.15;text-align:center}
+#main[data-view=home] .simple-action strong{font-size:13px;line-height:1.15}
+#main[data-view=home] .simple-waiting-link{grid-column:1/-1;min-height:44px;margin:0;padding:4px 10px;gap:8px;font-size:13px;border-radius:12px}
+#main[data-view=home] .simple-waiting-count{padding:4px 6px;font-size:12px}
+#main[data-view=home] .home-draft-banner{display:flex;align-items:center;gap:8px;min-height:44px;margin:0 0 8px;padding:0;font-size:12px}
+#main[data-view=home] .home-draft-banner>span{flex:1}
+#main[data-view=home] .home-draft-banner .btn{min-height:44px;padding:6px 10px}
+:root[data-text-size=large] #main[data-view=home] .simple-action strong,:root[data-text-size=large] #main[data-view=home] .simple-tile-caption{font-size:16px}
+@media(min-width:600px) and (max-height:500px){
+ body:not(.desktop){max-width:900px}
+ #main[data-view=home] .home-dashboard{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:minmax(0,1fr) 44px minmax(0,1fr);gap:6px}
+ #main[data-view=home] .simple-essentials button{grid-column:span 2}
+ #main[data-view=home] .simple-tile-caption,#main[data-view=home] .simple-action strong{font-size:12px;padding-top:3px;padding-bottom:3px}
+}

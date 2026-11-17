@@ -468,3 +468,10 @@ Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios 
 - Les six boutons illustrés, le suivi des manquants et les accès Mémos/Horaires/Aide restent sur l’accueil. Le titre Accueil est conservé uniquement pour les lecteurs d’écran.
 - Raccourcis, recherche rapide, bilan/sauvegardes et repères accessibles dans Outils ; guide des trois gestes dans Aide. Préférences et données conservées.
 - Aide de l’accueil, des réglages et FAQ actualisées ; parcours de recherche, sauvegarde hors ligne et raccourcis adaptés à leur emplacement dans Outils.
+
+## Pikéo 1.21.1 — accueil sur un écran
+- Neuf accès illustrés en grille compacte, calcul de hauteur disponible tenant compte de l’en-tête, de la navigation, de la barre Annuler et du brouillon. Adaptation portrait/paysage ; titres visibles et cibles tactiles d’au moins 44 px.
+- Mes repères de travail déplacé dans Outils. Seul le pied de page (version, vérification, aide et propriété intellectuelle) suit l’accueil. Aucune donnée ni préférence supprimée.
+- Brouillon le plus récent repris directement sur l’accueil ; liste complète et suppression conservées dans Outils.
+- Aide Accueil, recherche de fonctions et FAQ mises à jour. Parcours de contrôle : neuf logos à 320×568, 360×640, 390×844, 480×900 et 844×390, modes clair/sombre et texte agrandi ; contrôle des brouillons et de la barre Annuler.
+- Modification exclusivement web : serveur et authentification inchangés (version serveur 1.21.0).

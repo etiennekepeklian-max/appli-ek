@@ -71,13 +71,13 @@ try{
   await go('home');
   const dismiss=page.locator('#undo-bar [data-ops-action=hide-undo]');if(await dismiss.isVisible())await dismiss.click();
   await page.locator('#toast').waitFor({state:'hidden'});await page.locator('#main').focus();
-  const boxes=await page.locator('.simple-action-grid button').evaluateAll(rows=>rows.map(r=>{const b=r.getBoundingClientRect();return {width:b.width,height:b.height};}));assert.ok(boxes.every(b=>b.width>=120&&b.height>=160));
+  const boxes=await page.locator('.simple-action-grid button').evaluateAll(rows=>rows.map(r=>{const b=r.getBoundingClientRect();return {width:b.width,height:b.height};}));assert.ok(boxes.every(b=>b.width>=76&&b.height>=44));
   const illustrations=await page.locator('.simple-action-grid .illustrated-tile,.simple-essentials .illustrated-tile').evaluateAll(rows=>rows.map(button=>{
    const b=button.getBoundingClientRect(),art=button.querySelector('.simple-picto').getBoundingClientRect(),caption=button.querySelector('.simple-tile-caption'),c=caption.getBoundingClientRect();
    return {coverage:art.width*art.height/(b.width*b.height),bottom:Math.abs(c.bottom-b.bottom),lowerHalf:c.top>=b.top+b.height*.4,captionFits:c.height<=b.height*.6&&caption.scrollWidth<=caption.clientWidth+1};
   }));
   assert.equal(illustrations.length,9);assert.ok(illustrations.every(r=>r.coverage>.95&&r.bottom<=2&&r.lowerHalf&&r.captionFits),'Chaque illustration doit couvrir le bouton et porter son texte dans la partie basse.');
-  assert.equal(await page.locator('.simple-all-tools,.simple-first-time,[data-home-custom],.simple-search-details,.simple-home-details,.page-heading').count(),0);
+  assert.equal(await page.locator('.simple-all-tools,.simple-first-time,[data-home-custom],.simple-search-details,.simple-home-details,.wb-home,.page-heading').count(),0);
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(width=>document.documentElement.scrollWidth<=width+1,width),'L’accueil doit tenir dans la largeur physique demandée, sans agrandir le viewport mobile.');
   await page.screenshot({path:`test-results/simple-home-${theme}-${width}.png`,fullPage:true});
   await go('more');assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});for(const summary of await page.locator('[data-tool-group] > summary').all())await summary.click();
@@ -92,6 +92,25 @@ try{
  assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);await page.screenshot({path:'test-results/simple-yellow-large-text.png',fullPage:true});
  await go('personal');await page.locator('[name=textSize]').selectOption('normal');await page.locator('[data-wb-form=preferences] [type=submit]').click();await page.waitForFunction(()=>document.documentElement.dataset.textSize==='normal');
 
+
+ for(const [width,height] of [[320,568],[360,640],[390,844],[480,900],[844,390]]){
+  await page.setViewportSize({width,height});await go('home');await page.evaluate(()=>scrollTo(0,0));
+  await waitForState(page,()=>{
+   const buttons=[...document.querySelectorAll('.home-dashboard .illustrated-tile')],nav=document.querySelector('#mobile-nav').getBoundingClientRect(),top=document.querySelector('.topbar').getBoundingClientRect().bottom;
+   const undo=document.querySelector('#undo-bar'),bottom=undo&&!undo.hidden?Math.min(nav.top,undo.getBoundingClientRect().top):nav.top;
+   return buttons.length===9&&buttons.every(el=>{const r=el.getBoundingClientRect(),c=el.querySelector('.simple-tile-caption').getBoundingClientRect();return r.top>=top-1&&r.bottom<=bottom-2&&r.height>=44&&r.width>=44&&c.top>=r.top&&c.bottom<=r.bottom+1;});
+  });
+  const fit=await page.evaluate(()=>({tiles:document.querySelectorAll('.home-dashboard .illustrated-tile').length,overflow:document.documentElement.scrollWidth>innerWidth+1,repères:document.querySelectorAll('#main .wb-home').length}));
+  assert.equal(fit.tiles,9);assert.equal(fit.overflow,false);assert.equal(fit.repères,0);
+  await page.screenshot({path:`test-results/home-fit-${width}-${height}.png`,fullPage:true});
+ }
+ await page.setViewportSize({width:390,height:844});await go('home');
+ await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.setMeta('draft-pending:fit-test',{form:'pending',fields:[{name:'sku',value:'SYNTHETIC'}],updatedAt:new Date().toISOString()});});
+ await go('home');await page.locator('.home-draft-banner').waitFor();
+ await waitForState(page,()=>{const last=document.querySelector('.home-dashboard .simple-essentials button:last-child');return last.getBoundingClientRect().bottom<=document.querySelector('#mobile-nav').getBoundingClientRect().top;});
+ await page.locator('.home-draft-banner [data-nav=more]').click();assert.ok(await page.locator('.draft-banner').isVisible());
+ await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.setMeta('draft-pending:fit-test',null);});
+ console.log('Accueil sans défilement : neuf logos visibles à 320×568, 360×640, 390×844, 480×900 et 844×390 ; brouillons accessibles sans masquer les boutons.');
  await go('home');await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
  const picture=await page.evaluate(async()=>{const image=new Image();image.src='assets/pikeo-actions-canva.png';await image.decode();const canvas=document.createElement('canvas');canvas.width=1;canvas.height=1;canvas.getContext('2d').drawImage(image,0,0);return {size:[image.naturalWidth,image.naturalHeight],yellow:[...canvas.getContext('2d').getImageData(0,0,1,1).data]};});assert.ok(picture.size.every(n=>n>=1200),'Les grands boutons doivent utiliser la planche source, pas une miniature.');assert.ok(picture.yellow[0]>190&&picture.yellow[1]>140&&picture.yellow[2]<150,'Le fond de la planche Canva doit être jaune.');
  await context.setOffline(true);await page.reload();await page.locator('[name=username]').waitFor();assert.equal(await page.locator('.simple-action-grid button').count(),0);await context.setOffline(false);await page.reload();await page.locator('.simple-action-grid button').first().waitFor();await context.setOffline(true);assert.equal(await page.locator('.simple-action-grid button').count(),6);
