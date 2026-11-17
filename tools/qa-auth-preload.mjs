@@ -9,6 +9,8 @@ function wrapRoutes(target){
   if(!pattern.includes('pikeo-api'))return route.fallback();
   const req=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type'};
   const action=req.method()==='POST'?req.postDataJSON()?.payload?.action:null;
+  if(action==='activity-list')return route.fulfill({headers,json:{events:[],next:null}});
+  if(action==='activity-batch')return route.fulfill({headers,json:{saved:true}});
   if(action==='user-pin-status')return route.fulfill({headers,json:{pin:{configured:true,canEnroll:false}}});
   if(action==='user-pin-unlock'||action==='user-pin-enroll')return route.fulfill({headers,json:{token:'a'.repeat(64)}});
   const fulfill=route.fulfill.bind(route);route.fulfill=async options=>{

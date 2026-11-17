@@ -20,6 +20,7 @@ try{
  await db.unsafe('create role anon; create role authenticated;');
  const schema=await readFile(new URL('../backend/schema.sql',import.meta.url),'utf8');await db.unsafe(schema.slice(0,schema.indexOf('create extension if not exists pg_cron;')));
  await db.unsafe(await readFile(new URL('../backend/admin-pin-schema.sql',import.meta.url),'utf8'));
+ await db.unsafe(await readFile(new URL('../backend/activity-schema.sql',import.meta.url),'utf8'));
  const legacy=await fresh('Legacy');
  const [{id:legacyProfile}]=await db`insert into pikeo_private.profiles(name,name_key) values('Legacy','legacy') returning id`;
  legacy.profileId=legacyProfile;
@@ -30,7 +31,7 @@ try{
  const source=(await readFile(entry,'utf8')).replace(/^import postgres from 'npm:postgres@3\.4\.9';$/m,"const deps=globalThis[Symbol.for('pikeo-personal-contract')];const Deno=deps.Deno;").replace(/^const db=postgres\(.*;\n/m,'const db=deps.db;\n').replace(/from '(\.\/[^']+)'/g,(_,p)=>'from '+JSON.stringify(new URL(p,entry).href)).replace('Deno.serve(handle);','export {handle};');
  globalThis[key]={db,Deno:{env:{get:name=>env[name]}}};try{({handle}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64')));}finally{delete globalThis[key];}
  const owner=await fresh('Étienne'),alice=await fresh('Alice');
- await check('état serveur et secret prêt sans divulgation',async()=>{const h=await (await handle(new Request('https://synthetic.invalid/pikeo-api'))).json();assert.equal(h.version,'1.20.0');assert.equal(h.personalPinRequired,true);assert.equal(h.adminPinReady,true);assert.ok(!JSON.stringify(h).includes(pepper));});
+ await check('état serveur et secret prêt sans divulgation',async()=>{const h=await (await handle(new Request('https://synthetic.invalid/pikeo-api'))).json();assert.equal(h.version,'1.21.0');assert.equal(h.personalPinRequired,true);assert.equal(h.adminPinReady,true);assert.ok(!JSON.stringify(h).includes(pepper));});
  await check('première connexion et confirmation obligatoires côté serveur',async()=>{await register(alice);assert.equal((await api(alice,'session')).status,423);assert.equal((await api(alice,'user-pin-enroll',{pin:'0042',confirmation:'0043'})).status,400);await enroll(alice);assert.equal((await api(alice,'session')).status,200);const [row]=await db`select * from pikeo_private.user_pins where profile_id=${alice.profileId}`;assert.equal(row.verifier_hex.length,64);assert.notEqual(row.verifier_hex,'0042');});
  await check('appareil historique conservé, double inscription étrangère sans prise de compte',async()=>{const stranger=await fresh('Legacy');assert.equal((await register(stranger)).data.pin.canEnroll,false);assert.equal((await register(stranger)).data.pin.canEnroll,false);assert.equal((await api(stranger,'user-pin-enroll',{pin:'1234',confirmation:'1234'})).status,403);assert.equal((await register(legacy)).data.pin.canEnroll,true);await enroll(legacy);});
  await check('Étienne seul admin, nom et rôle falsifié insuffisants',async()=>{await register(owner,true);await enroll(owner,'0369');assert.equal((await api(owner,'admin-pin-enroll',{pin:'0246'})).status,200);const namesake=await fresh('Étienne');assert.equal((await register(namesake)).data.session.owner,false);assert.equal((await api(namesake,'user-pin-unlock',{pin:'0369'})).status,200);namesake.token=(await api(namesake,'user-pin-unlock',{pin:'0369'})).data.token;assert.equal((await api(namesake,'users')).status,403);await db`update pikeo_private.devices set role='admin' where id=${alice.id}`;assert.equal((await api(alice,'users')).status,403);assert.equal((await api(alice,'user-pin-reset',{target:legacy.id})).status,403);assert.equal((await api(owner,'set-role',{target:alice.id,role:'admin'})).status,400);await db`update pikeo_private.devices set role='operator' where id=${alice.id}`;});
@@ -40,5 +41,26 @@ try{
  await check('jetons expirés, détournés et signatures altérées refusés',async()=>{assert.equal((await api(legacy,'session',{sessionToken:alice.token})).status,423);const p={action:'session',deviceId:alice.id,timestamp:Date.now(),nonce:crypto.randomUUID(),sessionToken:alice.token},signed=await signedRequest(p,alice.keys.signing.privateKey);signed.payload.action='users';assert.equal((await api(alice,'users',{},signed)).status,401);await db`update pikeo_private.user_pin_sessions set expires_at=now()-interval '1 second' where device_id=${alice.id}`;assert.equal((await api(alice,'session')).status,423);});
  await check('récupération propriétaire contrôlée par fichier privé',async()=>{assert.equal((await api(owner,'user-pin-owner-recover',{ownerSecret:'wrong'})).status,401);assert.equal((await api(owner,'user-pin-owner-recover',{ownerSecret})).status,200);assert.equal((await api(owner,'session')).status,423);await enroll(owner,'0369');assert.equal((await api(owner,'session')).status,200);});
  await check('base privée et journaux sans codes ni secrets',async()=>{for(const role of ['anon','authenticated'])await assert.rejects(db.begin(async sql=>{await sql.unsafe('set local role '+role);await sql`select * from pikeo_private.user_pins`;}));const [{n}]=await db`select count(*)::int as n from pikeo_private.access_audit where details::text like '%0042%' or details::text like ${'%'+pepper+'%'} or details::text like ${'%'+ownerSecret+'%'}`;assert.equal(n,0);});
+ await check('journal privé : connexions, PIN refusé, attribution et doublons hors ligne',async()=>{
+  const r=await api(owner,'user-pin-unlock',{pin:'0369'});owner.token=r.data.token;
+  await api(owner,'admin-pin-unlock',{pin:'0246'});
+  const rows=await db`select action,outcome,source from pikeo_private.activity_log where device_id=${alice.id}`;
+  assert.ok(rows.some(e=>e.action==='login-enroll'&&e.outcome==='success'));
+  assert.ok(rows.some(e=>e.action==='login-denied'&&e.outcome==='denied'));
+  assert.equal((await api(legacy,'activity-list')).status,403);
+  const event={eventId:crypto.randomUUID(),action:'create',resourceType:'pending',resourceId:'synthetic-record',occurredAt:'2026-10-01T08:00:00Z',profileId:owner.profileId,deviceId:owner.id,pin:'must-not-persist'};
+  assert.equal((await api(legacy,'activity-batch',{events:[event]})).status,200);
+  assert.equal((await api(legacy,'activity-batch',{events:[event]})).status,200);
+  const saved=await db`select * from pikeo_private.activity_log where event_id=${event.eventId}`;
+  assert.equal(saved.length,1);assert.equal(saved[0].profile_id,legacy.profileId);assert.equal(saved[0].device_id,legacy.id);assert.equal(saved[0].source,'client');assert.ok(saved[0].received_at>saved[0].occurred_at);
+  assert.equal((await api(legacy,'activity-batch',{events:[{...event,action:'login'}]})).status,400);
+  const log=await api(owner,'activity-list');assert.equal(log.status,200);assert.ok(log.data.events.length);assert.ok(!JSON.stringify(log).includes('must-not-persist'));
+  for(const role of ['anon','authenticated'])await assert.rejects(db.begin(async sql=>{await sql.unsafe('set local role '+role);await sql`select * from pikeo_private.activity_log`;}));
+  await db`insert into pikeo_private.activity_log(profile_id,device_id,action,source,outcome,occurred_at) select ${legacy.profileId},${legacy.id},'create','server','success',now() from generate_series(1,105)`;
+  const first=(await api(owner,'activity-list',{profileId:legacy.profileId})).data;assert.equal(first.events.length,100);assert.ok(first.next);
+  const second=(await api(owner,'activity-list',{profileId:legacy.profileId,before:first.next})).data;assert.ok(second.events.length);assert.ok(!second.events.some(e=>first.events.some(f=>e.id===f.id)));
+  assert.equal((await api(owner,'activity-list',{day:'2000-01-01'})).data.events.length,0);
+  await api(owner,'admin-pin-lock');assert.equal((await api(owner,'activity-list')).status,403);
+ });
  console.log(checks+' contrats réels SQL/API réussis ; aucune requête de production.');
 }finally{await db.end({timeout:5});}

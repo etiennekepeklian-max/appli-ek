@@ -3,6 +3,7 @@ import {nameKey,cleanName,uuid,publicKey,verify,hash,validMessage,mergeSharedEnf
 import {hasPermission,validPermissions,permissionsFor} from './permissions-core.js';
 import * as Pin from './pin-service.mjs';
 import * as UserPin from './user-pin-service.mjs';
+import * as Activity from './activity-service.mjs';
 const db=postgres(Deno.env.get('SUPABASE_DB_URL'),{ssl:'require',prepare:false,max:1,idle_timeout:20,connect_timeout:10});
 const allowed=new Set(['https://etiennekepeklian-max.github.io','http://localhost:8765','http://127.0.0.1:8765']);
 class HttpError extends Error{constructor(status,message){super(message);this.status=status;}}
@@ -20,7 +21,7 @@ async function handle(req){
  const origin=req.headers.get('origin');if(origin&&!allowed.has(origin))return new Response('Origine refusée',{status:403});
  const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':origin||'https://etiennekepeklian-max.github.io','Access-Control-Allow-Headers':'content-type,apikey','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','Vary':'Origin'};
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
-  if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'1.20.0',personalPinRequired:true,status:'ready',bureauAdminOnly:true,adminPinReady:(Deno.env.get('PIKEO_PIN_PEPPER')||'').length>=32}),{headers});
+  if(req.method==='GET')return new Response(JSON.stringify({app:'Pikeo',version:'1.21.0',activityLogReady:true,personalPinRequired:true,status:'ready',bureauAdminOnly:true,adminPinReady:(Deno.env.get('PIKEO_PIN_PEPPER')||'').length>=32}),{headers});
  try{
   if(req.method!=='POST')reject(405,'Méthode non autorisée.');
   const text=await req.text();if(text.length>2500000)reject(413,'Demande trop volumineuse.');
@@ -72,6 +73,7 @@ async function handle(req){
     const nonce=await sql`insert into pikeo_private.nonces(device_id,nonce) values(${p.deviceId},${p.nonce}) on conflict do nothing returning nonce`;if(!nonce.length)reject(409,'Cette demande a déjà été traitée.');
     await sql`update pikeo_private.devices set last_seen=now() where id=${p.deviceId}`;
     const fresh=(await sql`select d.*,p.name,p.is_owner,p.share_achievements from pikeo_private.devices d join pikeo_private.profiles p on p.id=d.profile_id where d.id=${p.deviceId} and d.active and p.active for update of d,p`)[0];if(!fresh)reject(401,'Cet accès a été retiré.');
+    const dispatch=async()=>{
     const allow=key=>{if(!hasPermission(access(fresh),key))reject(403,'Votre accès ne permet pas cette action.');};
     const owner=()=>{if(!(fresh.is_owner&&fresh.role==='admin'))reject(403,'Seul Étienne peut gérer les utilisateurs et leurs droits.');};
     const adminDevice=fresh.role==='admin'&&fresh.is_owner;
@@ -126,10 +128,21 @@ async function handle(req){
      }
      reject(400,'Action PIN inconnue.');
     }
-    const protectedActions=['users','user-create','user-update','set-access','devices','set-role'];
+    const protectedActions=['users','user-create','user-update','set-access','devices','set-role','activity-list'];
     if(protectedActions.includes(p.action)){
      owner();
      const denied=await Pin.assertUnlocked(sql,fresh.id);if(denied)return denied;
+    }
+    if(p.action==='activity-batch'){
+     if(!Array.isArray(p.events)||!p.events.length||p.events.length>100||!p.events.every(Activity.validActivity))reject(400,'Événements invalides.');
+     return Activity.ingest(sql,fresh,p.events);
+    }
+    if(p.action==='activity-list'){
+     if(p.before!=null&&!/^[0-9]{1,19}$/.test(String(p.before)))reject(400,'Curseur invalide.');
+     if(p.day&&!/^\d{4}-\d{2}-\d{2}$/.test(p.day))reject(400,'Date invalide.');
+     if(p.profileId&&!uuid(p.profileId))reject(400,'Compte invalide.');
+     const rows=await sql`select a.id::text,a.action,a.source,a.outcome,a.resource_type,a.resource_id,a.occurred_at,a.received_at,a.device_id,p.name as actor_name from pikeo_private.activity_log a join pikeo_private.profiles p on p.id=a.profile_id where (${p.before||null}::bigint is null or a.id<${p.before||null}::bigint) and (${p.profileId||null}::uuid is null or a.profile_id=${p.profileId||null}::uuid) and (${p.day||null}::date is null or a.received_at>=(${p.day||null}::date::timestamp at time zone 'Europe/Paris') and a.received_at<((${p.day||null}::date+1)::timestamp at time zone 'Europe/Paris')) order by a.id desc limit 101`;
+     return {events:rows.slice(0,100),next:rows.length>100?rows[99].id:null};
     }
     if(p.action==='session')return {session:view(fresh)};
     if(p.action==='directory')return {profiles:await sql`select p.id,p.name,jsonb_agg(jsonb_build_object('id',d.id,'encryptionKey',d.encryption_key)) as devices from pikeo_private.profiles p join pikeo_private.devices d on d.profile_id=p.id and d.active group by p.id order by p.name`};
@@ -180,6 +193,10 @@ async function handle(req){
     }
     if(p.action==='team')return {sharing:fresh.share_achievements,achievements:await sql`select a.day,a.category,p.name from pikeo_private.achievements a join pikeo_private.profiles p on p.id=a.profile_id and p.share_achievements where a.day>=(now() at time zone 'Europe/Paris')::date-6 order by a.day desc,p.name`};
     reject(400,'Action inconnue.');
+    };
+    const result=await dispatch();
+    if(Activity.serverActions.has(p.action))await Activity.record(sql,fresh,Activity.serverLabel(p.action,!!result?.__pinError),result?.__pinError?'denied':'success');
+    return result;
    });
   }
   if(result?.__pinError)reject(result.status,result.message);

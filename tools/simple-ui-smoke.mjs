@@ -57,7 +57,7 @@ try{
  await page.locator('.simple-route-guide > summary').click();await page.locator('.simple-route-guide [data-action=quickhelp]').click();await page.getByRole('button',{name:'Reprendre',exact:true}).click();assert.equal(await page.locator('#picking-total').inputValue(),'42');
  await go('home');await homeButton('scan').click();await page.waitForFunction(()=>document.querySelector('#main')?.dataset.view==='scan');assert.ok(await page.locator('[data-form=lookup-product]').isVisible());
  for(const route of ['voice','schedule','help']){await go('home');await page.locator(`.simple-essentials [data-nav=${route}]`).click();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);}
- await go('home');await page.locator('[data-action=simple-start]').click();await page.getByRole('heading',{name:'Pikéo en 3 gestes',exact:true}).waitFor();
+ await go('help');await page.locator('[data-action=simple-start]').click();await page.getByRole('heading',{name:'Pikéo en 3 gestes',exact:true}).waitFor();
  await page.locator('#dialog .dialog-top [data-action=quickhelp]').click();await page.getByRole('heading',{name:'Aide · Les trois gestes essentiels',exact:true}).waitFor();await page.getByRole('button',{name:'Reprendre',exact:true}).click();await page.getByRole('button',{name:'J’ai compris',exact:true}).click();
  console.log('Accueil : six actions, neuf pictogrammes, ENF, codes, produit, picking, scanner et prise en main accessibles ; manquant et aide conservent la saisie et les détails du brouillon.');
 
@@ -77,10 +77,10 @@ try{
    return {coverage:art.width*art.height/(b.width*b.height),bottom:Math.abs(c.bottom-b.bottom),lowerHalf:c.top>=b.top+b.height*.4,captionFits:c.height<=b.height*.6&&caption.scrollWidth<=caption.clientWidth+1};
   }));
   assert.equal(illustrations.length,9);assert.ok(illustrations.every(r=>r.coverage>.95&&r.bottom<=2&&r.lowerHalf&&r.captionFits),'Chaque illustration doit couvrir le bouton et porter son texte dans la partie basse.');
-  assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});
+  assert.equal(await page.locator('.simple-all-tools,.simple-first-time,[data-home-custom],.simple-search-details,.simple-home-details,.page-heading').count(),0);
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(width=>document.documentElement.scrollWidth<=width+1,width),'L’accueil doit tenir dans la largeur physique demandée, sans agrandir le viewport mobile.');
   await page.screenshot({path:`test-results/simple-home-${theme}-${width}.png`,fullPage:true});
-  await go('more');for(const summary of await page.locator('[data-tool-group] > summary').all())await summary.click();
+  await go('more');assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});for(const summary of await page.locator('[data-tool-group] > summary').all())await summary.click();
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.screenshot({path:`test-results/simple-tools-${theme}-${width}.png`,fullPage:true});
  }
@@ -96,7 +96,7 @@ try{
  const picture=await page.evaluate(async()=>{const image=new Image();image.src='assets/pikeo-actions-canva.png';await image.decode();const canvas=document.createElement('canvas');canvas.width=1;canvas.height=1;canvas.getContext('2d').drawImage(image,0,0);return {size:[image.naturalWidth,image.naturalHeight],yellow:[...canvas.getContext('2d').getImageData(0,0,1,1).data]};});assert.ok(picture.size.every(n=>n>=1200),'Les grands boutons doivent utiliser la planche source, pas une miniature.');assert.ok(picture.yellow[0]>190&&picture.yellow[1]>140&&picture.yellow[2]<150,'Le fond de la planche Canva doit être jaune.');
  await context.setOffline(true);await page.reload();await page.locator('[name=username]').waitFor();assert.equal(await page.locator('.simple-action-grid button').count(),0);await context.setOffline(false);await page.reload();await page.locator('.simple-action-grid button').first().waitFor();await context.setOffline(true);assert.equal(await page.locator('.simple-action-grid button').count(),6);
  await page.evaluate(async()=>{const image=new Image();image.src='assets/pikeo-actions-canva.png';await image.decode();});
- assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>document.querySelector('[data-backup-summary]')?.textContent.toLowerCase().includes('hors'));
+ await page.locator('#mobile-nav [data-nav=more]').click();assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>document.querySelector('[data-backup-summary]')?.textContent.toLowerCase().includes('hors'));
  await context.setOffline(false);assert.deepEqual(errors,[]);
  console.log('Hors connexion réel : accueil, illustrations locales et état de sauvegarde disponibles dans la session ouverte ; réouverture soumise au code en ligne, données conservées.');
  const noImage=await browser.newContext({viewport:{width:320,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
