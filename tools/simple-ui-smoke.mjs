@@ -108,7 +108,7 @@ try{
  await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.setMeta('draft-pending:fit-test',{form:'pending',fields:[{name:'sku',value:'SYNTHETIC'}],updatedAt:new Date().toISOString()});});
  await go('more');await go('home');await page.locator('.home-draft-banner').waitFor();
  await waitForState(page,()=>{const last=document.querySelector('.home-dashboard .simple-essentials button:last-child');return last.getBoundingClientRect().bottom<=document.querySelector('#mobile-nav').getBoundingClientRect().top;});
- await page.locator('.home-draft-banner [data-nav=more]').click();assert.ok(await page.locator('.draft-banner').isVisible());
+ await page.locator('.home-draft-banner [data-nav=more]').click();await page.locator('.draft-banner').waitFor();
  await page.evaluate(async()=>{const s=await import('./js/storage.js');await s.setMeta('draft-pending:fit-test',null);});
  console.log('Accueil sans défilement : neuf logos visibles à 320×568, 360×640, 390×844, 480×900 et 844×390 ; brouillons accessibles sans masquer les boutons.');
  await go('home');await page.waitForFunction(()=>!!navigator.serviceWorker.controller);

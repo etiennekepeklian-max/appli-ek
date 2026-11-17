@@ -169,8 +169,11 @@ export function persistDraft(){
 export async function clearDraft(form){
   const key=draftKey(form);if(!key)return;form.dataset.draftComplete='1';await draftQueue.catch(()=>{});await Store.setMeta(key,null);currentDraftKey=null;state.draftPhotoIds=[];if(state.route==='home')app.render();
 }
+let draftBannerRevision=0;
 async function showDraftBanner(root){
-  const drafts=await Store.drafts();if(!root.isConnected||!['home','more'].includes(state.route)||!drafts.length)return;
+  const revision=++draftBannerRevision,route=state.route;
+  const drafts=await Store.drafts();if(revision!==draftBannerRevision||state.route!==route||!root.isConnected||!['home','more'].includes(route)||!drafts.length)return;
+  for(const el of root.querySelectorAll(':scope > .draft-banner'))el.remove();
   if(state.route==='home'){root.insertAdjacentHTML('afterbegin',`<section class="draft-banner home-draft-banner"><span>${drafts.length} brouillon(s)</span>${opsButton('Reprendre','resume-draft',`data-key="${esc(drafts[0].key)}"`)}<button type="button" class="btn small" data-nav="more">Tous</button></section>`);return;}
   root.insertAdjacentHTML('afterbegin',`<section class="card draft-banner"><h2>${drafts.length} brouillon(s) disponible(s)</h2>${drafts.slice(0,5).map(d=>`<div class="actions section-gap"><span>${esc({order:'Commande',pending:'Manquant',product:'Produit',issue:'Incident',movement:'Transfert',count:'Comptage',replenishment:'Seuils'}[d.value.form])} · ${new Date(d.value.updatedAt).toLocaleString('fr-FR')}</span>${opsButton('Reprendre','resume-draft',`data-key="${esc(d.key)}"`)}${opsButton('Effacer','delete-draft',`data-key="${esc(d.key)}"`)}</div>`).join('')}</section>`);
 }
