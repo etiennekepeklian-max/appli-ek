@@ -462,3 +462,9 @@ Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios 
 - Aide Administration, Aide générale et fenêtre de connexion actualisées. Mémos, audio, photos, textes libres et PIN exclus ; aucun enregistrement des frappes.
 - Limites : heure d’appareil déclarative, événements locaux modifiables avant transmission ; fermeture du navigateur non assimilée à une déconnexion ; un appareil qui efface ses données avant synchronisation perd ses événements en attente.
 - Vérification locale : 272 tests métier passent et contrôle syntaxe/dépendances passe. Navigateur local indisponible (Chromium SIGABRT/ptrace) ; contrôle dédié et régressions exécutés sur GitHub avant publication.
+
+## Accueil allégé — 17 novembre 2026
+- Retrait de l’en-tête Bonjour/Votre accueil, du bouton Tous mes outils, du guide Première fois, des panneaux raccourcis/recherche/bilan de l’accueil, conformément aux captures d’Étienne.
+- Les six boutons illustrés, le suivi des manquants et les accès Mémos/Horaires/Aide restent sur l’accueil. Le titre Accueil est conservé uniquement pour les lecteurs d’écran.
+- Raccourcis, recherche rapide, bilan/sauvegardes et repères accessibles dans Outils ; guide des trois gestes dans Aide. Préférences et données conservées.
+- Aide de l’accueil, des réglages et FAQ actualisées ; parcours de recherche, sauvegarde hors ligne et raccourcis adaptés à leur emplacement dans Outils.

@@ -57,7 +57,7 @@ try{
  await page.locator('.simple-route-guide > summary').click();await page.locator('.simple-route-guide [data-action=quickhelp]').click();await page.getByRole('button',{name:'Reprendre',exact:true}).click();assert.equal(await page.locator('#picking-total').inputValue(),'42');
  await go('home');await homeButton('scan').click();await page.waitForFunction(()=>document.querySelector('#main')?.dataset.view==='scan');assert.ok(await page.locator('[data-form=lookup-product]').isVisible());
  for(const route of ['voice','schedule','help']){await go('home');await page.locator(`.simple-essentials [data-nav=${route}]`).click();await page.waitForFunction(route=>document.querySelector('#main')?.dataset.view===route,route);}
- await go('home');await page.locator('[data-action=simple-start]').click();await page.getByRole('heading',{name:'Pikéo en 3 gestes',exact:true}).waitFor();
+ await go('help');await page.locator('[data-action=simple-start]').click();await page.getByRole('heading',{name:'Pikéo en 3 gestes',exact:true}).waitFor();
  await page.locator('#dialog .dialog-top [data-action=quickhelp]').click();await page.getByRole('heading',{name:'Aide · Les trois gestes essentiels',exact:true}).waitFor();await page.getByRole('button',{name:'Reprendre',exact:true}).click();await page.getByRole('button',{name:'J’ai compris',exact:true}).click();
  console.log('Accueil : six actions, neuf pictogrammes, ENF, codes, produit, picking, scanner et prise en main accessibles ; manquant et aide conservent la saisie et les détails du brouillon.');
 
@@ -77,10 +77,10 @@ try{
    return {coverage:art.width*art.height/(b.width*b.height),bottom:Math.abs(c.bottom-b.bottom),lowerHalf:c.top>=b.top+b.height*.4,captionFits:c.height<=b.height*.6&&caption.scrollWidth<=caption.clientWidth+1};
   }));
   assert.equal(illustrations.length,9);assert.ok(illustrations.every(r=>r.coverage>.95&&r.bottom<=2&&r.lowerHalf&&r.captionFits),'Chaque illustration doit couvrir le bouton et porter son texte dans la partie basse.');
-  assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});
+  assert.equal(await page.locator('.simple-all-tools,.simple-first-time,[data-home-custom],.simple-search-details,.simple-home-details,.page-heading').count(),0);
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(width=>document.documentElement.scrollWidth<=width+1,width),'L’accueil doit tenir dans la largeur physique demandée, sans agrandir le viewport mobile.');
   await page.screenshot({path:`test-results/simple-home-${theme}-${width}.png`,fullPage:true});
-  await go('more');for(const summary of await page.locator('[data-tool-group] > summary').all())await summary.click();
+  await go('more');assert.ok(await page.locator('[data-backup-summary]').isVisible());await waitForState(page,()=>{const text=document.querySelector('[data-backup-summary]')?.textContent;return !!text&&!text.includes('Vérification');});for(const summary of await page.locator('[data-tool-group] > summary').all())await summary.click();
   assert.deepEqual((await page.evaluate(auditContrast)).failures,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.screenshot({path:`test-results/simple-tools-${theme}-${width}.png`,fullPage:true});
  }

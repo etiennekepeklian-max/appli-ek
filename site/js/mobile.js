@@ -69,6 +69,8 @@ export function enhanceMobileTables(root,route=''){
 
 export function enhanceMobileView(root,route,customShortcuts){
   root.dataset.view=route;
+  const custom=root.querySelector('[data-home-custom]');
+  if(custom)custom.innerHTML=customActions(customShortcuts);
   if(route==='more')return;
   const tabs=root.querySelector('.tabs');
   if(tabs){
@@ -87,8 +89,6 @@ export function enhanceMobileView(root,route,customShortcuts){
     if(quick){
       quick.classList.add('mobile-quick-card');
       quick.querySelector('.quick-grid').innerHTML=homeActions();
-      const custom=root.querySelector('[data-home-custom]');
-      if(custom)custom.innerHTML=customActions(customShortcuts);
     }
   }
 }

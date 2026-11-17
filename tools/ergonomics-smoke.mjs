@@ -37,8 +37,8 @@ try{
  await go('home');assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
  assert.equal(await page.locator('.quick-grid button').count(),6);
  assert.ok(await page.locator('.simple-action-grid [data-nav=enfs]').isVisible());
- await page.locator('.simple-search-details > summary').click();
- assert.ok((await page.locator('.quick-grid').boundingBox()).y<(await page.locator('.common-search').boundingBox()).y);
+ assert.equal(await page.locator('.simple-search-details,.simple-home-details,.page-heading').count(),0);
+ await go('more');await page.locator('.simple-search-details > summary').click();assert.ok(await page.locator('.common-search').isVisible());
  console.log('OK accueil compact, ENF visible, recherche globale et aide sans perte de saisie');
 
  await go('more');await page.locator('#tools-search').fill('memo vocal');assert.equal(await page.locator('[data-tool-results] [data-nav=voice]').count(),1);
