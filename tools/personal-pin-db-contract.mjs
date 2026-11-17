@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import postgres from 'postgres';
 import {createDeviceKeys,publicJWK,signedRequest} from '../site/js/session-crypto.js';
-import {hash} from '../backend/pikeo-api/core.mjs';
+import {hash,publicKey} from '../backend/pikeo-api/core.mjs';
 const target=new URL(process.env.PIKEO_CONTRACT_DB_URL||'postgres://invalid/invalid');
 assert.equal(process.env.CI,'true');assert.ok(['localhost','127.0.0.1'].includes(target.hostname));assert.equal(target.pathname,'/pikeo_pin_test');
 const db=postgres(target.href,{prepare:false,max:1,connect_timeout:10,onnotice:()=>{}}),ownerSecret=crypto.randomUUID()+crypto.randomUUID(),pepper=crypto.randomUUID()+crypto.randomUUID();
@@ -23,7 +23,7 @@ try{
  const legacy=await fresh('Legacy');
  const [{id:legacyProfile}]=await db`insert into pikeo_private.profiles(name,name_key) values('Legacy','legacy') returning id`;
  legacy.profileId=legacyProfile;
- await db`insert into pikeo_private.devices(id,profile_id,signing_key,encryption_key) values(${legacy.id},${legacyProfile},${db.json(await publicJWK(legacy.keys.signing.publicKey))},${db.json(await publicJWK(legacy.keys.encryption.publicKey))})`;
+ await db`insert into pikeo_private.devices(id,profile_id,signing_key,encryption_key) values(${legacy.id},${legacyProfile},${db.json(publicKey(await publicJWK(legacy.keys.signing.publicKey)))},${db.json(publicKey(await publicJWK(legacy.keys.encryption.publicKey)))})`;
  const migration=await readFile(new URL('../backend/user-pin-schema.sql',import.meta.url),'utf8');const sql=await db.reserve();try{await sql.unsafe(migration);await sql.unsafe(migration);}finally{sql.release();}
  await db`insert into pikeo_private.owner_keys(token_hash) values(${await hash(ownerSecret)})`;
  const entry=new URL('../backend/pikeo-api/index.ts',import.meta.url),key=Symbol.for('pikeo-personal-contract');
