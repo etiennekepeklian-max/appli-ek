@@ -24,6 +24,7 @@ function loadIdentity(){
   });return identityPromise;
 }
 export async function connect(){
+  if(globalThis.PikeoNative)throw Error('La connexion Google de cette version reste disponible dans le web administrateur. Sur Android, utilisez la copie personnelle dans Espace et sauvegardes ; vos données de pilotage sont enregistrées sur le serveur privé.');
   assertConfigure();
   if(Store.isDemo())throw Error('La démonstration ne se synchronise pas avec Google.');
   const c=connection();if(!c.clientId?.trim())throw Error('Renseignez l’identifiant OAuth Google dans Réglages → Connexion Google. Le guide inclus explique sa création.');

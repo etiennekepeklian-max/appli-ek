@@ -1,9 +1,11 @@
 // Signed synthetic sessions. Never calls a real account API.
 import assert from 'node:assert/strict';
+import {installLegacyEntry} from './legacy-entry-fixture.mjs';
 import {verify} from '../backend/pikeo-api/core.mjs';
 import {permissionsFor} from '../site/js/permissions-core.js';
 export const sessionEndpoint='https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api';
 export async function bureauFixture(context,role='admin'){
+ await installLegacyEntry(context);
  const state={role,active:true,profileActive:true,unavailable:false,requests:[],devices:new Map(),nonces:new Set(),hold:null};
  await context.route('**/js/session-pin-ui.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));await context.route(sessionEndpoint,async route=>{
   const request=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};

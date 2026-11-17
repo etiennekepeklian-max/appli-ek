@@ -1,0 +1,46 @@
+name: Construire APK Pikéo
+on:
+  push:
+    branches: [main, feat/android-management]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pikeo-apk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Installer les dépendances natives figées
+        run: npm ci --prefix native
+      - name: Préparer les ressources de l'application
+        run: node tools/prepare-native.mjs && cd native && npx cap sync android
+      - name: Construire et contrôler Android
+        working-directory: native/android
+        run: chmod +x gradlew && ./gradlew --no-daemon :app:assembleRelease :app:lintRelease
+      - name: Réunir les éléments de signature locale
+        run: |
+          mkdir -p android-delivery
+          cp native/android/app/build/outputs/apk/release/app-release-unsigned.apk android-delivery/Pikeo-unsigned.apk
+          cp "${ANDROID_HOME}/build-tools/36.0.0/lib/apksigner.jar" android-delivery/apksigner.jar
+          cp native/android/app/build/reports/lint-results-release.html android-delivery/ 2>/dev/null || true
+          sha256sum android-delivery/Pikeo-unsigned.apk > android-delivery/unsigned.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pikeo-android-unsigned
+          path: android-delivery
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: pikeo-android-diagnostic
+          path: native/android/app/build/reports

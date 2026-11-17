@@ -9,6 +9,7 @@ function wrapRoutes(target){
   if(!pattern.includes('pikeo-api'))return route.fallback();
   const req=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type'};
   const action=req.method()==='POST'?req.postDataJSON()?.payload?.action:null;
+  if(['web-access','native-access'].includes(action))return route.fulfill({headers,json:{allowed:true,approved:true}});if(action==='management-access')return route.fulfill({headers,json:{modules:[]}});
   if(action==='activity-list')return route.fulfill({headers,json:{events:[],next:null}});
   if(action==='activity-batch')return route.fulfill({headers,json:{saved:true}});
   if(action==='user-pin-status')return route.fulfill({headers,json:{pin:{configured:true,canEnroll:false}}});
@@ -35,8 +36,11 @@ function seedNavigation(page){
 const installed=new WeakSet();
 async function install(context){
  if(installed.has(context))return;installed.add(context);const devices=new Map();
- await context.addInitScript(()=>{const fill=()=>{const d=document.querySelector('.personal-pin-dialog');if(!d||d.dataset.fixtureFilled)return;d.dataset.fixtureFilled='1';for(const i of d.querySelectorAll('input[type=password]')){i.value='0042';i.dispatchEvent(new Event('input',{bubbles:true}));}d.querySelector('form')?.requestSubmit();};new MutationObserver(fill).observe(document,{childList:true,subtree:true});});
- context.on('page',page=>{wrapRoutes(page);seedNavigation(page);page.on('pageerror',error=>console.error('QA page error',error.message));page.on('console',msg=>{if(msg.type()==='error')console.error('QA console',msg.text());});});
+ await context.addInitScript(()=>{
+  let remembered;try{remembered=localStorage.getItem('pikeo-active-identity');}catch{}
+  const fill=async()=>{if(!navigator.onLine)return;const d=document.querySelector('.personal-pin-dialog');if(!d||d.dataset.fixtureFilled)return;d.dataset.fixtureFilled='1';const user=d.querySelector('[name=username]');if(user){const local=await import('/js/session-store.js');const row=remembered?await local.getIdentity(remembered):null;user.value=row?.name||'Étienne';}for(const i of d.querySelectorAll('input[type=password]')){i.value='0042';i.dispatchEvent(new Event('input',{bubbles:true}));}if(d.isConnected)d.querySelector('form')?.requestSubmit();};new MutationObserver(()=>void fill()).observe(document,{childList:true,subtree:true});
+ });
+ context.on('page',page=>{wrapRoutes(page);seedNavigation(page);page.on('pageerror',error=>console.error('QA page error',error.stack));page.on('console',msg=>{if(msg.type()==='error')console.error('QA console',msg.text());});});
  await context.route('**/qa-session.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html><body>Compte synthétique de test</body></html>'}));
  await context.route('**/js/session-pin-ui.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));
  await context.route('https://wcmuffmyozjolaaahhff.supabase.co/functions/v1/pikeo-api',async route=>{

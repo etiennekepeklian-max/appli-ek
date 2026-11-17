@@ -23,7 +23,7 @@ test('Pikéo : mascot remains large in opening and every loading surface',async(
  assert.match(mascot,/pk-dialog-loading/);
  assert.doesNotMatch(mascot,/mascot-inline/);
  assert.match(mascot,/clearDialog\(\)/);
- assert.match(js,/pikeo-shortcut/);
+ assert.match(js,/assets\/IntroK\.gif/);assert.match(js,/PikeoIntroReady/);assert.match(js,/setTimeout\(end,4100\)/);
  assert.match(js,/setTimeout\(end,2400\)/);
  const offline=JSON.parse(manifest);
  assert.ok(offline.includes('opening.css'));

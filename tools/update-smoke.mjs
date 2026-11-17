@@ -18,7 +18,7 @@ const server=createServer(async(req,res)=>{try{
  res.writeHead(200,{'Content-Type':({'.js':'text/javascript','.mjs':'text/javascript','.html':'text/html','.json':'application/json','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json','.png':'image/png','.wasm':'application/wasm'}[type]||'application/octet-stream'),'Cache-Control':'no-cache'});res.end(data);
  }catch{res.writeHead(404);res.end();}});
 await new Promise(r=>server.listen(8767,'127.0.0.1',r));
-async function current(page,version){await page.waitForFunction(v=>document.querySelector('#app-version')?.textContent===v,version,{timeout:45000});}
+async function current(page,version){await page.waitForFunction(v=>document.querySelector('#app-version')?.textContent===v&&!!document.querySelector('#main[data-view]'),version,{timeout:45000});}
 try{
  browser=await chromium.launch({headless:true,...(process.env.EK_TEST_BROWSER_CHANNEL?{channel:process.env.EK_TEST_BROWSER_CHANNEL}:{})});
  for(const old of ['1.5.0','1.7.0']){
@@ -33,7 +33,7 @@ try{
  await page.waitForFunction(async()=>!(await caches.keys()).some(c=>c.startsWith('ek-shell-legacy')),{},{timeout:10000});
  const cacheProof=await page.evaluate(async()=>{const c=await caches.open('ek-large-assets-v1');return {redundant:!!await c.match(new URL('vendor/ocr/core/tesseract-core-lstm.wasm',document.baseURI)),kept:!!await c.match(new URL('vendor/ocr/lang/fra.traineddata.gz',document.baseURI))};});assert.deepEqual(cacheProof,{redundant:false,kept:true});assert.equal(retained.sku,'00999');assert.equal(retained.draft,'00777');assert.ok(retained.files.includes('octets conservés'));assert.equal(retained.voice,'audio synthétique');assert.equal(retained.pref,'oui');
  await page.locator('#check-update').click();await page.getByText('Pikéo '+VERSION+' est à jour sur cet appareil.').waitFor();
- await context.setOffline(true);await page.reload();await current(page,VERSION);assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.get('pending','update-test').sku;}),'00999');await context.setOffline(false);await page.reload();await current(page,VERSION);
+ await context.setOffline(true);await page.reload();await page.locator('.entry-login [name=username]').waitFor();assert.equal(await page.locator('#main[data-view]').count(),0);await context.setOffline(false);await page.reload();await current(page,VERSION);assert.equal(await page.evaluate(async()=>{const s=await import('./js/storage.js');return s.get('pending','update-test').sku;}),'00999');
  // A later publication must not reload or discard an open draft.
  advertised=VERSION.replace(/\d+$/,n=>String(Number(n)+1));await page.goto(base+'#pending');await current(page,VERSION);
  await page.getByRole('button',{name:'Noter un manquant',exact:true}).first().click();await page.locator('#dialog [name=sku]').fill('0000888');
