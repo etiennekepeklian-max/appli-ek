@@ -423,3 +423,17 @@ Arrêter, changer de mode, quitter la page, passer en arrière-plan ou changer d
 Aide revue : écran ENF et fenêtres existantes, aide propre à l’action vocale accessible par ?, FAQ de la page Aide. Ouvrir l’aide et Reprendre conserve la recherche. Aucun identifiant de stockage, sauvegarde historique, accès administrateur, paramètre partagé privé ni composition réelle ne change. Android reste reporté.
 
 Validation locale : 265 tests métier réussis ; 171 modules, 901 dépendances, 28 empreintes fournisseur, catalogue et versions vérifiés. Deux tests métier couvrent la transcription des références et les noms avec accents. Le nouveau parcours navigateur couvre le filtrage réel, les zéros et lettres, les noms, l’aide et le contenu, la correction pendant l’écoute, les résultats tardifs, l’arrêt, les échecs de micro, l’implémentation webkit, les changements de page/espace, le clavier hors ligne, l’intégrité des compositions et de l’historique, les cibles tactiles et le contraste à 320/390 px en clair/sombre. Ce parcours est ajouté au contrôle ENF bloquant ; les huit contrôles GitHub précèdent la publication.
+
+
+## 1.20.0 — Codes personnels obligatoires (17 novembre 2026)
+
+- Chaque connexion, activation et réouverture demande un code personnel ; la première connexion impose quatre chiffres et leur confirmation, sans conserver le code en clair. Empreinte PBKDF2 salée et secret serveur ; session temporaire signée liée à l’appareil, gardée en mémoire uniquement.
+- Migration additive : aucune suppression des commandes, manquants, profils, ENF ni historiques. Les comptes existants doivent choisir leur code sur leur appareil habituel. Un nouvel appareil ne peut pas prendre l’initialisation d’un compte déjà utilisé.
+- Étienne seul reste administrateur. Rôle administrateur impossible à attribuer aux collègues ; le serveur contrôle le propriétaire. Réinitialisation d’un code oublié réservée à son accès privé et à son PIN admin déverrouillé. Elle révoque les sessions du compte et autorise un seul appareil à choisir un nouveau code.
+- Récupération du code d’Étienne par son fichier privé propriétaire, contrôlé côté serveur.
+- Aide Sessions, Comptes, création et droits relue et actualisée ; aide intégrée à la fenêtre du code sans effacer la saisie.
+- Internet requis pour ouvrir une session ; le travail local reste disponible hors connexion après ouverture. Les copies locales existantes ne sont pas chiffrées par ce code.
+
+Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios de création, confirmation, verrouillage, réinitialisation et isolation des appareils. Contrôle de syntaxe et des dépendances réussi. Vérification en lecture de la base existante : seuls les appareils du propriétaire ont le rôle administrateur ; secret PIN serveur déjà configuré.
+
+Validation mobile préparée dans `tools/user-pin-smoke.mjs`, mais non exécutée jusqu’au bout : le navigateur fourni refuse de démarrer car la création de son socket est interdite (`Operation not permitted`). Aucun changement n’est activé en production tant que ce parcours et le contrat SQL sur une base de test ne sont pas validés. Les tables et la fonction de production sont inchangées.

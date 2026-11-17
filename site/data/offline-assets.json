@@ -88,6 +88,7 @@
   "js/secure-session.js",
   "js/session-api.js",
   "js/session-crypto.js",
+  "js/session-pin-ui.js",
   "js/session-store.js",
   "js/sessions.js",
   "js/simple-ui.js",
