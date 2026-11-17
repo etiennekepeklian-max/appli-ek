@@ -33,7 +33,7 @@ try{
  await page.evaluate(async()=>{const a=await import('/js/session-api.js');await a.login('Étienne',{ownerSecret:'synthetic-only'});});
  await page.goto('http://localhost:8765/#administration');
  await page.getByRole('heading',{name:'Connexions et actions'}).waitFor();
- assert.match(await page.locator('.data-table').first().innerText(),/09:00:00/);
+ assert.match(await page.locator('#main').innerText(),/09:00:00/);
  await page.locator('[data-activity-day]').fill('2026-11-17');await page.locator('[data-activity-profile]').selectOption(profileId);
  await page.getByRole('button',{name:'Filtrer',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('[data-activity-day]')?.value==='2026-11-17');

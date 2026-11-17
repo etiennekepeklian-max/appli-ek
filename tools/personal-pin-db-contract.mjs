@@ -60,7 +60,7 @@ try{
   const first=(await api(owner,'activity-list',{profileId:legacy.profileId})).data;assert.equal(first.events.length,100);assert.ok(first.next);
   const second=(await api(owner,'activity-list',{profileId:legacy.profileId,before:first.next})).data;assert.ok(second.events.length);assert.ok(!second.events.some(e=>first.events.some(f=>e.id===f.id)));
   assert.equal((await api(owner,'activity-list',{day:'2000-01-01'})).data.events.length,0);
-  await api(owner,'admin-pin-lock');assert.equal((await api(owner,'activity-list')).status,423);
+  await api(owner,'admin-pin-lock');assert.equal((await api(owner,'activity-list')).status,403);
  });
  console.log(checks+' contrats réels SQL/API réussis ; aucune requête de production.');
 }finally{await db.end({timeout:5});}
