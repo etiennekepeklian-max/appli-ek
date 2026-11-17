@@ -6,7 +6,7 @@ import {createDeviceKeys,publicJWK,signedRequest} from '../site/js/session-crypt
 import {hash} from '../backend/pikeo-api/core.mjs';
 const target=new URL(process.env.PIKEO_CONTRACT_DB_URL||'postgres://invalid/invalid');
 assert.equal(process.env.CI,'true');assert.ok(['localhost','127.0.0.1'].includes(target.hostname));assert.equal(target.pathname,'/pikeo_pin_test');
-const db=postgres(target.href,{prepare:false,max:8,connect_timeout:10,onnotice:()=>{}}),ownerSecret=crypto.randomUUID()+crypto.randomUUID(),pepper=crypto.randomUUID()+crypto.randomUUID();
+const db=postgres(target.href,{prepare:false,max:1,connect_timeout:10,onnotice:()=>{}}),ownerSecret=crypto.randomUUID()+crypto.randomUUID(),pepper=crypto.randomUUID()+crypto.randomUUID();
 const env={SUPABASE_DB_URL:target.href,PIKEO_PIN_PEPPER:pepper};let handle,checks=0;
 const check=async(name,fn)=>{await fn();console.log('OK '+(++checks)+' · '+name);};
 const fresh=async name=>({id:crypto.randomUUID(),name,keys:await createDeviceKeys()});

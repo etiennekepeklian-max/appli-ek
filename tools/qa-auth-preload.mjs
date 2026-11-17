@@ -2,9 +2,27 @@
 // The separate user-pin-smoke and PostgreSQL contract exercise real login logic.
 import {chromium} from 'playwright';
 import {verify} from '../backend/pikeo-api/core.mjs';
+function wrapRoutes(target){
+ const add=target.route.bind(target);
+ target.route=async(pattern,handler,...rest)=>add(pattern,typeof pattern==='string'&&(pattern.includes('pikeo-api')||pattern.includes('functions/v1'))?async(route,request)=>{
+  if(!route.request().url().includes('/pikeo-api'))return handler(route,request);
+  if(!pattern.includes('pikeo-api'))return route.fallback();
+  const req=route.request(),headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type'};
+  const action=req.method()==='POST'?req.postDataJSON()?.payload?.action:null;
+  if(action==='user-pin-status')return route.fulfill({headers,json:{pin:{configured:true,canEnroll:false}}});
+  if(action==='user-pin-unlock'||action==='user-pin-enroll')return route.fulfill({headers,json:{token:'a'.repeat(64)}});
+  const fulfill=route.fulfill.bind(route);route.fulfill=async options=>{
+   let data=options.json;if(!data&&typeof options.body==='string'){try{data=JSON.parse(options.body);}catch{}}
+   if(action==='register'&&data?.session&&!data.pin){data.pin={configured:true,canEnroll:false};options={...options,json:data};delete options.body;}
+   return fulfill(options);
+  };return handler(route,request);
+ }:handler,...rest);
+}
 const installed=new WeakSet();
 async function install(context){
  if(installed.has(context))return;installed.add(context);const devices=new Map();
+ await context.addInitScript(()=>{const fill=()=>{const d=document.querySelector('.personal-pin-dialog');if(!d||d.dataset.fixtureFilled)return;d.dataset.fixtureFilled='1';for(const i of d.querySelectorAll('input[type=password]')){i.value='0042';i.dispatchEvent(new Event('input',{bubbles:true}));}d.querySelector('form')?.requestSubmit();};new MutationObserver(fill).observe(document,{childList:true,subtree:true});});
+ context.on('page',page=>{wrapRoutes(page);page.on('pageerror',error=>console.error('QA page error',error.message));page.on('console',msg=>{if(msg.type()==='error')console.error('QA console',msg.text());});});
  await context.route('**/js/qa-session-bootstrap.js',route=>route.fulfill({contentType:'text/javascript',body:"import * as API from '/js/session-api.js';await API.login('Étienne',{ownerSecret:'synthetic-fixture-only'});"}));
  await context.route('**/js/session-pin-ui.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function askPin(){return {pin:'0042',confirmation:'0042'}}"}));
  await context.route('**/js/app.js*',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:"import '/js/qa-session-bootstrap.js';\n"+await r.text()});});
@@ -30,6 +48,7 @@ async function install(context){
   }
   await route.fulfill({status,headers,json:data});
  });
+ wrapRoutes(context);
 }
 const launch=chromium.launch.bind(chromium);
 chromium.launch=async(...args)=>{const browser=await launch(...args),newContext=browser.newContext.bind(browser),newPage=browser.newPage.bind(browser);browser.newContext=async(...args)=>{const c=await newContext(...args);await install(c);return c;};browser.newPage=async(...args)=>{const p=await newPage(...args);await install(p.context());return p;};return browser;};
