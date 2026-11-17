@@ -1,7 +1,7 @@
 name: Construire APK Pikéo
 on:
   push:
-    branches: [feat/android-management]
+    branches: [main, feat/android-management]
   workflow_dispatch:
 permissions:
   contents: read

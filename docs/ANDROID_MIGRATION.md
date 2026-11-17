@@ -27,3 +27,9 @@ La connexion Google actuelle utilise un client web. Elle reste disponible dans l
 La caméra, les mémos, la dictée du clavier, les lecteurs multimédias, les permissions, les alarmes après veille/redémarrage et la restauration avec de vrais fichiers nécessitent une recette sur le téléphone. Une fermeture forcée ou les politiques batterie peuvent empêcher les rappels. Une compilation et des tests automatisés réussis ne constituent pas une validation physique de ces comportements.
 
 Le HTML et le code GitHub Pages restent publics ; l’utilisation et les API métier sont réservées au propriétaire sur le web. Les anciennes copies hors connexion ne peuvent pas être effacées à distance.
+
+## Reproduire une livraison
+
+Le workflow Android construit et contrôle l’APK non signé sur main et sur la branche de migration. Le script `tools/sign-android.py` prend les chemins de l’APK propre, de l’original IntroK.gif, du keystore privé et de son fichier de mot de passe, ainsi que `apksigner.jar` et le chemin de sortie. Il incorpore le GIF, signe puis vérifie le certificat attendu. Il ne publie aucun secret.
+
+Certificat attendu SHA-256 : `9d275a9de89f2a96ebce3b27655c29373d3a5d188c5ed442dff6e4d71f521c73`. La première livraison signée mesure 35 077 983 octets ; son SHA-256 est `1ce1f431752fbe55eaecbb970608c648d61f4ec7e537dc255c4cfa293f40206e`. Le fichier JSON de vérification accompagne l’APK.
