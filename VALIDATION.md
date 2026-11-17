@@ -436,7 +436,7 @@ Validation locale : 265 tests métier réussis ; 171 modules, 901 dépendances, 
 
 Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios de création, confirmation, verrouillage, réinitialisation et isolation des appareils. Contrôle de syntaxe et des dépendances réussi. Vérification en lecture de la base existante : seuls les appareils du propriétaire ont le rôle administrateur ; secret PIN serveur déjà configuré.
 
-Validation mobile préparée dans `tools/user-pin-smoke.mjs`, mais non exécutée jusqu’au bout : le navigateur fourni refuse de démarrer car la création de son socket est interdite (`Operation not permitted`). Aucun changement n’est activé en production tant que ce parcours et le contrat SQL sur une base de test ne sont pas validés. Les tables et la fonction de production sont inchangées.
+État initial de préparation : validation mobile préparée dans `tools/user-pin-smoke.mjs`, mais non exécutée jusqu’au bout : le navigateur fourni refuse de démarrer car la création de son socket est interdite (`Operation not permitted`). Aucun changement n’est activé en production tant que ce parcours et le contrat SQL sur une base de test ne sont pas validés. Les tables et la fonction de production sont inchangées.
 
 
 ## Mention de propriété intellectuelle — 17 novembre 2026
@@ -444,3 +444,12 @@ Validation mobile préparée dans `tools/user-pin-smoke.mjs`, mais non exécuté
 - Mention exacte « Pikéo — Propriété intellectuelle d’Étienne Képéklian » dans le pied de page mobile et Bureau, visible aussi sur la connexion. Retour à la ligne adapté aux petits écrans.
 - Mention reprise dans la page Aide, avec maintien explicite des licences des composants tiers. Aide de l’écran relue ainsi que `help-core.js` ; aucun nouveau formulaire ni aucune action, donc aucun contexte d’aide supplémentaire nécessaire. Le texte de la page Aide relatif aux codes et à l’unique administrateur a été aligné sur la modification déjà préparée.
 - Modification ajoutée à la branche de préparation ; aucune publication ni activation de la connexion en production.
+
+
+## Prépublication 1.20.0 — validation sur GitHub
+
+- Les 269 tests métier et le contrôle des 177 modules passent. La connexion et les comptes, les ENF, le mode sombre/mobile, la conservation des copies lors d’une mise à jour et les diagnostics ont été vérifiés dans un vrai navigateur CI. Les scénarios métier utilisent des comptes synthétiques authentifiés ; le nouveau parcours PIN est testé avec sa vraie fenêtre, sans remplacement de cette fenêtre.
+- Le contrat API/PostgreSQL isolé vérifie dix parcours : création obligatoire, confirmation, conservation des appareils historiques, impossibilité de prendre un compte en répétant l’inscription, propriétaire seul, plusieurs onglets, blocage des erreurs, réinitialisation et révocation des sessions, expiration/signature, récupération propriétaire et tables privées.
+- Migration additive appliquée : tables PIN privées, RLS activée, aucune lecture anon/authenticated, aucun administrateur hors propriétaire. Les fiches métier et les utilisateurs sont conservés.
+- La sélection du compte reste mémorisée lorsque l’ouverture est verrouillée hors connexion. Après retour d’Internet, le code ouvre de nouveau le compte et retrouve les brouillons et mémos. Le travail local reste possible hors connexion après ouverture.
+- Le verrouillage Bureau laisse la fenêtre du code utilisable, y compris lors d’une nouvelle vérification de droits. Le scénario mobile ajoute ce parcours Bureau avant publication.

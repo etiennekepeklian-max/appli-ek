@@ -7,7 +7,7 @@ const gate=document.querySelector('#bureau-access-gate');
 function lock(message){
  document.body.dataset.bureauLocked='1';gate.hidden=false;
  gate.querySelector('[data-bureau-status]').textContent=message;
- for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close();
+ for(const dialog of document.querySelectorAll('dialog[open]:not(.personal-pin-dialog)'))dialog.close();
  void app?.pauseBureau?.().catch(()=>{});
 }
 async function open(){
