@@ -35,3 +35,10 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
  window.addEventListener('beforeprint',()=>{const footer=document.querySelector('.pikeo-print-footer'),dialog=document.querySelector('dialog[open]');if(!footer||!dialog||parent)return;parent=footer.parentNode;next=footer.nextSibling;dialog.append(footer);});
  window.addEventListener('afterprint',()=>{if(!parent)return;const footer=document.querySelector('.pikeo-print-footer');if(footer)parent.insertBefore(footer,next?.parentNode===parent?next:null);parent=null;next=null;});
 }
+
+// Modal dialogs occupy the top layer. Keep the print footer in that layer too.
+if(typeof window!=='undefined'&&typeof document!=='undefined'){
+ let original;
+ window.addEventListener('beforeprint',()=>{const footer=document.querySelector('.pikeo-print-footer'),dialog=document.querySelector('dialog[open]');if(footer&&dialog&&!dialog.contains(footer)){original={node:footer,parent:footer.parentNode,next:footer.nextSibling};dialog.append(footer);}});
+ window.addEventListener('afterprint',()=>{if(original){const {node,parent,next}=original;parent.insertBefore(node,next?.parentNode===parent?next:null);original=null;}});
+}
