@@ -109,3 +109,17 @@ details[open]>.simple-tool-category>.icon{transform:rotate(90deg)}
  #main[data-view=home] .simple-essentials button{grid-column:span 2}
  #main[data-view=home] .simple-tile-caption,#main[data-view=home] .simple-action strong{font-size:12px;padding-top:3px;padding-bottom:3px}
 }
+
+/* Consistent image alignment and readable labels at narrow mobile widths. */
+:is(.card,.card-header,.form-grid,.actions,.form-actions,.help-card,.simple-tool-category)>*{min-width:0}
+:is(h1,h2,h3,p,dd,label,summary,.hint,.badge,.btn,.tab,.help-card,.mobile-nav button){overflow-wrap:anywhere;word-break:normal}
+:is(.btn,.tab,.mobile-nav button,.simple-tool-category){white-space:normal;line-height:1.3}
+:is(.btn,.icon-button,.mic-btn)>.icon{flex-shrink:0;align-self:center}
+:is(.icon-button,.mic-btn){align-items:center;justify-content:center}
+.simple-picto{object-position:center;vertical-align:middle}
+.illustrated-tile>.simple-picto-fallback{place-items:center;padding-top:0}
+.illustrated-tile>.simple-picto{inset:0 0 auto;height:calc(100% - 48px)}
+.illustrated-tile>.simple-tile-caption{min-height:48px;display:flex;flex-direction:column;justify-content:center;text-align:center;word-break:normal;overflow-wrap:normal;hyphens:auto}
+.simple-tool-category,.help-card{text-wrap:pretty}
+.barcode-stage>svg{display:block;max-width:100%;height:auto;margin-inline:auto}
+@media(max-width:359px){#main[data-view=home] .simple-action strong{font-size:12px}}

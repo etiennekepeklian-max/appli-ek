@@ -29,3 +29,5 @@
 - Demande d’Étienne du 18 novembre : chaque document paginé/PDF/impression et chaque image de code-barres générés doit porter obligatoirement en pied la mention exacte « Pikéo - propriété intellectuelle d'Etienne Képéklian », pour tous les comptes et sans réglage de masquage. Les exports de données non paginés gardent leur structure avec attribution en colonne CSV ou métadonnée JSON. Préserver les originaux importés et les audios ; ne pas prétendre empêcher l’édition externe d’un fichier exporté.
 
 - Demande ultérieure du 18 novembre : préparer la réintégration de Lecture/Pause en évitant l’accès aux notifications. Aucun nouvel APK ne doit être fourni avant demande explicite. Préparation sur branche dédiée, sans publication de la version web ni livraison Android. La commande minimale envoie une touche multimédia au lecteur choisi par Android depuis Pikéo ; ne pas annoncer une compatibilité physique non testée ni un bouton sur les autres applications.
+
+- Consigne générale d’Étienne : ne jamais compiler d’APK automatiquement. Proposer la compilation et attendre son accord explicite. Workflow Android manuel uniquement.

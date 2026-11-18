@@ -135,7 +135,7 @@ async function handleSubmit(form){
       case 'onboarding':await Store.save('preferences',{...Store.settings(),id:'main',name:d.name.trim(),goal:number(d.goal,{min:1,integer:true}),profile:state.formRole,beginner:true,welcomed:true},'Espace configuré');await Ops.clearDraft(form);closeModal();toast('Votre espace est prêt.');break;
       case 'settings':await Store.save('preferences',{...Store.settings(),id:'main',name:d.name.trim(),goal:number(d.goal,{min:1,integer:true}),profile:d.profile,beginner:!!d.beginner,theme:d.theme||'system'},'Préférences modifiées');toast('Réglages enregistrés.');break;
       case 'google-settings':Sync.saveConnection(googleConnectionInput(d.clientId,d.spreadsheetId));toast('Connexion configurée. Vous pouvez connecter votre compte.');break;
-      case 'barcode':await Features.generateBarcode(Fields.barcodeValue(form),d.format,!!d.stars);break;
+      case 'barcode':await Features.generateBarcode(Fields.barcodeValue(form),d.format,!!d.stars,true,state.codePurpose==='location'?null:{quantity:d.quantity,designation:d.designation});break;
       case 'batch-codes':Features.createBatch(d.values,!!d.stars,d.format);break;
       case 'search-workspace':navigate('stock',{query:d.query.trim()});break;
       case 'lookup-product':void Features.lookupProduct(d.code).catch(e=>toast(e.message,true));break;
@@ -247,9 +247,9 @@ async function handleAction(button){const action=button.dataset.action,id=button
   case 'code-svg':case 'code-png':case 'code-pdf':await Features.exportCode(action.split('-')[1]);break;
   case 'code-favourite':{if(!state.generated)throw Error('Générez un code.');const g=state.generated;const old=Store.list('codes').find(c=>c.id===g.id)||Store.list('codes').find(c=>c.value===g.value&&c.format===g.format&&c.stars===g.stars);await Store.save('codes',{...old,value:g.value,format:g.format,stars:g.stars,favourite:!old?.favourite},old?.favourite?'Code retiré des favoris':'Code ajouté aux favoris');toast(old?.favourite?'Favori retiré.':'Code ajouté aux favoris.');break;}
   case 'unfavourite-code':{const r=getRaw('codes',id);await Store.save('codes',{...r,favourite:false},'Code retiré des favoris');break;}
-  case 'reuse-code':{const r=getRaw('codes',id);await Features.generateBarcode(r.value,r.format,r.stars);render();break;}
+  case 'reuse-code':{const r=getRaw('codes',id);await Features.generateBarcode(r.value,r.format,r.stars,true,r.label||null);render();break;}
   case 'code-from-location':{state.codePurpose='location';state.codeLocationType=splitLocation(button.dataset.code).type;navigate('codes');await Features.generateBarcode(button.dataset.code);render();break;}
-  case 'code-from-product':state.codePurpose='reference';navigate('codes');await Features.generateBarcode(button.dataset.code);render();break;
+  case 'code-from-product':{state.codePurpose='reference';navigate('codes');const designation=(await import('./model.js')).productName(button.dataset.code);await Features.generateBarcode(button.dataset.code,undefined,false,true,designation!==button.dataset.code?{quantity:1,designation}:null);render();break;}
   case 'start-camera':await Features.startCamera();break;case 'next-camera':await Features.nextCamera();break;case 'stop-camera':Features.stopCamera();break;
   case 'scan-example':{if(!Store.isDemo())throw Error('Cet exercice est réservé à la démonstration.');const r=await fetch('assets/tutorial-code128.png');await Features.scanPhoto(await r.blob());break;}
   case 'view-photo':await Features.viewPhoto(id);break;

@@ -513,3 +513,18 @@ Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios 
 ## 18 novembre 2026 — attribution obligatoire des sorties
 
 Mention exacte partagée par tous les comptes, sans option de masquage : « Pikéo - propriété intellectuelle d'Etienne Képéklian ». Pied PDF sur chaque page, en A4 portrait et A5 paysage ; code individuel et planches ; texte intégré aux SVG avant conversion PNG, hors des barres et de leurs marges de lecture. Pied fixe répété pour les impressions navigateur, y compris les fenêtres de planches. Colonne d’attribution CSV et métadonnée JSON pour les sorties de données non paginées, sans ligne factice ni modification des identifiants. Les originaux importés, justificatifs et audios ne sont pas réécrits. Aides des codes, planches, exports et entrée mises à jour. Les fichiers exportés restent éditables extérieurement. Vérifications requises : texte sur chaque page PDF, impressions multifeuilles et planches, lecture réelle d’un code rasterisé après ajout, rôles propriétaire/opérateur, aller-retour des sauvegardes et CSV avec champs multiligne.
+
+
+### 18 novembre 2026 — autorisation de vibration Android
+
+- Ajout de `android.permission.VIBRATE` au manifeste Android, à la demande d’Étienne.
+- Aide Horaires et alertes, aide contextuelle et page Aide vérifiées : aucun parcours utilisateur modifié ; les limitations actuelles des rappels web restent applicables.
+- Vérification XML : autorisation présente une seule fois ; aucune autre autorisation modifiée. Aucun APK généré, aucune publication et aucun test physique sur téléphone.
+
+
+### 18 novembre — étiquette produit avec quantité
+- Saisie quantité entière positive et désignation ; intégrées au SVG avant attribution, donc conservées en PNG, PDF et impression. Référence encodée inchangée. Réutilisation des anciens codes compatible.
+- Aide contextuelle Codes et page Aide (contenu partagé) mises à jour. Compilation APK automatique désactivée ; aucun APK généré.
+
+- Harmonisation visuelle : pictogrammes centrés, zone image séparée des légendes, textes multilignes et éléments flexibles rétractables. Aide vérifiée : aucun changement de parcours.
+- Tests métier : 283 réussis. Essai navigateur local empêché par les restrictions de lancement Chromium ; ne pas annoncer une validation visuelle complète avant contrôle navigateur.

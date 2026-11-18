@@ -6,7 +6,7 @@ import {layoutText} from './ocr-layout-core.js';
 import * as Store from './storage.js';
 import {state,esc,icon,modal,closeModal,onModalClose,toast,btn,download,fmt} from './ui.js';
 import {voiceCode,validBarcode,spokenInteger} from './core.js';
-import {findProducts,familyName} from './model.js';
+import {findProducts,familyName,productName} from './model.js';
 import {CameraSession,cameraErrorMessage} from './camera.js';
 import {scanFeedback,unlockFeedback} from './feedback.js';
 import {recordUnknown,resolveUnknowns,hydratePhotos} from './ops.js';
@@ -38,18 +38,29 @@ export function dictate(button){
   recognition.onend=()=>{recognition=null;button.classList.remove('listening');button.setAttribute('aria-label','Dicter');};recognition.start();
 }
 export function stopDictation(){recognition?.stop();recognition=null;window.dispatchEvent(new Event('pikeo-stop-enf-voice'));}
-export function barcodeSVG(value,format='CODE128',stars=false){
+export function barcodeSVG(value,format='CODE128',stars=false,label=null){
   const payload=stars&&format==='CODE128'?`*${value}*`:value;
   validBarcode(payload,format);if(!window.JsBarcode)throw Error('Le générateur de codes-barres n’est pas chargé.');
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   JsBarcode(svg,payload,{format,width:2,height:92,displayValue:true,font:'monospace',fontSize:17,textMargin:8,margin:22,lineColor:'#000000',background:'#ffffff'});
-  svg.setAttribute('role','img');svg.setAttribute('aria-label',`${format} : ${payload}`);return barcodeOwnership(svg);
+  svg.setAttribute('role','img');svg.setAttribute('aria-label',`${format} : ${payload}`);if(label){
+    const ns='http://www.w3.org/2000/svg',originalWidth=Number(svg.getAttribute('width')),w=Math.max(480,originalWidth),h=Number(svg.getAttribute('height'));
+    const bars=document.createElementNS(ns,'g');bars.setAttribute('transform',`translate(${(w-originalWidth)/2} 0)`);while(svg.firstChild)bars.append(svg.firstChild);svg.append(bars);svg.setAttribute('width',String(w));
+    const lines=(label.designation.match(/.{1,48}(?:\s|$)|.{1,48}/gu)||[]).map(x=>x.trim());
+    lines.push('Quantité : '+label.quantity);
+    const height=h+lines.length*22+12;
+    const bg=document.createElementNS(ns,'rect');bg.setAttribute('y',String(h));bg.setAttribute('width',String(w));bg.setAttribute('height',String(height-h));bg.setAttribute('fill','#fff');svg.append(bg);
+    lines.forEach((line,i)=>{const t=document.createElementNS(ns,'text');t.setAttribute('x',String(w/2));t.setAttribute('y',String(h+20+i*22));t.setAttribute('text-anchor','middle');t.setAttribute('font-family','Arial, sans-serif');t.setAttribute('font-size','16');t.setAttribute('fill','#000');if(line.length*9>w-24){t.setAttribute('textLength',String(w-24));t.setAttribute('lengthAdjust','spacingAndGlyphs');}t.textContent=line;svg.append(t);});
+    svg.setAttribute('height',String(height));svg.setAttribute('viewBox',`0 0 ${w} ${height}`);
+  }
+  return barcodeOwnership(svg);
 }
-export async function generateBarcode(value,format=Store.settings().barcodeFormat||'CODE39',stars=false,log=true){
-  const svg=barcodeSVG(value,format,stars);const payload=stars&&format==='CODE128'?`*${value}*`:value;
-  state.codeValue=value;state.codeFormat=format;state.codeStars=stars&&format==='CODE128';
-  state.generated={value,format,stars:state.codeStars,payload,svg:svg.outerHTML};
-  if(log){const existing=Store.list('codes').find(c=>c.value===value&&c.format===format&&!!c.stars===state.codeStars);const row=await Store.save('codes',{...existing,value,format,stars:state.codeStars,favourite:existing?.favourite||false},'Code-barres généré');state.generated.id=row.id;}
+export async function generateBarcode(value,format=Store.settings().barcodeFormat||'CODE39',stars=false,log=true,label=null){
+  if(label){const quantity=Number(label.quantity);if(!Number.isSafeInteger(quantity)||quantity<1)throw Error('Saisissez une quantité entière supérieure à zéro.');const designation=String(label.designation||'').trim()||productName(value);if(!designation||designation===value)throw Error('Renseignez la désignation du produit.');if(designation.length>240)throw Error('La désignation est limitée à 240 caractères.');label={quantity,designation};}
+  const svg=barcodeSVG(value,format,stars,label);const payload=stars&&format==='CODE128'?`*${value}*`:value;
+  state.codeLabel=label;state.codeValue=value;state.codeFormat=format;state.codeStars=stars&&format==='CODE128';
+  state.generated={value,format,stars:state.codeStars,payload,label,svg:svg.outerHTML};
+  if(log){const existing=Store.list('codes').find(c=>c.value===value&&c.format===format&&!!c.stars===state.codeStars);const row=await Store.save('codes',{...existing,value,format,label,stars:state.codeStars,favourite:existing?.favourite||false},'Code-barres généré');state.generated.id=row.id;}
   showBarcode();return state.generated;
 }
 export function showBarcode(){if(!state.generated)return;const stage=document.querySelector('#barcode-stage');if(stage){stage.innerHTML=state.generated.svg+`<p class="code-result-label">Texte lu : <strong class="mono">${esc(state.generated.payload)}</strong></p>`;document.querySelector('#code-actions').hidden=false;}}
