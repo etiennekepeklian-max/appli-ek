@@ -528,3 +528,11 @@ Mention exacte partagée par tous les comptes, sans option de masquage : « Pik�
 
 - Harmonisation visuelle : pictogrammes centrés, zone image séparée des légendes, textes multilignes et éléments flexibles rétractables. Aide vérifiée : aucun changement de parcours.
 - Tests métier : 283 réussis. Essai navigateur local empêché par les restrictions de lancement Chromium ; ne pas annoncer une validation visuelle complète avant contrôle navigateur.
+
+- Contrôle navigateur distant réussi (44276701629 / verify) : étiquette SVG/PNG avec quantité, désignation échappée, référence inchangée et attribution ; accueil, codes, outils, réglages et aide sans débordement horizontal à 320/390/768 px, clair et sombre. Dimensions SVG en px corrigées.
+
+
+### 18 novembre — livraison 2.0.4 autorisée
+- Rappels horaires Android hebdomadaires en heure de Paris, reprogrammés après déclenchement, redémarrage, changement d’heure et mise à jour. Activation native, accès aux réglages, test dans 5 secondes, bip optionnel court et atténué, sans modifier le volume système ni contourner Ne pas déranger.
+- Intro K : centrage sans découpe, suppression de la décoration qui masquait l’image ; fond animé flouté plein écran. GIF original conservé.
+- Aide Horaires et alertes mise à jour ; aucun test physique annoncé. Compilation explicitement demandée par Étienne.

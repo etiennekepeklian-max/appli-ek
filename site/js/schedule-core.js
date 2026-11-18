@@ -1,5 +1,5 @@
 // Portable rules: no DOM, storage or timer dependency. Port these fixtures to Godot.
-export const DEFAULT_SCHEDULE={enabled:true,timeZone:'Europe/Paris',leadMinutes:8,days:[1,2,3,4,5],start:'08:00',breakStart:'10:15',breakMinutes:15,lunchStart:'12:30',lunchMinutes:45,end:'16:00'};
+export const DEFAULT_SCHEDULE={enabled:true,sound:false,timeZone:'Europe/Paris',leadMinutes:8,days:[1,2,3,4,5],start:'08:00',breakStart:'10:15',breakMinutes:15,lunchStart:'12:30',lunchMinutes:45,end:'16:00'};
 const clock=value=>{if(!/^\d{2}:\d{2}$/.test(value))throw Error('Saisissez une heure valide.');const [h,m]=value.split(':').map(Number);if(h>23||m>59)throw Error('Saisissez une heure valide.');return h*60+m;};
 export const timeLabel=minutes=>`${String(Math.floor(minutes/60)).padStart(2,'0')}:${String(minutes%60).padStart(2,'0')}`;
 export function validateSchedule(input={}){

@@ -1,7 +1,7 @@
 name: Préparer Lecture Pause sans APK
 on:
   push:
-    branches: [feat/media-key-control]
+    branches: [feat/media-key-control, release/android-204]
   workflow_dispatch:
 permissions:
   contents: read
