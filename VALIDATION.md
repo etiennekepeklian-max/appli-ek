@@ -1,3 +1,9 @@
+## 18 novembre 2026 — 2.0.2, attente d’autorisation Android visible
+
+Diagnostic du blocage signalé après connexion : le serveur a enregistré le nouvel appareil sous le profil propriétaire, mais comme appareil opérateur non encore approuvé. L’écran d’attente était bien construit, mais le masque de chargement initial restait au-dessus jusqu’à l’ouverture de l’application ; celle-ci attendait justement l’autorisation. Le masque est désormais masqué dès l’affichage d’un écran d’entrée interactif (connexion, attente d’autorisation, export de transition). Aucun rôle ni code n’est modifié sur le serveur.
+
+L’écran donne l’empreinte, permet de revérifier l’autorisation et offre un retour à la connexion pour importer le fichier privé du propriétaire. Les notifications musicales retirées en 2.0.1 restent absentes. Aide d’entrée et guide Android mis à jour. Régression navigateur requise : appareil natif non approuvé, écran d’attente sans masque, nouvelle vérification encore en attente, retour à la connexion puis activation privée synthétique et arrivée sur l’accueil ; export web sans masque. Compilation, lint et signature avec le certificat conservé requis avant livraison.
+
 ## 18 novembre 2026 — 2.0.1, retrait du contrôle musical externe
 
 Étienne autorise explicitement le retrait du contrôle musical externe pour résoudre le blocage Play Protect observé lors de l’installation. Suppression du service NotificationListenerService, de la superposition, du service musical en premier plan et des méthodes musicales du pont natif. Les notifications émises par Pikéo, les alarmes, caméra/audio et exports restent présents. La page Alertes Android, son aide contextuelle, le guide et la page Aide décrivent la version sans commande musicale.
@@ -497,3 +503,7 @@ Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios 
 - Brouillon le plus récent repris directement sur l’accueil ; liste complète et suppression conservées dans Outils.
 - Aide Accueil, recherche de fonctions et FAQ mises à jour. Parcours de contrôle : neuf logos à 320×568, 360×640, 390×844, 480×900 et 844×390, modes clair/sombre et texte agrandi ; contrôle des brouillons et de la barre Annuler.
 - Modification exclusivement web : serveur et authentification inchangés (version serveur 1.21.0).
+
+## 18 novembre 2026 — attribution obligatoire des sorties
+
+Mention exacte partagée par tous les comptes, sans option de masquage : « Pikéo - propriété intellectuelle d'Etienne Képéklian ». Pied PDF sur chaque page, en A4 portrait et A5 paysage ; code individuel et planches ; texte intégré aux SVG avant conversion PNG, hors des barres et de leurs marges de lecture. Pied fixe répété pour les impressions navigateur, y compris les fenêtres de planches. Colonne d’attribution CSV et métadonnée JSON pour les sorties de données non paginées, sans ligne factice ni modification des identifiants. Les originaux importés, justificatifs et audios ne sont pas réécrits. Aides des codes, planches, exports et entrée mises à jour. Les fichiers exportés restent éditables extérieurement. Vérifications requises : texte sur chaque page PDF, impressions multifeuilles et planches, lecture réelle d’un code rasterisé après ajout, rôles propriétaire/opérateur, aller-retour des sauvegardes et CSV avec champs multiligne.
