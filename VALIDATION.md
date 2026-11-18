@@ -1,3 +1,9 @@
+## Préparation du 18 novembre — commande multimédia minimale, non livrée
+
+À la demande d’Étienne, préparation sans remise d’un nouvel APK. La commande native utilise uniquement AudioManager.dispatchMediaKeyEvent avec ACTION_DOWN puis ACTION_UP pour KEYCODE_MEDIA_PLAY_PAUSE. Aucun accès aux sessions, aux notifications ou à une application cible ; aucune nouvelle permission, superposition ou service. Bouton Musique dans la barre de navigation de Pikéo seulement, après connexion et présence du pont compatible. Un appui envoie une commande ; l’interface ne prétend pas connaître l’état réel du lecteur. Le comportement dépend du lecteur sélectionné par Android, à vérifier sur le téléphone.
+
+La version web et les APK publiés restent inchangés ; préparation sur branche dédiée. Aide et réglages Android mis à jour. Contrôles : permissions inchangées, tests métier, scénario navigateur avec pont simulé (affichage, clic unique, refus/double clic, navigation, déconnexion), compilation Java debug sans assemble ni génération d’APK.
+
 ## 18 novembre 2026 — 2.0.2, attente d’autorisation Android visible
 
 Diagnostic du blocage signalé après connexion : le serveur a enregistré le nouvel appareil sous le profil propriétaire, mais comme appareil opérateur non encore approuvé. L’écran d’attente était bien construit, mais le masque de chargement initial restait au-dessus jusqu’à l’ouverture de l’application ; celle-ci attendait justement l’autorisation. Le masque est désormais masqué dès l’affichage d’un écran d’entrée interactif (connexion, attente d’autorisation, export de transition). Aucun rôle ni code n’est modifié sur le serveur.

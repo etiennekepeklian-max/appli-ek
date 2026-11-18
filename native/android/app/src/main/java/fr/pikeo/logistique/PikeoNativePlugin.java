@@ -2,6 +2,8 @@ package fr.pikeo.logistique;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.media.AudioManager;
+import android.view.KeyEvent;
 import android.content.*;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -28,10 +30,17 @@ public class PikeoNativePlugin extends Plugin {
   KeyStore s=keys();if(!s.containsAlias("pikeo-device")){KeyPairGenerator g=KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC,"AndroidKeyStore");g.initialize(new KeyGenParameterSpec.Builder("pikeo-device",KeyProperties.PURPOSE_SIGN|KeyProperties.PURPOSE_VERIFY).setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1")).setDigests(KeyProperties.DIGEST_SHA256).build());g.generateKeyPair();}
   return (KeyStore.PrivateKeyEntry)keys().getEntry("pikeo-device",null);
  }
- @PluginMethod public void capabilities(PluginCall c){JSObject r=new JSObject();r.put("externalMusic",false);r.put("notifications",Build.VERSION.SDK_INT<33||ContextCompat.checkSelfPermission(getContext(),Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED);r.put("exactAlarms",Build.VERSION.SDK_INT<31||getContext().getSystemService(AlarmManager.class).canScheduleExactAlarms());r.put("platform","android");c.resolve(r);}
+ @PluginMethod public void capabilities(PluginCall c){JSObject r=new JSObject();r.put("externalMusic",true);r.put("mediaKeyToggle",true);r.put("notifications",Build.VERSION.SDK_INT<33||ContextCompat.checkSelfPermission(getContext(),Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED);r.put("exactAlarms",Build.VERSION.SDK_INT<31||getContext().getSystemService(AlarmManager.class).canScheduleExactAlarms());r.put("platform","android");c.resolve(r);}
  @PluginMethod public void deviceKey(PluginCall c){try{byte[] p=identity().getCertificate().getPublicKey().getEncoded();MessageDigest d=MessageDigest.getInstance("SHA-256");JSObject r=new JSObject();r.put("publicKey",Base64.encodeToString(p,Base64.NO_WRAP));r.put("fingerprint",hex(d.digest(p)));c.resolve(r);}catch(Exception e){c.reject("Clé Android indisponible",e);}}
  @PluginMethod public void sign(PluginCall c){try{String p=c.getString("payload");if(p==null||p.length()>3000000)throw new Exception("Données invalides");Signature s=Signature.getInstance("SHA256withECDSA");s.initSign(identity().getPrivateKey());s.update(p.getBytes(StandardCharsets.UTF_8));JSObject r=new JSObject();r.put("signature",Base64.encodeToString(s.sign(),Base64.NO_WRAP));c.resolve(r);}catch(Exception e){c.reject("Signature Android indisponible",e);}}
  private String hex(byte[] a){StringBuilder s=new StringBuilder();for(byte b:a)s.append(String.format("%02x",b));return s.toString();}
+ @PluginMethod public void toggleMedia(PluginCall c){try{
+  AudioManager audio=getContext().getSystemService(AudioManager.class);
+  if(audio==null){c.reject("Le service multimédia Android est indisponible.");return;}
+  audio.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
+  audio.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
+  JSObject r=new JSObject();r.put("dispatched",true);c.resolve(r);
+ }catch(Exception e){c.reject("Commande Lecture/Pause indisponible. Ouvrez votre lecteur musical.",e);}}
  @PluginMethod public void scheduleAlarm(PluginCall c){try{String id=c.getString("id");Long at=c.getLong("at");if(id==null||!id.matches("[a-zA-Z0-9_-]{1,100}")||at==null||at<=System.currentTimeMillis())throw new Exception("Échéance invalide");boolean exact=PikeoAlarmReceiver.schedule(getContext(),id,at,c.getString("title","Pikéo — tâche à vérifier"));JSObject r=new JSObject();r.put("exact",exact);c.resolve(r);}catch(Exception e){c.reject("Rappel non programmé",e);}}
  @PluginMethod public void cancelAlarm(PluginCall c){PikeoAlarmReceiver.cancel(getContext(),c.getString("id",""));c.resolve();}
  @PluginMethod public void requestNotifications(PluginCall c){if(Build.VERSION.SDK_INT>=33&&getPermissionState("notifications")!=PermissionState.GRANTED)requestPermissionForAlias("notifications",c,"notificationResult");else c.resolve();}

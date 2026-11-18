@@ -60,6 +60,7 @@
   "js/management-core.js",
   "js/management.js",
   "js/mascot.js",
+  "js/media-control.js",
   "js/mobile.js",
   "js/model.js",
   "js/navigation-core.js",
