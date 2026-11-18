@@ -1,7 +1,5 @@
 name: Construire APK Pikéo
 on:
-  push:
-    branches: [release/android-204]
   workflow_dispatch:
 permissions:
   contents: read
