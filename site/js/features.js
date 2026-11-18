@@ -1,3 +1,4 @@
+import {barcodeOwnership,pdfOwnership} from './ownership.js';
 import {lookupScannedProduct,cancelProductLookup,renderProductLookup} from './product-lookup.js';
 export {cancelProductLookup,renderProductLookup};
 import * as Mascot from './mascot.js';
@@ -42,7 +43,7 @@ export function barcodeSVG(value,format='CODE128',stars=false){
   validBarcode(payload,format);if(!window.JsBarcode)throw Error('Le générateur de codes-barres n’est pas chargé.');
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   JsBarcode(svg,payload,{format,width:2,height:92,displayValue:true,font:'monospace',fontSize:17,textMargin:8,margin:22,lineColor:'#000000',background:'#ffffff'});
-  svg.setAttribute('role','img');svg.setAttribute('aria-label',`${format} : ${payload}`);return svg;
+  svg.setAttribute('role','img');svg.setAttribute('aria-label',`${format} : ${payload}`);return barcodeOwnership(svg);
 }
 export async function generateBarcode(value,format=Store.settings().barcodeFormat||'CODE39',stars=false,log=true){
   const svg=barcodeSVG(value,format,stars);const payload=stars&&format==='CODE128'?`*${value}*`:value;
@@ -61,7 +62,7 @@ export async function exportCode(format){const g=state.generated;if(!g)throw Err
   if(format==='svg'){download(new Blob([g.svg],{type:'image/svg+xml'}),`code-${name}.svg`);return;}
   const png=await svgPNG(g.svg);
   if(format==='png'){const blob=await (await fetch(png)).blob();download(blob,`code-${name}.png`);return;}
-  const pdf=new jspdf.jsPDF({orientation:'landscape',format:'a5'});pdf.setFontSize(14);pdf.text('Pikéo · '+g.format,15,20);const img=pdf.getImageProperties(png);const w=175,h=w*img.height/img.width;pdf.addImage(png,'PNG',17,35,w,Math.min(85,h));pdf.setFontSize(9);pdf.text('Texte lu : '+g.payload,17,133);download(pdf.output('blob'),`code-${name}.pdf`);
+  const pdf=new jspdf.jsPDF({orientation:'landscape',format:'a5'});pdf.setFontSize(14);pdf.text('Pikéo · '+g.format,15,20);const img=pdf.getImageProperties(png);const w=175,h=w*img.height/img.width;pdf.addImage(png,'PNG',17,35,w,Math.min(85,h));pdf.setFontSize(9);pdf.text('Texte lu : '+g.payload,17,133);pdfOwnership(pdf);download(pdf.output('blob'),`code-${name}.pdf`);
 }
 export async function compareCodes(){
   const input=document.querySelector('#code-input')?.value?.trim()||state.codeValue||'001234';
@@ -73,7 +74,7 @@ export async function compareCodes(){
 export function batchDialog(){modal('Planche de codes-barres',`<form data-form="batch-codes"><div class="field"><label for="batch-values">Une référence par ligne</label><textarea id="batch-values" name="values" rows="7" placeholder="REA1\nREA2\nTRJDUPOR" required></textarea><p class="hint">100 codes au maximum par planche. Les doublons sont conservés si vous avez besoin de plusieurs exemplaires.</p></div><div class="field section-gap"><label for="batch-format">Format des codes</label><select name="format" id="batch-format"><option value="CODE39">Code 39 — compatible C39HrP24DhTt</option><option value="CODE128">Code 128</option></select></div><label class="check-label section-gap"><input name="stars" type="checkbox">Ajouter les étoiles aux données (Code 128 uniquement)</label><div class="form-actions"><button class="btn primary" type="submit">Créer la planche</button></div></form><div id="batch-output"></div>`,true);}
 let batchItems=[];
 export function createBatch(text,stars,format='CODE39'){const values=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!values.length||values.length>100)throw Error('Indiquez entre 1 et 100 références, une par ligne.');batchItems=values.map(value=>({value,stars:stars&&format==='CODE128',format,svg:barcodeSVG(value,format,stars).outerHTML}));document.querySelector('#batch-output').innerHTML=`<div class="actions section-gap">${btn('Télécharger le PDF','batch-pdf','download','primary')}${btn('Imprimer','print','print')}</div><div class="section-gap">${batchItems.map(i=>`<div class="batch-label">${i.svg}</div>`).join('')}</div>`;}
-export async function batchPDF(){if(!batchItems.length)return;const pdf=new jspdf.jsPDF();let y=15;for(const item of batchItems){if(y+48>282){pdf.addPage();y=15;}const png=await svgPNG(item.svg);const props=pdf.getImageProperties(png);const width=Math.min(178,props.width/props.height*40);pdf.addImage(png,'PNG',(210-width)/2,y,width,40);y+=50;}download(pdf.output('blob'),'codes-barres-ek.pdf');}
+export async function batchPDF(){if(!batchItems.length)return;const pdf=new jspdf.jsPDF();let y=15;for(const item of batchItems){if(y+48>282){pdf.addPage();y=15;}const png=await svgPNG(item.svg);const props=pdf.getImageProperties(png);const width=Math.min(178,props.width/props.height*40);pdf.addImage(png,'PNG',(210-width)/2,y,width,40);y+=50;}pdfOwnership(pdf);download(pdf.output('blob'),'codes-barres-ek.pdf');}
 let scannerControls,scanTimer,scanRun=0,cameraSession;
 const cameraPreference='ek-preferred-camera';
 function getCameraSession(){

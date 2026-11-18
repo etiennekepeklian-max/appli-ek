@@ -1,5 +1,13 @@
 # Pikéo
 
+## Version 2.0.2 — ouverture et attribution obligatoire
+
+L’attente d’autorisation d’un nouvel appareil devient visible, avec retour à la connexion pour activer l’accès propriétaire par fichier privé. Les rapports PDF, pages imprimées et images de codes-barres portent la mention obligatoire demandée par Étienne, pour tous les comptes. Les CSV/JSON conservent des données réimportables avec attribution.
+
+## Version 2.0.2 — autorisation Android visible
+
+Le chargement ne masque plus l’attente d’autorisation d’un nouvel appareil, ni l’export de transition web. L’écran explique l’activation propriétaire avec le fichier privé et permet de revenir à la connexion. Les droits serveur restent inchangés : aucun accès n’est accordé par le nom seul. Les permissions musicales retirées en 2.0.1 restent absentes.
+
 ## Version 2.0.1 — correction de l’installation Android
 
 Retrait, autorisé par Étienne, du contrôle musical externe et de ses services/autorisations sensibles après le blocage Play Protect constaté sur son téléphone. Les fonctions terrain, le pilotage privé, les rappels Pikéo, IntroK, la caméra et les mémos sont conservés. Même identifiant Android et même clé de signature pour les mises à jour. Les réglages et aides Android décrivent les seules autorisations restantes. Le nouveau paquet doit être essayé sur le téléphone ; aucune acceptation Play Protect n’est affirmée avant cet essai.
@@ -28,6 +36,10 @@ L’entrée bureau attend une demande `bureau-access` signée avant d’importer
 Les fichiers statiques sont hébergés publiquement sur GitHub Pages. Ce contrôle réserve le parcours Bureau dans l’application ; il ne rend pas son HTML ni son code source confidentiels. Les opérations du service restent soumises à leur propre authentification et à leurs permissions serveur. Aucune migration, modification d’habilitation ni suppression de données n’est nécessaire pour cette version.
 
 # Pikéo
+
+## Version 2.0.2 — ouverture et attribution obligatoire
+
+L’attente d’autorisation d’un nouvel appareil devient visible, avec retour à la connexion pour activer l’accès propriétaire par fichier privé. Les rapports PDF, pages imprimées et images de codes-barres portent la mention obligatoire demandée par Étienne, pour tous les comptes. Les CSV/JSON conservent des données réimportables avec attribution.
 
 ## Version 1.18.1 — photos de recherche et nettoyage du cache
 

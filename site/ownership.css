@@ -1,0 +1,6 @@
+.pikeo-print-footer{display:none}
+@media print{
+ @page{margin:12mm 10mm 18mm}
+ .skip-link{display:none!important}
+ .pikeo-print-footer{display:block!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;margin:0!important;padding:2mm 0!important;text-align:center!important;font:7pt Arial,sans-serif!important;color:#222!important;background:#fff!important;z-index:2147483647!important;white-space:nowrap!important}
+}
