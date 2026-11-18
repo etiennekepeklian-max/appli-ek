@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -192,9 +193,25 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Attendre le fichier de publication unique
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const name = `github-pages-${context.runId}-${process.env.GITHUB_RUN_ATTEMPT}`;
+            for (let attempt = 0; attempt < 12; attempt++) {
+              const {data} = await github.rest.actions.listWorkflowRunArtifacts({owner:context.repo.owner,repo:context.repo.repo,run_id:context.runId,per_page:100});
+              const matches = data.artifacts.filter(a => a.name === name && !a.expired);
+              if (matches.length === 1) { core.info(`Fichier de publication prêt : ${name}`); return; }
+              if (matches.length > 1) throw new Error('Plusieurs fichiers de publication identiques.');
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+            throw new Error('Le fichier de publication reste indisponible.');
       - name: Publier
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Vérifier la version web publiée
         env:
           PIKEO_PUBLISHED_URL: ${{ steps.deployment.outputs.page_url }}
