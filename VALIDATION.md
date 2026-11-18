@@ -538,3 +538,10 @@ Mention exacte partagée par tous les comptes, sans option de masquage : « Pik�
 - Aide Horaires et alertes mise à jour ; aucun test physique annoncé. Compilation explicitement demandée par Étienne.
 
 - Livraison Android : compilation/lint réussis (44299145241), vérifications Java et navigateur réussies (44299145293), 283 tests. Récurrence à huit minutes et changements d’heure testés ; configuration native, son optionnel et test à cinq secondes contrôlés via pont simulé. Signature identique vérifiée sur le fichier final ; GIF original réincorporé avant signature et comparé octet pour octet. Aucune validation physique du volume ou du déclenchement sur téléphone. Déclencheur de compilation temporaire supprimé après la construction autorisée.
+
+
+### 18 novembre — suppression de compte préparée
+- Suppression logique réservée au propriétaire, avec PIN administrateur existant, confirmation et contrôle de version ; propriétaire protégé. Compte masqué, appareils et sessions révoqués, données métier et audit conservés. Nom réservé ; aucune suppression distante des copies hors ligne.
+- Aide administration mise à jour. Prérequis : appliquer backend/account-removal-schema.sql puis déployer le service avant livraison de l’interface. Aucun compte réel supprimé, aucun déploiement et aucun APK compilé pour cette demande.
+
+- 288 tests réussis : refus aux collègues et au propriétaire cible, aucune écriture sur saisie invalide, contrôle de version et révocation des appareils/sessions/délégations sans suppression des données métier.

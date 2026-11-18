@@ -49,7 +49,7 @@ test('réinitialisation refusée par le même administrateur',async()=>{
 test('les opérations administratives utilisent un PIN côté serveur et les échecs sont validés hors transaction',async()=>{
  const api=await readFile(new URL('../backend/pikeo-api/index.ts',import.meta.url),'utf8');
  const ui=await readFile(new URL('../site/js/administration.js',import.meta.url),'utf8');
- assert.match(api,/protectedActions=\['users','user-create','user-update','set-access','devices','set-role','activity-list'\]/);
+ assert.match(api,/protectedActions=\['users','user-create','user-update','user-delete','set-access','devices','set-role','activity-list'\]/);
  assert.match(api,/Pin\.assertUnlocked\(sql,fresh\.id\)/);
  assert.match(api,/if\(adminDevice\)\{const denied=await Pin\.assertUnlocked\(sql,fresh\.id\);if\(denied\)return denied;\}/);
  assert.match(api,/if\(result\?\.__pinError\)reject\(result\.status,result\.message\)/);
