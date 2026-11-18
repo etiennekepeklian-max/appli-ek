@@ -1,5 +1,9 @@
 # Pikéo
 
+## Version 2.0.1 — correction de l’installation Android
+
+Retrait, autorisé par Étienne, du contrôle musical externe et de ses services/autorisations sensibles après le blocage Play Protect constaté sur son téléphone. Les fonctions terrain, le pilotage privé, les rappels Pikéo, IntroK, la caméra et les mémos sont conservés. Même identifiant Android et même clé de signature pour les mises à jour. Les réglages et aides Android décrivent les seules autorisations restantes. Le nouveau paquet doit être essayé sur le téléphone ; aucune acceptation Play Protect n’est affirmée avant cet essai.
+
 ## Version 2.0.0 — Android et pilotage privé
 
 - APK Capacitor : IntroK.gif, identification personnelle à chaque lancement, caméra et audio déclarés, exports via le sélecteur Android. Une connexion Internet est nécessaire à l’ouverture.

@@ -1,3 +1,11 @@
+## 18 novembre 2026 — 2.0.1, retrait du contrôle musical externe
+
+Étienne autorise explicitement le retrait du contrôle musical externe pour résoudre le blocage Play Protect observé lors de l’installation. Suppression du service NotificationListenerService, de la superposition, du service musical en premier plan et des méthodes musicales du pont natif. Les notifications émises par Pikéo, les alarmes, caméra/audio et exports restent présents. La page Alertes Android, son aide contextuelle, le guide et la page Aide décrivent la version sans commande musicale.
+
+Identité `fr.pikeo.logistique` conservée, versionCode 20001 / versionName 2.0.1. Les données et schémas serveur ne changent pas ; la restriction web propriétaire et le pilotage privé sont conservés. La signature finale réutilise la clé de la 2.0.0, préservée hors dépôt.
+
+280 tests métier réussis, 193 modules / 950 dépendances contrôlés. Deux contrôles de distribution vérifient l’absence des services/permissions sensibles retirés et le maintien des capacités nécessaires. Le parcours navigateur d’entrée/pilotage est étendu aux réglages Android : aucun bouton musical, permissions de notifications Pikéo et d’alarmes distinctes. Compilation/lint release et inspection du manifeste signé requis avant remise. L’acceptation Play Protect sur téléphone reste à confirmer par Étienne, sans désactivation de la protection.
+
 ## 17 novembre 2026 — 2.0.0, Android et pilotage privé
 
 Livraison autorisée par le GO d’Étienne. Application Android `fr.pikeo.logistique`, versionCode 20000, Android 7/API 24 minimum, cible API 36, Capacitor 8.6.2 et Java 21. Le code web est embarqué localement, sans service worker ni mise à jour distante du code dans l’APK. IntroK.gif original incorporé avant signature. Caméra et audio déclarés, exports Android via sélecteur de documents, bouton multimédia flottant limité à Lecture/Pause, rappels locaux et restauration de leur programmation au redémarrage.
