@@ -28,6 +28,7 @@ try{
  await db`insert into pikeo_private.devices(id,profile_id,signing_key,encryption_key) values(${legacy.id},${legacyProfile},${db.json(publicKey(await publicJWK(legacy.keys.signing.publicKey)))},${db.json(publicKey(await publicJWK(legacy.keys.encryption.publicKey)))})`;
  const migration=await readFile(new URL('../backend/user-pin-schema.sql',import.meta.url),'utf8');const sql=await db.reserve();try{await sql.unsafe(migration);await sql.unsafe(migration);}finally{sql.release();}
  await db`insert into pikeo_private.owner_keys(token_hash) values(${await hash(ownerSecret)})`;
+ await db.unsafe(await readFile(new URL('../backend/account-removal-schema.sql',import.meta.url),'utf8'));
  const entry=new URL('../backend/pikeo-api/index.ts',import.meta.url),key=Symbol.for('pikeo-personal-contract');
  const source=(await readFile(entry,'utf8')).replace(/^import postgres from 'npm:postgres@3\.4\.9';$/m,"const deps=globalThis[Symbol.for('pikeo-personal-contract')];const Deno=deps.Deno;").replace(/^const db=postgres\(.*;\n/m,'const db=deps.db;\n').replace(/from '(\.\/[^']+)'/g,(_,p)=>'from '+JSON.stringify(new URL(p,entry).href)).replace('Deno.serve(handle);','export {handle};');
  globalThis[key]={db,Deno:{env:{get:name=>env[name]}}};try{({handle}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64')));}finally{delete globalThis[key];}
@@ -92,6 +93,22 @@ try{
   assert.equal((await api(android,'session',{platform:'android',nativePublicKey:'fake'})).status,200);
   const other=await fresh('Android imposteur');assert.equal((await api(other,'register',{name:other.name,signingKey:await publicJWK(other.keys.signing.publicKey),encryptionKey:await publicJWK(other.keys.encryption.publicKey),nativePublicKey:Buffer.from(await crypto.subtle.exportKey('spki',key.publicKey)).toString('base64')})).status,403);
   await api(owner,'native-revoke',{target:android.id});assert.equal((await api(android,'session')).status,403);
+ });
+ await check('suppression propriétaire : contrôle de version, révocation et conservation de l’historique',async()=>{
+  await db`update pikeo_private.platform_policy set web_admin_only=false`;
+  await api(owner,'admin-pin-unlock',{pin:'0246'});
+  const mistaken=await fresh('Compte erreur synthétique');await register(mistaken);await enroll(mistaken);
+  const [{access_version:version}]=await db`select access_version from pikeo_private.profiles where id=${mistaken.profileId}`;
+  assert.equal((await api(mistaken,'user-delete',{target:owner.profileId,version:0})).status,403);
+  assert.equal((await api(owner,'user-delete',{target:owner.profileId,version:0})).status,403);
+  assert.equal((await api(owner,'user-delete',{target:mistaken.profileId,version:version+1})).status,409);
+  assert.equal((await api(owner,'user-delete',{target:mistaken.profileId,version})).status,200);
+  assert.equal((await api(mistaken,'session')).status,401);
+  const [retained]=await db`select active,deleted_at from pikeo_private.profiles where id=${mistaken.profileId}`;assert.equal(retained.active,false);assert.ok(retained.deleted_at);
+  assert.equal((await db`select count(*)::int n from pikeo_private.user_pin_sessions where profile_id=${mistaken.profileId}`)[0].n,0);
+  assert.ok((await db`select 1 from pikeo_private.access_audit where target=${mistaken.profileId} and action='user-deleted'`).length);
+  assert.ok(!(await api(owner,'users')).data.users.some(u=>u.id===mistaken.profileId));
+  assert.equal((await api(owner,'user-update',{target:mistaken.profileId,version:version+1,active:true})).status,409);
  });
  console.log(checks+' contrats réels SQL/API réussis ; aucune requête de production.');
 }finally{await db.end({timeout:5});}

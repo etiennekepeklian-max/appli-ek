@@ -507,3 +507,7 @@ Validation réalisée : 269 tests métier passent, dont les nouveaux scénarios 
 ## 18 novembre 2026 — attribution obligatoire des sorties
 
 Mention exacte partagée par tous les comptes, sans option de masquage : « Pikéo - propriété intellectuelle d'Etienne Képéklian ». Pied PDF sur chaque page, en A4 portrait et A5 paysage ; code individuel et planches ; texte intégré aux SVG avant conversion PNG, hors des barres et de leurs marges de lecture. Pied fixe répété pour les impressions navigateur, y compris les fenêtres de planches. Colonne d’attribution CSV et métadonnée JSON pour les sorties de données non paginées, sans ligne factice ni modification des identifiants. Les originaux importés, justificatifs et audios ne sont pas réécrits. Aides des codes, planches, exports et entrée mises à jour. Les fichiers exportés restent éditables extérieurement. Vérifications requises : texte sur chaque page PDF, impressions multifeuilles et planches, lecture réelle d’un code rasterisé après ajout, rôles propriétaire/opérateur, aller-retour des sauvegardes et CSV avec champs multiligne.
+
+### 18 novembre — suppression des comptes sur le web
+- Bouton réservé à Étienne avec confirmation, code administrateur et contrôle de version. Compte masqué, sessions/appareils/délégations révoqués ; historique et données métier conservés. Le nom reste réservé et les copies locales hors ligne ne sont pas effacées.
+- Mise à jour additive de la base et du service ; aucun compte réel supprimé. Aide administration mise à jour. Aucun APK demandé ni généré pour cette livraison web.

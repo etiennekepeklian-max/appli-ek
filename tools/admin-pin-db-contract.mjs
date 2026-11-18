@@ -40,6 +40,7 @@ try{
  const migration=await db.reserve();
  try{await migration.unsafe(pinSchema);await migration.unsafe(pinSchema);}finally{migration.release();}
  await db`insert into pikeo_private.owner_keys(token_hash) values(${await hash(ownerSecret)})`;
+ await db.unsafe(await readFile(new URL('../backend/account-removal-schema.sql',import.meta.url),'utf8'));
  const entry=new URL('../backend/pikeo-api/index.ts',import.meta.url);
  const source=(await readFile(entry,'utf8'))
   .replace(/^import postgres from 'npm:postgres@3\.4\.9';$/m,"const deps=globalThis[Symbol.for('pikeo-pin-db-contract')];const Deno=deps.Deno;")
