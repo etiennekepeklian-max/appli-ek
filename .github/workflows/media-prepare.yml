@@ -34,6 +34,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Vérifier les récurrences et les changements d’heure
+        run: mkdir -p /tmp/pikeo-time-test && javac -d /tmp/pikeo-time-test native/android/app/src/main/java/fr/pikeo/logistique/WorkReminderTime.java tools/WorkReminderTimeCheck.java && java -cp /tmp/pikeo-time-test WorkReminderTimeCheck
       - run: npm ci --prefix native
       - run: node tools/prepare-native.mjs && cd native && npx cap sync android
       - name: Compiler et contrôler le Java sans générer d’APK
