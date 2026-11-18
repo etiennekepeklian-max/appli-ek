@@ -44,7 +44,7 @@ export function barcodeSVG(value,format='CODE128',stars=false,label=null){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   JsBarcode(svg,payload,{format,width:2,height:92,displayValue:true,font:'monospace',fontSize:17,textMargin:8,margin:22,lineColor:'#000000',background:'#ffffff'});
   svg.setAttribute('role','img');svg.setAttribute('aria-label',`${format} : ${payload}`);if(label){
-    const ns='http://www.w3.org/2000/svg',originalWidth=Number(svg.getAttribute('width')),w=Math.max(480,originalWidth),h=Number(svg.getAttribute('height'));
+    const ns='http://www.w3.org/2000/svg',originalWidth=parseFloat(svg.getAttribute('width')),w=Math.max(480,originalWidth),h=parseFloat(svg.getAttribute('height'));
     const bars=document.createElementNS(ns,'g');bars.setAttribute('transform',`translate(${(w-originalWidth)/2} 0)`);while(svg.firstChild)bars.append(svg.firstChild);svg.append(bars);svg.setAttribute('width',String(w));
     const lines=(label.designation.match(/.{1,48}(?:\s|$)|.{1,48}/gu)||[]).map(x=>x.trim());
     lines.push('Quantité : '+label.quantity);
