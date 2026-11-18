@@ -1,7 +1,7 @@
 name: Construire APK Pikéo
 on:
   push:
-    branches: [main, fix/android-opening, fix/android-play-protect, feat/android-management]
+    branches: [main, fix/android-opening, fix/android-play-protect, feat/android-management, feat/media-key-control]
   workflow_dispatch:
 permissions:
   contents: read
